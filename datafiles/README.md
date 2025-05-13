@@ -1,0 +1,1 @@
+This folder holds all data files (text, CSVs, etc.) created by the IRSMicroLensing library.

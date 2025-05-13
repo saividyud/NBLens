@@ -1,0 +1,1 @@
+This folder holds all GIFs and videos created by the IRSMicroLensing library.

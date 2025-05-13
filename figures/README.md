@@ -1,0 +1,1 @@
+This folder holds all figures created by the IRSMicroLensing library.
