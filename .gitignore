@@ -1,0 +1,5 @@
+__pycache__
+IRSMicrolensing/__pycache__/*
+datafiles/*
+movies/*
+figures/*
