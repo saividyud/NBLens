@@ -3,3 +3,4 @@ IRSMicrolensing/__pycache__/*
 datafiles/*
 movies/*
 figures/*
+.venv
