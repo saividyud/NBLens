@@ -1,2 +1,3 @@
-IRSMicrolensing/__pycache__/*
 .venv
+.numba_cache
+IRSMicroLensing/__pycache__

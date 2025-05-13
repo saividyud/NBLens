@@ -7,22 +7,297 @@ class IRSCaustics(IRSMain):
 
     Parameters
     ----------
-    pixels : int
-        Number of pixels along a side of the detector
-    ang_width : float
-        Angular width of lens region in terms of Einstein ring radius (theta_e)
-    lens_att : 1x4 array
-        Lens attributes in format:
-            [x, y, r, M] -> Units: [theta_e, theta_e, theta_e, Msun]
+    **ONLY CHOOSE ONE PARAMETER TO PASS IN AT A TIME**
+
+    whole_plane_param_dict : dict
+        Parameter dictionary for sampling the whole source plane
+        Acceptable parameters below
+            **CHOOSE 2 OF THE FOLLOWING 4 PARAMETERS TO FULLY DEFINE SOURCE AND IMAGE PLANES**
+            pixels : int
+                Number of pixels along a side of the map
+            ang_width : float, str = 'auto'
+                Angular width of map in terms of Einstein ring radius [theta_e]
+            ang_res : float
+                Angular resolution of magnification map [theta_e / pixel]
+            pixel_density : float
+                Density of pixels in the magnification map [pixel / theta_e]
+            
+            **REQUIRED PARAMETERS**
+            rays_per_pixel : int
+                Number of rays to shoot along a side of a pixel (total number of rays is squared) [ray / pixel]
+            lens_att : 1x4 array
+                Lens attributes in format:
+                    [x, y, r, M] -> Units: [theta_e, theta_e, theta_e, Msun]
+
+    annulus_param_dict : dict
+        Parameter dictionary for only sampling within the Einstein ring radius
+        Acceptable parameters below
+            **CHOOSE 2 OF THE FOLLOWING 4 PARAMETERS TO FULLY DEFINE SOURCE PLANE**
+            pixels : int
+                Number of pixels along a side of the map
+            ang_width : float
+                Angular width of map in terms of Einstein ring radius [theta_e]
+            ang_res : float
+                Angular resolution of magnification map [theta_e / pixel]
+            pixel_density : float
+                Density of pixels in the magnification map [pixel / theta_e]
+
+            **CHOOSE 1 OF THE FOLLOWING 2 PARAMETERS TO FULLY DEFINE RADIAL SAMPLING**
+            dr : float
+                Angular seperation of rays radially [theta_e]
+            num_r : int
+                Number of rays radially [rays]
+            
+            **CHOOSE 1 OF THE FOLLOWING 2 PARAMETERS TO DEFINE TANGENTIAL SAMPLING**
+            dtheta : float
+                Angular seperation of rays tangentially [degrees]
+            num_theta : int
+                Number of rays tangentially [rays]
+
+            **REQUIRED PARAMETERS**
+            thickness : float, str = 'auto'
+                Thickness of the annulus [theta_e]
+            lens_att : 1x4 array
+                Lens attributes in format:
+                    [x, y, r, M] -> Units: [theta_e, theta_e, theta_e, Msun]
 
     Returns
     -------
     IRSCaustics object
     '''
-    def __init__(self, pixels: int, ang_width: int | float, lens_att: list, rays_per_pixel: int = 1, annulus: float = 0, *args, **kwargs):
-        self.rays_per_pixel = rays_per_pixel
-        self.annulus = annulus
-        super().__init__(pixels=pixels, ang_width=ang_width, source_att=None, lens_att=lens_att, *args, **kwargs)
+    def __init__(self, whole_plane_param_dict: dict = None, annulus_param_dict: dict = None):
+        if whole_plane_param_dict != None:
+            # Checking if rays_per_pixel exists
+            if whole_plane_param_dict.get('rays_per_pixel') == None:
+                raise AttributeError('Parameter dict must contain rays_per_pixel.')
+            
+            # Making sure source and image planes are fully defined
+            self.param_dict, self.caustic_cusps = IRSCaustics.whole_param_checker(whole_plane_param_dict)
+
+            # Adding some more important parameters to dictionary
+            self.param_dict.update({'num_rays': int((self.param_dict['pixels']*self.param_dict['rays_per_pixel'])**2)})
+
+            # Deleting thickness if auto was passed into angular width
+            self.param_dict.update({'thickness': 0.0})
+            del self.param_dict['thickness']
+            
+            # Changing mode for later use
+            self.mode = 'whole'
+
+            # Extracting and naming important parameters
+            self.rays_per_pixel = self.param_dict['rays_per_pixel']
+            self.num_rays = self.param_dict['num_rays']
+
+        elif annulus_param_dict != None:
+            # Making sure source plane and annulus shooting region are fully defined
+            self.param_dict, self.caustic_cusps = IRSCaustics.annulus_param_checker(IRSCaustics.whole_param_checker(annulus_param_dict))
+
+            # Adding some more important parameters to dictionary
+            self.param_dict.update({'num_rays': int(self.param_dict['num_r']*self.param_dict['num_theta'])})
+
+            # Changing mode for later use
+            self.mode = 'annulus'
+
+            # Extracting and naming important parameters
+            self.thickness = self.param_dict['thickness']
+            self.num_r = self.param_dict['num_r']
+            self.num_theta = self.param_dict['num_theta']
+            self.num_rays = self.param_dict['num_rays']
+
+        # Initializing parent class
+        # Creates some class variables: self.pixels, self.ang_width, self.lens_att, self.ang_res, self.L, self.total_M, self.import_file
+        super().__init__(pixels=self.param_dict['pixels'], ang_width=self.param_dict['ang_width'], source_att=None, lens_att=self.param_dict['lens_att'])
+
+    @staticmethod
+    def whole_param_checker(passed_params: dict):
+        # Checking if lens_att exists
+        if passed_params.get('lens_att') == None:
+            raise AttributeError('Parameter dict must contain lens_att.')
+        
+        # Extracting pertinent arguments from dictionary
+        pixels, ang_width, ang_res, pixel_density = passed_params.get('pixels'), passed_params.get('ang_width'), passed_params.get('ang_res'), passed_params.get('pixel_density')
+
+        # Checking if ang_width should be calculated
+        if ang_width == 'auto':
+            # If the angular width is automatic, need to calculate the angular width using analytic equations...
+            ang_width, thickness, points = IRSCaustics.ang_width_thickness_calculator(passed_params.get('lens_att'))
+        else:
+            points = 0
+
+        # Need to check if either the pixels or the angular resolution was passed
+        if pixels != None and ang_width != None:
+            ang_res = ang_width / pixels
+            pixel_density = 1 / ang_res
+        elif pixels != None and ang_res != None:
+            ang_width = pixels * ang_res
+            pixel_density = 1 / ang_res
+        elif pixels != None and pixel_density != None:
+            ang_res = 1 / pixel_density
+            ang_width = pixels * ang_res
+        elif ang_width != None and ang_res != None:
+            pixels = int(ang_width / ang_res)
+            pixel_density = 1 / ang_res
+        elif ang_width != None and pixel_density != None:
+            ang_res = 1 / pixel_density
+            pixels = int(ang_width / ang_res)
+
+        full_params = {}
+        full_params.update(passed_params)
+        full_params.update({'pixels': pixels, 'ang_width': ang_width, 'ang_res': ang_res, 'pixel_density': pixel_density})
+        
+        if 'thickness' in full_params.keys():
+            if full_params['thickness'] == 'auto':
+                full_params['thickness'] = thickness
+            else:
+                pass
+
+        return full_params, points
+    
+    @staticmethod
+    def annulus_param_checker(pair: tuple):
+        passed_params, points = pair
+
+        # Checking if thickness exists
+        if passed_params.get('thickness') == None:
+            raise AttributeError('Parameter dict must contain thickness.')
+        
+        # Testing dr and num_r
+        dr, num_r = passed_params.get('dr'), passed_params.get('num_r')
+
+        if dr != None:
+            num_r = passed_params['thickness'] / dr
+        elif num_r != None:
+            dr = passed_params['thickness'] / num_r
+
+        # Testing dtheta and num_theta
+        dtheta, num_theta = passed_params.get('dtheta'), passed_params.get('num_theta')
+
+        if dtheta != None:
+            num_theta = 360 / dtheta
+        elif num_theta != None:
+            dtheta = 360 / num_theta
+
+        full_params = {}
+        full_params.update(passed_params)
+        full_params.update({'dr': dr, 'num_r': num_r, 'dtheta': dtheta, 'num_theta': num_theta})
+
+        return full_params, points
+
+    @staticmethod
+    def ang_width_thickness_calculator(lens_att: list):
+        '''
+        Calculates the angular width of sampling region and thickness of shooting region using Equations 8-10 in https://arxiv.org/pdf/astro-ph/0505363.
+
+        Parameters
+        ----------
+        lens_att : list
+            Passed through via passed_params dict
+
+        Returns
+        -------
+        ang_width : float
+            Angular width of ray sampling region
+        thickness : float
+            Thickness of annulus shooting region
+        '''
+        lens_att = np.array(lens_att)
+        
+        # Number of lens objects
+        L = np.shape(lens_att)[0]
+
+        # Initializing maximum distance from origin list
+        max_dist_rot = []
+        max_dist = []
+        points = np.zeros(shape=(L-1, 4, 2))
+
+        # Initializing padding
+        padding = 2
+
+        # Calculating the center of masses of each individual star-planet combination
+        lens_CMs_rot = np.zeros(shape=(L-1, 2))
+        
+        for i, lens in enumerate(lens_att[1:]):
+            two_lenses = np.array([lens_att[0], lens])
+
+            # Finding which index the bigger mass was passed in (primary lens)
+            big_mass = np.where(two_lenses[:, 3] == np.max(two_lenses[:, 3]))[0][0]
+
+            # Secondary lens
+            small_mass = int(not big_mass)
+
+            # Defining unit source vector
+            uhat = [1, 0]
+
+            # Defining unit binary axis vector (from primary to secondary lens)
+            v = [two_lenses[small_mass, 0] - two_lenses[big_mass, 0], two_lenses[small_mass, 1] - two_lenses[big_mass, 1]]
+            vhat = v / np.linalg.norm(v)
+
+            # Finding counterclockwise angle between binary axis and source trajectory (alpha)
+            if vhat[0] > 0 and vhat[1] > 0:
+                alpha = np.arctan(vhat[1]/vhat[0])
+            elif vhat[0] < 0 and vhat[1] > 0:
+                alpha = np.pi + np.arctan(vhat[1]/vhat[0])
+            elif vhat[0] < 0 and vhat[1] < 0:
+                alpha = np.pi + np.arctan(vhat[1]/vhat[0])
+            elif vhat[0] > 0 and vhat[1] < 0:
+                alpha = np.arctan(vhat[1]/vhat[0])
+            elif vhat[0] > 0 and vhat[1] == 0:
+                alpha = 0
+            elif vhat[0] == 0 and vhat[1] > 0:
+                alpha = np.pi/2
+            elif vhat[0] < 0 and vhat[1] == 0:
+                alpha = np.pi
+            elif vhat[0] == 0 and vhat[1] < 0:
+                alpha = -np.pi/2
+
+            # Calculating distance between lenses (s)
+            s = np.linalg.norm(v)
+
+            # Calculating mass ratio between lenses (q)
+            q = two_lenses[small_mass, 3] / two_lenses[big_mass, 3]
+
+            # Calculating center of mass in binary axis
+            lens_CMs_rot[i, 0] = q*s / (1 + q)
+
+            # Creating rotation matrix
+            cos, sin = np.cos(alpha), np.sin(alpha)
+            Rot = np.array([[cos, -sin], [sin, cos]])
+
+            # Finding cos(phi_c) - Equation 10
+            cos_phi_c = 3/4 * (s + s**-1) * (1 - np.sqrt(1 - 32/9*(s + s**-1)**-2))
+
+            # Finding phi_c through arccos
+            phi_c = np.arccos(cos_phi_c)
+
+            # Finding positive x and negative x positions - Equation 8
+            x_pos_rot = q / ((1 + s)*(1 + s**-1)) - lens_CMs_rot[i, 0]
+            x_neg_rot = -q / ((1 - s)*(1 - s**-1)) - lens_CMs_rot[i, 0]
+
+            # Finding positive y and negative y positions - Equation 9
+            y_pos_rot = (2*q * np.abs(np.sin(phi_c)**3)) / (s + s**-1 - 2*cos_phi_c)**2 - lens_CMs_rot[i, 1]
+            y_neg_rot = -(2*q * np.abs(np.sin(phi_c)**3)) / (s + s**-1 - 2*cos_phi_c)**2 - lens_CMs_rot[i, 1]
+
+            # Storing the maximum distance from the origin of the caustic
+            max_dist_rot.append(np.max(np.abs(np.array([x_pos_rot, x_neg_rot, y_pos_rot, y_neg_rot]))))
+
+            # Rotating bounding points back from binary axis to inertial axis
+            x_pos = np.dot(Rot, np.array([x_pos_rot, 0]))
+            x_neg = np.dot(Rot, np.array([x_neg_rot, 0]))
+
+            y_pos = np.dot(Rot, np.array([0, y_pos_rot]))
+            y_neg = np.dot(Rot, np.array([0, y_neg_rot]))
+
+            # Finding maximum distance from the origin and storing it
+            points[i, :, :] = np.array([x_pos, x_neg, y_pos, y_neg])
+            max_dist.append(np.max(np.abs(points[i, :, :])))
+
+        # Now finding the maximum of the list of maximum distances from the origin of each caustic with a padding
+        ang_width = 2*max(max_dist) * padding
+
+        # Calculating thickness from maximum distance from origin
+        thickness = 2*max(max_dist_rot) * padding
+
+        return ang_width, thickness, points
 
     def plot(self, zoom: tuple | list = None, cm_offset: tuple | list = [0, 0], save_plot=False, show_mm=False, show_lenses=False, show_dev=False, show_axes=True, print_stats=True, show_plot=True, file_save=False, cmap='gray'):
         '''
@@ -47,7 +322,7 @@ class IRSCaustics(IRSMain):
         show_plot : bool, optional
             If the program creates the plot
         file_save : bool, optional
-            Saves magnification map data in CSV file in ./Mag Map Data/{filename}.csv
+            Saves magnification map data in CSV file in ../datafiles/{filename}.csv
         cmap: : string, optional
             Colormap of images
 
@@ -74,7 +349,8 @@ class IRSCaustics(IRSMain):
 
         count_rand_arr = np.random.randint(0, 10, size=2)
         magnifications = np.zeros(shape=(100, 100), dtype=np.int64)
-        IRSCaustics.calc_mags(100, magnifications, init_rand_arr, count_rand_arr)
+        IRSCaustics.calc_mags_whole(100, magnifications, init_rand_arr, count_rand_arr)
+        IRSCaustics.calc_mags_annulus(100, magnifications, init_rand_arr, count_rand_arr, 0.1, 1.0)
 
         X_comp = np.random.random((3, 3))
         Y_comp = np.random.random((3, 3))
@@ -92,30 +368,26 @@ class IRSCaustics(IRSMain):
         # Creating mesh grid
         init_time = t.time()
 
-        if self.annulus != 0:
+        if self.mode == 'whole':
+            # Defining vector of x coordinates for each ray
             x_rays = np.linspace(-self.ang_width/2 - self.ang_res/2 + self.ang_res/(2*self.rays_per_pixel), self.ang_width/2 + self.ang_res/2 - self.ang_res/(2*self.rays_per_pixel), self.rays_per_pixel*self.pixels)
+            
+            # Defining vector of y coordinates for each ray
             y_rays = np.linspace(-self.ang_width/2 - self.ang_res/2 + self.ang_res/(2*self.rays_per_pixel), self.ang_width/2 + self.ang_res/2 - self.ang_res/(2*self.rays_per_pixel), self.rays_per_pixel*self.pixels)
-
-            # Finding translated x and y coordinates after zoom
-            x_lower_bound = int(self.pixels*self.rays_per_pixel/2) - m.ceil((2+self.annulus)/(2*self.ang_res))*self.rays_per_pixel
-            x_upper_bound = int(self.pixels*self.rays_per_pixel/2) + m.ceil((2+self.annulus)/(2*self.ang_res))*self.rays_per_pixel
-
-            y_lower_bound = int(self.pixels*self.rays_per_pixel/2) - m.ceil((2+self.annulus)/(2*self.ang_res))*self.rays_per_pixel
-            y_upper_bound = int(self.pixels*self.rays_per_pixel/2) + m.ceil((2+self.annulus)/(2*self.ang_res))*self.rays_per_pixel
-
-            x_rays = x_rays[x_lower_bound:x_upper_bound]
-            y_rays = y_rays[y_lower_bound:y_upper_bound]
-
-            # Creating meshgrid of ray coordinates
-            X_R, Y_R = np.meshgrid(x_rays, y_rays)
-
-            ray_valid_coords = IRSCaustics.create_annulus(self.annulus, X_R, Y_R)
-            self.X = X_R[ray_valid_coords].reshape((-1, 1))
-            self.Y = Y_R[ray_valid_coords].reshape((-1, 1))
-        else:
-            x_rays = np.linspace(-self.ang_width/2 - self.ang_res/2 + self.ang_res/(2*self.rays_per_pixel), self.ang_width/2 + self.ang_res/2 - self.ang_res/(2*self.rays_per_pixel), self.rays_per_pixel*self.pixels)
-            y_rays = np.linspace(-self.ang_width/2 - self.ang_res/2 + self.ang_res/(2*self.rays_per_pixel), self.ang_width/2 + self.ang_res/2 - self.ang_res/(2*self.rays_per_pixel), self.rays_per_pixel*self.pixels)
+            
+            # Calculating meshgrid of X and Y coordinates
             self.X, self.Y = np.meshgrid(x_rays, y_rays)
+            
+        elif self.mode == 'annulus':
+            # Defining vector of radial coordinates for each ray
+            rs = np.linspace(1-(self.thickness/2), 1+(self.thickness/2), self.num_r).reshape(-1, 1)
+
+            # Defining vector of tangential coordinates for each ray
+            thetas = np.linspace(0, 2*np.pi - (2*np.pi/self.num_theta), self.num_theta).reshape(1, -1)
+
+            # Calculating meshgrid of X and Y coordinates
+            self.X = np.dot(rs, np.cos(thetas))
+            self.Y = np.dot(rs, np.sin(thetas))
 
         final_time = t.time() - init_time
         if self.print_stats: print(f'Creating mesh grid: {round(final_time, 3)} seconds')
@@ -154,7 +426,6 @@ class IRSCaustics(IRSMain):
 
         # Calculating repeated coordinates and their counts in comb_mat
         init_time = t.time()
-        # repetitions, counts = np.unique(ar=comb_mat.reshape(-1, 2), axis=0, return_counts=True)
         stacked_mat = comb_mat.reshape(-1, 2)
         repetitions, counts = IRSCaustics.calc_uniques(stacked_mat)
         final_time = t.time() - init_time
@@ -162,9 +433,24 @@ class IRSCaustics(IRSMain):
 
         # Iterating through the array of counts to find the number of times each coordinate was repeated and increment that coordinate magnification by 1
         init_time = t.time()
-        # shape = np.shape(self.X)
+        
         magnifications = np.zeros(shape=(self.pixels, self.pixels), dtype=np.int64)
-        self.magnifications = IRSCaustics.calc_mags(self.pixels, magnifications, repetitions, counts) / self.rays_per_pixel**2
+        
+        if self.mode == 'whole':
+            self.magnifications = IRSCaustics.calc_mags_whole(self.pixels, magnifications, repetitions, counts) / self.rays_per_pixel**2
+        elif self.mode == 'annulus':
+            # Calculating area of annulus
+            A_ann = 2 * np.pi * 1.0 * self.thickness
+            
+            # Calculating ray density within annulus
+            sigma_ann = self.num_rays / A_ann
+
+            # Calculating area of pixel
+            A_pix = (self.ang_res * 1.0)**2
+
+            # Calculating magnifications
+            self.magnifications = IRSCaustics.calc_mags_annulus(self.pixels, magnifications, repetitions, counts, sigma_ann, A_pix)
+        
         final_time = t.time() - init_time
         if self.print_stats: print(f'Incrementing pixel magnifications based on counts and repetitions: {round(final_time, 3)} seconds')
 
@@ -193,11 +479,12 @@ class IRSCaustics(IRSMain):
         magnifications_log = np.where(self.magnifications == 0, 0.1, self.magnifications)
         magnifications_log = np.log10(magnifications_log)
         self.magnifications_log = np.where(magnifications_log == -1, 0, magnifications_log)
+        # self.magnifications_log = self.magnifications
 
         # Plotting magnifications
         if self.show_plot:
             init_time = t.time()
-            self.fig_c = self.plot_mags_map()
+            self.fig_c, self.ax_c = self.plot_mags_map()
             final_time = t.time() - init_time
             if self.print_stats: print(f'Plotting magnification map: {round(final_time, 3)} seconds')
 
@@ -219,19 +506,37 @@ class IRSCaustics(IRSMain):
             print(f'Total time: {round(end_time, 3)} seconds')
 
         return self.magnifications
+    
+    def convolve(self, source_profile: np.ndarray) -> np.ndarray:
+        '''
+        Convolve a source profile with a magnification map.
+        '''
+        init_time = t.time()
+
+        # Performing convolution
+        convolved_brightnesses = sci.signal.fftconvolve(self.magnifications, source_profile, 'same')
+
+        final_time = t.time() - init_time
+
+        print(f'Convolving source profile with magnification map: {round(final_time, 3)} seconds')
+
+        return convolved_brightnesses
+
 
     @staticmethod
-    @nb.jit(nb.int64[:, :](nb.int32, nb.int64[:, :], nb.int64[:, :], nb.int64[:]), nopython=True, fastmath=True)
-    def calc_mags(pixels, magnifications, repetitions, counts):
+    @nb.jit(nb.int64[:, :](nb.int32, nb.int64[:, :], nb.int64[:, :], nb.int64[:]), nopython=True, fastmath=True, cache=True)
+    def calc_mags_whole(pixels, magnifications, repetitions, counts):
         '''
-        Calculates magnifications using Numba's jit method with C-like compiling for faster computing.
+        Calculates magnifications for the whole plane of rays using Numba's jit method with C-like compiling for faster computing.
 
         Parameters
         ----------
         pixels : int32
         magnifications : 2D int64 Numpy array
         repetitions : 2D int64 Numpy array
+            Repeating coordinates
         counts : 1D int64 Numpy array
+            Number of repetitions for each corresponding coordinate
 
         Returns
         -------
@@ -242,9 +547,43 @@ class IRSCaustics(IRSMain):
                 magnifications[repetitions[i, 0], repetitions[i, 1]] += count
 
         return magnifications
+    
+    @staticmethod
+    @nb.jit(nb.int64[:, :](nb.int32, nb.int64[:, :], nb.int64[:, :], nb.int64[:], nb.float64, nb.float64), nopython=True, fastmath=True, cache=True)
+    def calc_mags_annulus(pixels, magnifications, repetitions, counts, sigma_ann, A_pix):
+        '''
+        Calculates magnifications for an annulus of rays using Numba's jit method with C-like compiling for faster computing.
+
+        Parameters
+        ----------
+        pixels : int32
+        magnifications : 2D int64 Numpy array
+        repetitions : 2D int64 Numpy array
+            Repeating coordinates
+        counts : 1D int64 Numpy array
+            Number of repetitions for each corresponding coordinate
+        sigma_ann : float64
+            Ray density within annulus [rays / theta_e^2]
+        A_pix : float64
+            Area of each pixel in source plane [theta_e^2]
+
+        Returns
+        -------
+        magnifications : 2D int64 Numpy array
+        '''
+        # Iterating through all the repitions of pixel coordinates and counts
+        for i, count in enumerate(counts):
+            if pixels*2 not in repetitions[i]:
+                # Calculating local ray density of pixel
+                sigma_pix = count / A_pix
+
+                # Incrementing magnification of that pixel as the ratio of ray densities in source and image planes
+                magnifications[repetitions[i, 0], repetitions[i, 1]] += sigma_pix / sigma_ann
+
+        return magnifications
 
     @staticmethod
-    @nb.jit(nb.types.Tuple((nb.int64[:, :], nb.int64[:]))(nb.int64[:, :]), parallel=True, nopython=True, fastmath=True)
+    @nb.jit(nb.types.Tuple((nb.int64[:, :], nb.int64[:]))(nb.int64[:, :]), parallel=True, nopython=True, fastmath=True, cache=True)
     def calc_uniques(sorted_mat):
         n, m = sorted_mat.shape
         assert m >= 0
@@ -283,7 +622,7 @@ class IRSCaustics(IRSMain):
         return mat
     
     @staticmethod
-    @nb.jit(nb.bool_[:, :](nb.float64, nb.float64[:, :], nb.float64[:, :]), parallel=True, nopython=True, fastmath=True)
+    @nb.jit(nb.bool_[:, :](nb.float64, nb.float64[:, :], nb.float64[:, :]), parallel=True, nopython=True, fastmath=True, cache=True)
     def create_annulus(annulus, X_R, Y_R):
         '''
         Calculates the coordinates of the rays within the annulus.
@@ -438,13 +777,13 @@ class IRSCaustics(IRSMain):
 
         Returns
         -------
-        matplotlib.figure.Figure
+        matplotlib.figure.Figure, matplotlib.axes.Axes
         '''
         # Initializing figure
         if self.show_axes:
-            fig = plt.figure('Magnification Map and Caustics', figsize=(10, 8))
+            fig = plt.figure(figsize=(10, 8))
         else:
-            fig = plt.figure('Magnification Map and Caustics', figsize=(10, 10))
+            fig = plt.figure(figsize=(10, 10))
         ax = fig.add_subplot()
 
         # Finding translated x and y coordinates after zoom
@@ -520,13 +859,13 @@ class IRSCaustics(IRSMain):
             props = dict(boxstyle='round', facecolor='white', edgecolor='lightgray', alpha=0.8)
             ax.text(0.02, 0.98, model_param_str, va='top', zorder=10, bbox=props, transform=ax.transAxes)
 
-        return fig
+        return fig, ax
 
     def write_to_file(self):
         '''
         Writes magnifications to text file.
         '''
-        np.savetxt(f'../datafiles/{self.import_file}.txt', self.magnifications)
+        np.savetxt(f'./datafiles/{self.import_file}.txt', self.magnifications)
 
     def calc_caustic_points(self):
         '''

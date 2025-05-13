@@ -1,4 +1,4 @@
-from IRSMicroLensing import IRSCaustics_annulus as IRSC
+from IRSMicroLensing import IRSCaustics as IRSC
 import matplotlib.pyplot as plt
 
 # lens_att = [

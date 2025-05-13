@@ -7,7 +7,7 @@ import matplotlib.patches as patches
 
 # Timing imports
 # start = t.time()
-from IRSMicroLensing import IRSCaustics_LD as IRSC
+from IRSMicroLensing import IRSCaustics as IRSC
 # print(f"Import time: {t.time() - start:.2f} seconds")
 
 # start = t.time()

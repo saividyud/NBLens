@@ -7,7 +7,7 @@ import matplotlib.gridspec as gridspec
 
 import time as t
 
-from IRSMicroLensing import IRSCaustics_automatic as IRSC
+from IRSMicroLensing import IRSCaustics as IRSC
 
 ''' Computing magnification map '''
 lens_att = [
