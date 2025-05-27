@@ -299,7 +299,7 @@ class IRSCaustics(IRSMain):
 
         return ang_width, thickness, points
 
-    def plot(self, zoom: tuple | list = None, cm_offset: tuple | list = [0, 0], save_plot=False, show_mm=False, show_lenses=False, show_dev=False, show_axes=True, print_stats=True, show_plot=True, file_save=False, cmap='gray'):
+    def plot(self, zoom: tuple | list = None, cm_offset: str | tuple | list = [0, 0], save_plot=False, show_mm=False, show_lenses=False, show_dev=False, show_axes=True, print_stats=True, show_plot=True, file_save=False, cmap='gray'):
         '''
         Creates magnification map for lens system.
 
@@ -307,6 +307,8 @@ class IRSCaustics(IRSMain):
         ----------
         zoom : tuple or int
             How much the plot should be zoomed in by
+        cm_offset : str, tuple, or list
+            Origin offset from center of mass
         save_plot : bool, optional
             If plots should be saved
         show_mm : bool, optional
@@ -359,8 +361,14 @@ class IRSCaustics(IRSMain):
 
         begin_time = t.time()
 
+        # Creating meshgrid of pixel centers
+        self.X_pix, self.Y_pix = np.meshgrid(np.linspace(-self.ang_width/2, self.ang_width/2, self.pixels), np.linspace(-self.ang_width/2, self.ang_width/2, self.pixels))
+
         # Calculatiing lens center of mass
         self.lens_CM = self.calc_CM()
+        # self.lens_CM = 0
+        if self.cm_offset == 'auto':
+            self.cm_offset = self.lens_CM
 
         # Translating lens positions so the center of mass is at offsetted center of mass
         self.lens_att[:, :2] = self.lens_att[:, :2] - self.lens_CM + self.cm_offset
@@ -472,14 +480,17 @@ class IRSCaustics(IRSMain):
             with warnings.catch_warnings():
                 warnings.simplefilter('ignore')
                 self.delta = (self.magnifications - self.a_mags) / self.a_mags
+
+            self.delta_log = np.log10(np.abs(self.delta))
+
             final_time = t.time() - init_time
             if self.print_stats: print(f'Calculating analytic magnification map: {round(final_time, 3)} seconds')
 
         # Replacing all 0 values with 0.1 to plot in log10 space
-        magnifications_log = np.where(self.magnifications == 0, 0.1, self.magnifications)
-        magnifications_log = np.log10(magnifications_log)
-        self.magnifications_log = np.where(magnifications_log == -1, 0, magnifications_log)
-        # self.magnifications_log = self.magnifications
+        self.magnifications_log = np.log10(magnifications)
+        # magnifications_log = np.where(self.magnifications == 0, 0.1, self.magnifications)
+        # magnifications_log = np.log10(magnifications_log)
+        # self.magnifications_log = np.where(magnifications_log == -1, 0, magnifications_log)
 
         # Plotting magnifications
         if self.show_plot:
@@ -758,7 +769,7 @@ class IRSCaustics(IRSMain):
         pos = self.lens_att[center_lens, :2]
 
         # Calculating seperations from biggest lens for each pixel
-        u = np.sqrt((self.X - pos[0])**2 + (self.Y - pos[1])**2)
+        u = np.sqrt((self.X_pix - pos[0])**2 + (self.Y_pix - pos[1])**2)
 
         # Calculating analytic magnifications for each pixel
         with warnings.catch_warnings():
@@ -799,10 +810,11 @@ class IRSCaustics(IRSMain):
         if self.show_dev:
             # Zooming into seperations based on zoom
             delta_zoomed = self.delta[y_lower_bound:y_upper_bound, x_lower_bound:x_upper_bound]
+            delta_log_zoomed = self.delta_log[y_lower_bound:y_upper_bound, x_lower_bound:x_upper_bound]
 
             # Plotting deviation map with set view max
             # plot = ax.contourf(x_zoomed, y_zoomed, delta_zoomed, cmap='bone', levels=100)
-            pic = ax.imshow(delta_zoomed, cmap=self.cmap, vmin=0, extent=[-self.zoom[0]/2, self.zoom[0]/2, -self.zoom[1]/2, self.zoom[1]/2])
+            plot = ax.imshow(delta_zoomed, cmap=self.cmap, extent=[-self.zoom[0]/2, self.zoom[0]/2, -self.zoom[1]/2, self.zoom[1]/2])
 
         else:
             magnifications_log_zoomed = self.magnifications_log[y_lower_bound:y_upper_bound, x_lower_bound:x_upper_bound]
@@ -831,7 +843,7 @@ class IRSCaustics(IRSMain):
         if self.show_axes:
             bar = plt.colorbar(plot)
             if self.show_dev:
-                bar.set_label('Deviations')
+                bar.set_label('$log_{10}$ Deviations from Analytic Single Lens')
             else:
                 bar.set_label('$log_{10}$ Magnification')
 

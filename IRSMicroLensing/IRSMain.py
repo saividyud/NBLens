@@ -310,7 +310,7 @@ class IRSMain(object):
         return xs, ys # [theta_e]
     
     @staticmethod 
-    @nb.jit(nb.complex128[:, :](nb.int64, nb.complex128[:, :], nb.complex128[:, :], nb.complex128[:], nb.float64[:]), nopython=True, parallel=True, fastmath=True)
+    @nb.jit(nb.complex128[:, :](nb.int64, nb.complex128[:, :], nb.complex128[:, :], nb.complex128[:], nb.float64[:]), nopython=True, parallel=True, fastmath=True, cache=True)
     def lens_eq(L, sums, zbar, zmbar, epsilon):
         '''
         Calculates the sum in the lens equation using Numba's jit compilation for faster computation.
