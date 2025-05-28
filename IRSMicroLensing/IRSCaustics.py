@@ -72,7 +72,7 @@ class IRSCaustics(IRSMain):
                 raise AttributeError('Parameter dict must contain rays_per_pixel.')
             
             # Making sure source and image planes are fully defined
-            self.param_dict, self.caustic_cusps = IRSCaustics.whole_param_checker(whole_plane_param_dict)
+            self.param_dict, (self.y_plus, self.y_minus), self.caustic_cusps = IRSCaustics.whole_param_checker(whole_plane_param_dict)
 
             # Adding some more important parameters to dictionary
             self.param_dict.update({'num_rays': int((self.param_dict['pixels']*self.param_dict['rays_per_pixel'])**2)})
@@ -90,7 +90,7 @@ class IRSCaustics(IRSMain):
 
         elif annulus_param_dict != None:
             # Making sure source plane and annulus shooting region are fully defined
-            self.param_dict, self.caustic_cusps = IRSCaustics.annulus_param_checker(IRSCaustics.whole_param_checker(annulus_param_dict))
+            self.param_dict, (self.y_plus, self.y_minus), self.caustic_cusps = IRSCaustics.annulus_param_checker(IRSCaustics.whole_param_checker(annulus_param_dict))
 
             # Adding some more important parameters to dictionary
             self.param_dict.update({'num_rays': int(self.param_dict['num_r']*self.param_dict['num_theta'])})
@@ -120,8 +120,10 @@ class IRSCaustics(IRSMain):
         # Checking if ang_width should be calculated
         if ang_width == 'auto':
             # If the angular width is automatic, need to calculate the angular width using analytic equations...
-            ang_width, thickness, points = IRSCaustics.ang_width_thickness_calculator(passed_params.get('lens_att'))
+            ang_width, thickness, (y_plus, y_minus), points = IRSCaustics.ang_width_thickness_calculator(passed_params.get('lens_att'))
         else:
+            y_plus = 0
+            y_minus = 0
             points = 0
 
         # Need to check if either the pixels or the angular resolution was passed
@@ -151,11 +153,14 @@ class IRSCaustics(IRSMain):
             else:
                 pass
 
-        return full_params, points
+        return full_params, (y_plus, y_minus), points
     
     @staticmethod
-    def annulus_param_checker(pair: tuple):
-        passed_params, points = pair
+    def annulus_param_checker(args: tuple):
+        passed_params = args[0]
+        y_plus = args[1][0]
+        y_minus= args[1][1]
+        points = args[2]
 
         # Checking if thickness exists
         if passed_params.get('thickness') == None:
@@ -181,7 +186,7 @@ class IRSCaustics(IRSMain):
         full_params.update(passed_params)
         full_params.update({'dr': dr, 'num_r': num_r, 'dtheta': dtheta, 'num_theta': num_theta})
 
-        return full_params, points
+        return full_params, (y_plus, y_minus), points
 
     @staticmethod
     def ang_width_thickness_calculator(lens_att: list):
@@ -295,9 +300,19 @@ class IRSCaustics(IRSMain):
         ang_width = 2*max(max_dist) * padding
 
         # Calculating thickness from maximum distance from origin
-        thickness = 2*max(max_dist_rot) * padding
+        # thickness = 2*max(max_dist_rot) * padding
 
-        return ang_width, thickness, points
+        # Finding the maximum distance from the origin of magnification map
+        u = 1.1 * ang_width / np.sqrt(2)
+
+        # Finding major and minor image positions (y+ > 0 and y- < 0)
+        y_plus = 0.5 * (u + np.sqrt(u**2 + 4))
+        y_minus = 0.5 * (u - np.sqrt(u**2 + 4))
+
+        # Calculating thickness of annulus
+        thickness = y_plus + y_minus
+
+        return ang_width, thickness, (y_plus, y_minus), points
 
     def plot(self, zoom: tuple | list = None, cm_offset: str | tuple | list = [0, 0], save_plot=False, show_mm=False, show_lenses=False, show_dev=False, show_axes=True, print_stats=True, show_plot=True, file_save=False, cmap='gray'):
         '''
@@ -388,7 +403,7 @@ class IRSCaustics(IRSMain):
             
         elif self.mode == 'annulus':
             # Defining vector of radial coordinates for each ray
-            rs = np.linspace(1-(self.thickness/2), 1+(self.thickness/2), self.num_r).reshape(-1, 1)
+            rs = np.linspace(-self.y_minus, self.y_plus, self.num_r).reshape(-1, 1)
 
             # Defining vector of tangential coordinates for each ray
             thetas = np.linspace(0, 2*np.pi - (2*np.pi/self.num_theta), self.num_theta).reshape(1, -1)
@@ -448,7 +463,7 @@ class IRSCaustics(IRSMain):
             self.magnifications = IRSCaustics.calc_mags_whole(self.pixels, magnifications, repetitions, counts) / self.rays_per_pixel**2
         elif self.mode == 'annulus':
             # Calculating area of annulus
-            A_ann = 2 * np.pi * 1.0 * self.thickness
+            A_ann = np.pi * (self.y_plus**2 - self.y_minus**2)
             
             # Calculating ray density within annulus
             sigma_ann = self.num_rays / A_ann
@@ -486,8 +501,10 @@ class IRSCaustics(IRSMain):
             final_time = t.time() - init_time
             if self.print_stats: print(f'Calculating analytic magnification map: {round(final_time, 3)} seconds')
 
+        self.magnifications_log = np.log10(self.magnifications)
+        # self.magnifications_log = self.magnifications
+
         # Replacing all 0 values with 0.1 to plot in log10 space
-        self.magnifications_log = np.log10(magnifications)
         # magnifications_log = np.where(self.magnifications == 0, 0.1, self.magnifications)
         # magnifications_log = np.log10(magnifications_log)
         # self.magnifications_log = np.where(magnifications_log == -1, 0, magnifications_log)
@@ -589,7 +606,7 @@ class IRSCaustics(IRSMain):
                 sigma_pix = count / A_pix
 
                 # Incrementing magnification of that pixel as the ratio of ray densities in source and image planes
-                magnifications[repetitions[i, 0], repetitions[i, 1]] += sigma_pix / sigma_ann
+                magnifications[repetitions[i, 1], repetitions[i, 0]] += sigma_pix / sigma_ann
 
         return magnifications
 
@@ -798,11 +815,24 @@ class IRSCaustics(IRSMain):
         ax = fig.add_subplot()
 
         # Finding translated x and y coordinates after zoom
-        x_lower_bound = int(self.pixels/2) - m.ceil(self.zoom[0]/(2*self.ang_res))
-        x_upper_bound = int(self.pixels/2) + m.ceil(self.zoom[0]/(2*self.ang_res))
+        # offset = (self.pixels - 1) / 2.0
+        # x_lower_bound = int(np.floor(offset + self.zoom[0]/(2*self.ang_res)))
+        # x_upper_bound = int(np.floor(offset - self.zoom[0]/(2*self.ang_res)))
 
-        y_lower_bound = int(self.pixels/2) - m.ceil(self.zoom[1]/(2*self.ang_res))
-        y_upper_bound = int(self.pixels/2) + m.ceil(self.zoom[1]/(2*self.ang_res))
+        # y_lower_bound = int(np.floor(offset + self.zoom[1]/(2*self.ang_res)))
+        # y_upper_bound = int(np.floor(offset - self.zoom[1]/(2*self.ang_res)))
+
+        # x_lower_bound = int(self.pixels/2) - m.ceil(self.zoom[0]/(2*self.ang_res))
+        # x_upper_bound = int(self.pixels/2) + m.ceil(self.zoom[0]/(2*self.ang_res))
+
+        # y_lower_bound = int(self.pixels/2) - m.ceil(self.zoom[1]/(2*self.ang_res))
+        # y_upper_bound = int(self.pixels/2) + m.ceil(self.zoom[1]/(2*self.ang_res))
+
+        x_lower_bound = 0
+        x_upper_bound = self.pixels
+
+        y_lower_bound = 0
+        y_upper_bound = self.pixels
 
         x_zoomed = self.X[y_lower_bound:y_upper_bound, x_lower_bound:x_upper_bound]
         y_zoomed = self.Y[y_lower_bound:y_upper_bound, x_lower_bound:x_upper_bound]
@@ -823,7 +853,7 @@ class IRSCaustics(IRSMain):
             # Plotting magnification map with set view max
             # plot = ax.contourf(x_zoomed, y_zoomed, magnifications_log_zoomed, cmap='viridis', levels=100, vmin=0)
             # mag_log_zoom_smooth = ndi.gaussian_filter(magnifications_log_zoomed, [1, 1], mode='constant')
-            plot = ax.imshow(magnifications_log_zoomed, cmap=self.cmap, vmin=0, extent=[-self.zoom[0]/2, self.zoom[0]/2, -self.zoom[1]/2, self.zoom[1]/2])
+            plot = ax.imshow(magnifications_log_zoomed, cmap=self.cmap, extent=[-self.zoom[0]/2, self.zoom[0]/2, -self.zoom[1]/2, self.zoom[1]/2])
 
             # ax.scatter(self.X, self.Y, s=1, c='red')
 

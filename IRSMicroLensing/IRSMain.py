@@ -304,8 +304,8 @@ class IRSMain(object):
         zeta = z - sum # [theta_e]
 
         # Extracting positions from complex number
-        xs = np.imag(zeta) # [theta_e]
-        ys = np.real(zeta) # [theta_e]
+        xs = np.real(zeta) # [theta_e]
+        ys = np.imag(zeta) # [theta_e]
 
         return xs, ys # [theta_e]
     
@@ -380,7 +380,7 @@ class IRSMain(object):
         indy_nonan = np.where(bool_arr, 0, self.indy)
 
         # The elements that are nan result in zero, if not nan, then are assigned brightnesses from source_brightnesses matrix
-        image_brightnesses = np.where(bool_arr, 0, self.source_brightnesses[indx_nonan.astype(int), indy_nonan.astype(int)])
+        image_brightnesses = np.where(bool_arr, 0, self.source_brightnesses[indy_nonan.astype(int), indx_nonan.astype(int)])
         
         return image_brightnesses
 
