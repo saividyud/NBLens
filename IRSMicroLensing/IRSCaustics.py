@@ -518,7 +518,7 @@ class IRSCaustics(IRSMain):
 
         if self.save_plot:
             init_time = t.time()
-            self.fig_c.savefig(f'../figures/{self.import_file}.png', dpi=500)
+            self.fig_c.savefig(f'./figures/{self.import_file}.png', dpi=500)
             final_time = t.time() - init_time
             if self.print_stats: print(f'Saving magnification map: {round(final_time, 3)} seconds')
 

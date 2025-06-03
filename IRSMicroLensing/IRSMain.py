@@ -287,25 +287,52 @@ class IRSMain(object):
             Y-coordinates of translated pixel
         '''
         # Translating into complex coordinates (source pixels)
-        z = self.X + self.Y*1j # [theta_e] NxN
+        init_time = t.time()
+        # z = self.X + self.Y*1j # [theta_e] NxN
+        z = np.empty(self.X.shape, dtype=np.complex128)
+        z.real = self.X
+        z.imag = self.Y
+        print(1, t.time() - init_time)
+
+        init_time = t.time()
         zbar = np.conj(z) # [theta_e] NxN
+        print(2, t.time() - init_time)
 
         # Translating into complex coordinates (lens coordinates)
+        init_time = t.time()
         zm = self.lens_att[:, 0] + self.lens_att[:, 1]*1j # [theta_e] 1xL
+        print(3, t.time() - init_time)
+
+        init_time = t.time()
         epsilon = self.lens_att[:, 3] / self.total_M # [dimensionless] 1xL
+        print(4, t.time() - init_time)
         
+        init_time = t.time()
         zmbar = np.conj(zm) # [theta_e] 1xL
+        print(5, t.time() - init_time)
         
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
+            init_time = t.time()
             sums = np.zeros(shape=np.shape(zbar), dtype=np.complex128)
-            sum = IRSMain.lens_eq(self.L, sums, zbar, zmbar, epsilon)
+            print(6, t.time() - init_time)
 
-        zeta = z - sum # [theta_e]
+            init_time = t.time()
+
+            # sum = np.sum(epsilon[:, np.newaxis, np.newaxis] / (zbar - zmbar[:, np.newaxis, np.newaxis]), axis=0)
+
+            # sum = IRSMain.lens_eq(self.L, sums, zbar, zmbar, epsilon)
+            zeta = z - IRSMain.lens_eq(self.L, sums, zbar, zmbar, epsilon)
+            print(7, t.time() - init_time)
 
         # Extracting positions from complex number
+        init_time = t.time()
         xs = np.real(zeta) # [theta_e]
+        print(9, t.time() - init_time)
+
+        init_time = t.time()
         ys = np.imag(zeta) # [theta_e]
+        print(10, t.time() - init_time)
 
         return xs, ys # [theta_e]
     
