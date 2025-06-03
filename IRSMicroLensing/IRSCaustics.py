@@ -343,7 +343,7 @@ class IRSCaustics(IRSMain):
 
         return ang_width, thickness, (y_plus, y_minus), points
 
-    def plot(self, zoom: tuple | list = None, cm_offset: str | tuple | list = [0, 0], save_plot=False, show_mm=False, show_lenses=False, show_dev=False, show_axes=True, print_stats=True, show_plot=True, file_save=False, cmap='gray'):
+    def plot(self, zoom: tuple | list = None, cm_offset: str | tuple | list = [0, 0], save_plot=None, show_mm=False, show_lenses=False, show_dev=False, show_axes=True, print_stats=True, show_plot=True, file_save=False, cmap='gray'):
         '''
         Creates magnification map for lens system.
 
@@ -353,7 +353,7 @@ class IRSCaustics(IRSMain):
             How much the plot should be zoomed in by
         cm_offset : str, tuple, or list
             Origin offset from center of mass
-        save_plot : bool, optional
+        save_plot : None, str, optional
             If plots should be saved
         show_mm : bool, optional
             If MulensModel caustics should be plotted (only supported for two lenses)
@@ -438,7 +438,7 @@ class IRSCaustics(IRSMain):
             y_rays = np.linspace(-self.ang_width/2 - self.ang_res/2 + self.ang_res/(2*self.rays_per_pixel), self.ang_width/2 + self.ang_res/2 - self.ang_res/(2*self.rays_per_pixel), self.rays_per_pixel*self.pixels)
             
             # Calculating meshgrid of X and Y coordinates
-            self.X, self.Y = np.meshgrid(x_rays, y_rays)
+            X, Y = np.meshgrid(x_rays, y_rays)
             
         elif self.mode == 'annulus':
             # Defining vector of radial coordinates for each ray
@@ -448,24 +448,22 @@ class IRSCaustics(IRSMain):
             thetas = np.linspace(0, 2*np.pi - (2*np.pi/self.num_theta), self.num_theta).reshape(1, -1)
 
             # Calculating meshgrid of X and Y coordinates
-            self.X = np.dot(rs, np.cos(thetas))
-            self.Y = np.dot(rs, np.sin(thetas))
-
-            # print(self.X.shape, self.Y.shape)
+            X = np.dot(rs, np.cos(thetas))
+            Y = np.dot(rs, np.sin(thetas))
 
         final_time = t.time() - init_time
         if self.print_stats: print(f'Creating mesh grid: {round(final_time, 3)} seconds')
 
         # Calculating source pixels
         init_time = t.time()
-        self.xs, self.ys = self.calc_source_pixels()
+        self.xs, self.ys = self.calc_source_pixels(X, Y)
         # print(self.xs.shape, self.ys.shape)
         final_time = t.time() - init_time
         if self.print_stats: print(f'Calculating source pixels: {round(final_time, 3)} seconds')
 
         # Calculating indices of translated pixel after deflection
         init_time = t.time()
-        self.indx, self.indy = self.trans_ind()
+        indx, indy = self.trans_ind()
         # print(self.indx.shape, self.indy.shape)
         final_time = t.time() - init_time
         if self.print_stats: print(f'Calculating indices of translated pixel after deflection: {round(final_time, 3)} seconds')
@@ -483,8 +481,8 @@ class IRSCaustics(IRSMain):
 
         # indx = np.where(bool_arr_x, int(self.pixels*2), indx_nonan.astype(int))
         # indy = np.where(bool_arr_y, int(self.pixels*2), indy_nonan.astype(int))
-        indx = np.nan_to_num(self.indx, nan=self.pixels*1000).astype(int)
-        indy = np.nan_to_num(self.indy, nan=self.pixels*1000).astype(int)
+        indx = np.nan_to_num(indx, nan=self.pixels*1000).astype(int)
+        indy = np.nan_to_num(indy, nan=self.pixels*1000).astype(int)
 
         # print(indx.shape, indy.shape)
 
@@ -574,11 +572,12 @@ class IRSCaustics(IRSMain):
             final_time = t.time() - init_time
             if self.print_stats: print(f'Plotting magnification map: {round(final_time, 3)} seconds')
 
-        if self.save_plot:
-            init_time = t.time()
-            self.fig_c.savefig(f'../figures/{self.import_file}.png', dpi=500)
-            final_time = t.time() - init_time
-            if self.print_stats: print(f'Saving magnification map: {round(final_time, 3)} seconds')
+        if self.save_plot != None:
+            if isinstance(self.save_plot, str):
+                init_time = t.time()
+                self.fig_c.savefig(f'./figures/{self.save_plot}.png', dpi=500)
+                final_time = t.time() - init_time
+                if self.print_stats: print(f'Saving magnification map: {round(final_time, 3)} seconds')
 
         if self.file_save:
             init_time = t.time()
@@ -922,8 +921,8 @@ class IRSCaustics(IRSMain):
         y_lower_bound = 0
         y_upper_bound = self.pixels
 
-        x_zoomed = self.X[y_lower_bound:y_upper_bound, x_lower_bound:x_upper_bound]
-        y_zoomed = self.Y[y_lower_bound:y_upper_bound, x_lower_bound:x_upper_bound]
+        x_zoomed = self.X_pix[y_lower_bound:y_upper_bound, x_lower_bound:x_upper_bound]
+        y_zoomed = self.Y_pix[y_lower_bound:y_upper_bound, x_lower_bound:x_upper_bound]
 
         if self.show_dev:
             # Zooming into seperations based on zoom
