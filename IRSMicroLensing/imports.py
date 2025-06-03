@@ -25,5 +25,5 @@ import time as t
 import inspect
 
 # Custom libraries
-from OrbitCalc_dv import OrbitPropagator
-import CelestialBodyData as cb
+from .OrbitCalc_dv import OrbitPropagator
+from . import CelestialBodyData as cb
