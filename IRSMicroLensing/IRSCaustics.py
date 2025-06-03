@@ -72,7 +72,7 @@ class IRSCaustics(IRSMain):
                 raise AttributeError('Parameter dict must contain rays_per_pixel.')
             
             # Making sure source and image planes are fully defined
-            self.param_dict, (self.y_plus, self.y_minus), self.caustic_cusps = IRSCaustics.whole_param_checker(whole_plane_param_dict)
+            self.param_dict, (y_plus, y_minus), self.caustic_cusps = IRSCaustics.whole_param_checker(whole_plane_param_dict)
 
             # Adding some more important parameters to dictionary
             self.param_dict.update({'num_rays': int((self.param_dict['pixels']*self.param_dict['rays_per_pixel'])**2)})
@@ -90,7 +90,17 @@ class IRSCaustics(IRSMain):
 
         elif annulus_param_dict != None:
             # Making sure source plane and annulus shooting region are fully defined
-            self.param_dict, (self.y_plus, self.y_minus), self.caustic_cusps = IRSCaustics.annulus_param_checker(IRSCaustics.whole_param_checker(annulus_param_dict))
+            self.param_dict, (y_plus, y_minus), self.caustic_cusps = IRSCaustics.annulus_param_checker(IRSCaustics.whole_param_checker(annulus_param_dict))
+
+            if 'y_plus' in self.param_dict.keys():
+                pass
+            else:
+                self.param_dict.update({'y_plus': y_plus})
+
+            if 'y_minus' in self.param_dict.keys():
+                pass
+            else:
+                self.param_dict.update({'y_minus': y_minus})
 
             # Adding some more important parameters to dictionary
             self.param_dict.update({'num_rays': int(self.param_dict['num_r']*self.param_dict['num_theta'])})
@@ -103,7 +113,10 @@ class IRSCaustics(IRSMain):
             self.num_r = self.param_dict['num_r']
             self.num_theta = self.param_dict['num_theta']
             self.num_rays = self.param_dict['num_rays']
+            self.y_plus = self.param_dict['y_plus']
+            self.y_minus = self.param_dict['y_minus']
 
+        # print('Changed')
         # Initializing parent class
         # Creates some class variables: self.pixels, self.ang_width, self.lens_att, self.ang_res, self.L, self.total_M, self.import_file
         super().__init__(pixels=self.param_dict['pixels'], ang_width=self.param_dict['ang_width'], source_att=None, lens_att=self.param_dict['lens_att'])
@@ -150,6 +163,18 @@ class IRSCaustics(IRSMain):
         if 'thickness' in full_params.keys():
             if full_params['thickness'] == 'auto':
                 full_params['thickness'] = thickness
+            else:
+                pass
+
+        if 'y_plus' in full_params.keys():
+            if full_params['y_plus'] == 'auto':
+                full_params['thickness'] = y_plus
+            else:
+                pass
+
+        if 'y_minus' in full_params.keys():
+            if full_params['y_minus'] == 'auto':
+                full_params['thickness'] = y_minus
             else:
                 pass
 
@@ -204,6 +229,10 @@ class IRSCaustics(IRSMain):
             Angular width of ray sampling region
         thickness : float
             Thickness of annulus shooting region
+        (y_plus, y_minus) : tuple
+            Major and minor image positions
+        points : Lx4x2 NDArray
+            Locations of caustic cusps in the inertial frame
         '''
         lens_att = np.array(lens_att)
         
@@ -361,13 +390,23 @@ class IRSCaustics(IRSMain):
         self.cmap = cmap
 
         # Compiling Numba jit functions
+        num = 2
+        rand_sum = np.zeros(shape=(100, 100), dtype=np.complex128)
+        rand_coords = np.ones(shape=(100, 100), dtype=np.complex128)
+        rand_masscoords = np.zeros(shape=num, dtype=np.complex128)
+        rand_eps = np.ones(shape=num, dtype=np.float64)
+        IRSMain.lens_eq(num, rand_sum, rand_coords, rand_masscoords, rand_eps)
+
+
         init_rand_arr = np.random.randint(0, 10, size=(2, 2))
+        # IRSCaustics.sort_coordinates(init_rand_arr)
         IRSCaustics.calc_uniques(init_rand_arr)
 
         count_rand_arr = np.random.randint(0, 10, size=2)
         magnifications = np.zeros(shape=(100, 100), dtype=np.int64)
-        IRSCaustics.calc_mags_whole(100, magnifications, init_rand_arr, count_rand_arr)
-        IRSCaustics.calc_mags_annulus(100, magnifications, init_rand_arr, count_rand_arr, 0.1, 1.0)
+        IRSCaustics.calc_mags(100, magnifications, init_rand_arr, count_rand_arr)
+        # magnifications = np.zeros(shape=(100, 100), dtype=np.float64)
+        # IRSCaustics.calc_mags_annulus(100, magnifications, init_rand_arr, count_rand_arr, 0.1, 1.0)
 
         X_comp = np.random.random((3, 3))
         Y_comp = np.random.random((3, 3))
@@ -412,18 +451,22 @@ class IRSCaustics(IRSMain):
             self.X = np.dot(rs, np.cos(thetas))
             self.Y = np.dot(rs, np.sin(thetas))
 
+            # print(self.X.shape, self.Y.shape)
+
         final_time = t.time() - init_time
         if self.print_stats: print(f'Creating mesh grid: {round(final_time, 3)} seconds')
 
         # Calculating source pixels
         init_time = t.time()
         self.xs, self.ys = self.calc_source_pixels()
+        # print(self.xs.shape, self.ys.shape)
         final_time = t.time() - init_time
         if self.print_stats: print(f'Calculating source pixels: {round(final_time, 3)} seconds')
 
         # Calculating indices of translated pixel after deflection
         init_time = t.time()
         self.indx, self.indy = self.trans_ind()
+        # print(self.indx.shape, self.indy.shape)
         final_time = t.time() - init_time
         if self.print_stats: print(f'Calculating indices of translated pixel after deflection: {round(final_time, 3)} seconds')
 
@@ -431,15 +474,19 @@ class IRSCaustics(IRSMain):
         init_time = t.time()
 
         # Finding wherever indx or indy is nan
-        bool_arr_x = np.isnan(self.indx)
-        bool_arr_y = np.isnan(self.indy)
+        # bool_arr_x = np.isnan(self.indx)
+        # bool_arr_y = np.isnan(self.indy)
 
-        # Replacing nan values with some out of bounds value and making the numbers into integers
-        indx_nonan = np.where(bool_arr_x, self.pixels*2, self.indx)
-        indy_nonan = np.where(bool_arr_y, self.pixels*2, self.indy)
+        # # Replacing nan values with some out of bounds value and making the numbers into integers
+        # indx_nonan = np.where(bool_arr_x, self.pixels*2, self.indx)
+        # indy_nonan = np.where(bool_arr_y, self.pixels*2, self.indy)
 
-        indx = np.where(bool_arr_x, int(self.pixels*2), indx_nonan.astype(int))
-        indy = np.where(bool_arr_y, int(self.pixels*2), indy_nonan.astype(int))
+        # indx = np.where(bool_arr_x, int(self.pixels*2), indx_nonan.astype(int))
+        # indy = np.where(bool_arr_y, int(self.pixels*2), indy_nonan.astype(int))
+        indx = np.nan_to_num(self.indx, nan=self.pixels*1000).astype(int)
+        indy = np.nan_to_num(self.indy, nan=self.pixels*1000).astype(int)
+
+        # print(indx.shape, indy.shape)
 
         # Combining indx and indy into matrix of 2-element arrays (x and y coordinates)
         comb_mat = np.stack((indx, indy), axis=2)
@@ -449,18 +496,29 @@ class IRSCaustics(IRSMain):
 
         # Calculating repeated coordinates and their counts in comb_mat
         init_time = t.time()
-        stacked_mat = comb_mat.reshape(-1, 2)
-        repetitions, counts = IRSCaustics.calc_uniques(stacked_mat)
+        self.stacked_mat = comb_mat.reshape(-1, 2)
+
+        # mask = (self.stacked_mat[:, 0] != self.pixels*1000) & (self.stacked_mat[:, 1] != self.pixels*1000)
+        # self.stacked_mat = self.stacked_mat[mask]
+
+        # self.sorted_mat = IRSCaustics.sort_coordinates(self.stacked_mat)
+        if self.print_stats: print(f'Sorting translated pixels: {round(final_time, 3)} seconds')
+
+        
+        init_time = t.time()
+        self.repetitions, self.counts = IRSCaustics.calc_uniques(self.stacked_mat)
         final_time = t.time() - init_time
         if self.print_stats: print(f'Finding pixel repetitions and counts: {round(final_time, 3)} seconds')
 
         # Iterating through the array of counts to find the number of times each coordinate was repeated and increment that coordinate magnification by 1
         init_time = t.time()
-        
+
         magnifications = np.zeros(shape=(self.pixels, self.pixels), dtype=np.int64)
+        magnifications = IRSCaustics.calc_mags(self.pixels, magnifications, self.repetitions, self.counts)
         
         if self.mode == 'whole':
-            self.magnifications = IRSCaustics.calc_mags_whole(self.pixels, magnifications, repetitions, counts) / self.rays_per_pixel**2
+            self.magnifications = magnifications / self.rays_per_pixel**2
+
         elif self.mode == 'annulus':
             # Calculating area of annulus
             A_ann = np.pi * (self.y_plus**2 - self.y_minus**2)
@@ -472,7 +530,7 @@ class IRSCaustics(IRSMain):
             A_pix = (self.ang_res * 1.0)**2
 
             # Calculating magnifications
-            self.magnifications = IRSCaustics.calc_mags_annulus(self.pixels, magnifications, repetitions, counts, sigma_ann, A_pix)
+            self.magnifications = (magnifications / A_pix) / sigma_ann
         
         final_time = t.time() - init_time
         if self.print_stats: print(f'Incrementing pixel magnifications based on counts and repetitions: {round(final_time, 3)} seconds')
@@ -553,7 +611,7 @@ class IRSCaustics(IRSMain):
 
     @staticmethod
     @nb.jit(nb.int64[:, :](nb.int32, nb.int64[:, :], nb.int64[:, :], nb.int64[:]), nopython=True, fastmath=True, cache=True)
-    def calc_mags_whole(pixels, magnifications, repetitions, counts):
+    def calc_mags(pixels, magnifications, repetitions, counts):
         '''
         Calculates magnifications for the whole plane of rays using Numba's jit method with C-like compiling for faster computing.
 
@@ -571,11 +629,12 @@ class IRSCaustics(IRSMain):
         magnifications : 2D int64 Numpy array
         '''
         for i, count in enumerate(counts):
-            if pixels*2 not in repetitions[i]:
-                magnifications[repetitions[i, 0], repetitions[i, 1]] += count
+            if pixels*1000 not in repetitions[i]:
+                magnifications[repetitions[i, 1], repetitions[i, 0]] += count
 
         return magnifications
     
+    """
     @staticmethod
     @nb.jit(nb.int64[:, :](nb.int32, nb.int64[:, :], nb.int64[:, :], nb.int64[:], nb.float64, nb.float64), nopython=True, fastmath=True, cache=True)
     def calc_mags_annulus(pixels, magnifications, repetitions, counts, sigma_ann, A_pix):
@@ -585,7 +644,7 @@ class IRSCaustics(IRSMain):
         Parameters
         ----------
         pixels : int32
-        magnifications : 2D int64 Numpy array
+        magnifications : 2D float64 Numpy array
         repetitions : 2D int64 Numpy array
             Repeating coordinates
         counts : 1D int64 Numpy array
@@ -597,29 +656,34 @@ class IRSCaustics(IRSMain):
 
         Returns
         -------
-        magnifications : 2D int64 Numpy array
+        magnifications : 2D float64 Numpy array
         '''
         # Iterating through all the repitions of pixel coordinates and counts
         for i, count in enumerate(counts):
-            if pixels*2 not in repetitions[i]:
+            if pixels*1000 not in repetitions[i]:
                 # Calculating local ray density of pixel
                 sigma_pix = count / A_pix
 
                 # Incrementing magnification of that pixel as the ratio of ray densities in source and image planes
                 magnifications[repetitions[i, 1], repetitions[i, 0]] += sigma_pix / sigma_ann
 
+                # if (repetitions[i] == [0, 0]).all():
+                #     print(count, sigma_pix, sigma_pix / sigma_ann, magnifications[repetitions[i, 1], repetitions[i, 0]], repetitions[i])
+
         return magnifications
+    """
 
     @staticmethod
     @nb.jit(nb.types.Tuple((nb.int64[:, :], nb.int64[:]))(nb.int64[:, :]), parallel=True, nopython=True, fastmath=True, cache=True)
     def calc_uniques(sorted_mat):
         n, m = sorted_mat.shape
         assert m >= 0
-
+        
         isUnique = np.zeros(n, np.bool_)
         uniqueCount = 1
         if n > 0:
             isUnique[0] = True
+        
         for i in nb.prange(1, n):
             isUniqueVal = False
             for j in range(m):
@@ -648,6 +712,30 @@ class IRSCaustics(IRSMain):
             mat = mat[np.argsort(mat[:,m-1-i], kind=kind)]
 
         return mat
+
+    @staticmethod
+    @nb.jit(nb.int64[:, :](nb.int64[:, :]), parallel=False, nopython=True, fastmath=True, cache=True)
+    def sort_coordinates(coords):
+        n = coords.shape[0]
+        # Create a copy to avoid modifying the input
+        sorted_coords = coords.copy()
+
+        for i in range(n):
+            min_index = i
+            for j in range(i + 1, n):
+                xj, yj = sorted_coords[j][0], sorted_coords[j][1]
+                xi, yi = sorted_coords[min_index][0], sorted_coords[min_index][1]
+
+                if (xj < xi) or (xj == xi and yj < yi):
+                    min_index = j
+
+            # Swap rows using temp variable
+            if min_index != i:
+                temp_x, temp_y = sorted_coords[i][0], sorted_coords[i][1]
+                sorted_coords[i][0], sorted_coords[i][1] = sorted_coords[min_index][0], sorted_coords[min_index][1]
+                sorted_coords[min_index][0], sorted_coords[min_index][1] = temp_x, temp_y
+
+        return sorted_coords
     
     @staticmethod
     @nb.jit(nb.bool_[:, :](nb.float64, nb.float64[:, :], nb.float64[:, :]), parallel=True, nopython=True, fastmath=True, cache=True)
