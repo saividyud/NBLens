@@ -15,7 +15,7 @@ import matplotlib.widgets as w
 from tqdm import tqdm
 
 # Custom library for constants of different bodies
-import CelestialBodyData as cb
+from . import CelestialBodyData as cb
 
 d2r = m.pi / 180 # Converting degrees into radians
 r2d = 180 / m.pi # Converting radians into degrees
