@@ -10,7 +10,7 @@ print()
 import sys
 sys.path.append('.')
 
-import gc
+import time as t
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -108,7 +108,7 @@ print(f'Used memory: {memory.used / (1024**3)}')
 print()
 
 ''' Defining source profile '''
-radius = 1e-3
+radius = 3e-3
 LD = 0.5
 
 source_profile = IRSF.IRSFunctions.source_profile(ang_res=single_lens.param_dict['ang_res'], rad=radius, profile_type='LD', LD=LD)
@@ -173,3 +173,11 @@ ax.set_xlim(-ang_width/2, ang_width/2)
 ax.set_ylim(-ang_width/2, ang_width/2)
 
 fig.savefig('./Unity/Contours.png')
+
+init_time = t.time()
+np.save('./Unity/Analysis 6-4/single_lens_magnifications.npy', single_lens_magnifications)
+np.save('./Unity/Analysis 6-4/triple_lens_magnifications.npy', triple_lens_magnifications)
+np.save('./Unity/Analysis 6-4/convolved_single_lens.npy', convolved_single_lens)
+np.save('./Unity/Analysis 6-4/convolved_triple_lens.npy', convolved_triple_lens)
+np.save('./Unity/Analysis 6-4/fractional_deviations.npy', fractional_deviations)
+print(f'Saving arrays to file: {(t.time() - init_time):.2}')
