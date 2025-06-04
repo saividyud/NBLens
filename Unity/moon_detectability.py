@@ -10,6 +10,8 @@ print()
 import sys
 sys.path.append('.')
 
+import gc
+
 import numpy as np
 import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
@@ -38,7 +40,7 @@ alpha2 = 30
 q2 = 1e-3 * q1
 
 # Annulus parameters
-num_theta = 10000
+num_theta = 20000
 num_r = 4 * num_theta
 
 single_lens_attributes = [
@@ -94,10 +96,10 @@ print()
 ''' Similating triple lens magnification map '''
 triple_lens = IRSC.IRSCaustics(annulus_param_dict=triple_lens_parameters)
 triple_lens_magnifications = triple_lens.plot(cm_offset='auto')
-single_lens.fig_c.savefig('./Unity/Triple Lens Magnifications.png', dpi=300)
+triple_lens.fig_c.savefig('./Unity/Triple Lens Magnifications.png', dpi=300)
 
 print()
-print(f'Triple lens class memory: {get_class_size(single_lens)}')
+print(f'Triple lens class memory: {get_class_size(triple_lens)}')
 memory = psutil.virtual_memory()
 print(f'Available memory: {memory.available / (1024**3)}')
 print(f'Free memory: {memory.free / (1024**3)}')
@@ -125,16 +127,19 @@ ax.set_aspect('equal')
 
 fig.savefig('./Unity/Source Profile.png', dpi=300)
 
-''' Convolving source profile with both single lens and triple lens magnification maps '''
+''' Convolving source profile with single lens magnification maps '''
 convolved_single_lens = single_lens.convolve(source_profile=source_profile)
+
+''' Convolving source profile with triple lens magnification maps '''
 convolved_triple_lens = triple_lens.convolve(source_profile=source_profile)
 
+''' Plotting convolved brightnesses '''
 fig = plt.figure(figsize=(14, 8))
 ax1 = fig.add_subplot(1, 2, 1)
 ax2 = fig.add_subplot(1, 2, 2)
 
-ax1.imshow(convolved_single_lens, cmap='gray', extent=[-single_lens.ang_width/2, single_lens.ang_width/2, -single_lens.ang_width/2, single_lens.ang_width/2])
-ax2.imshow(convolved_triple_lens, cmap='gray', extent=[-single_lens.ang_width/2, single_lens.ang_width/2, -single_lens.ang_width/2, single_lens.ang_width/2])
+ax1.imshow(convolved_single_lens, cmap='gray', extent=[-ang_width/2, ang_width/2, -ang_width/2, ang_width/2])
+ax2.imshow(convolved_triple_lens, cmap='gray', extent=[-ang_width/2, ang_width/2, -ang_width/2, ang_width/2])
 
 ax1.set_xlabel('X [$\\theta_E$]')
 ax1.set_ylabel('Y [$\\theta_E$]')

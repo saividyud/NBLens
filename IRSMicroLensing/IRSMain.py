@@ -271,7 +271,7 @@ class IRSMain(object):
         
         return a
 
-    def calc_source_pixels(self, X, Y):
+    def calc_source_pixels(self):
         '''
         Calculates the source pixels that each ray lands on after being deflected by lens.
 
@@ -289,9 +289,9 @@ class IRSMain(object):
         # Translating into complex coordinates (source pixels)
         init_time = t.time()
         # z = self.X + self.Y*1j # [theta_e] NxN
-        z = np.empty(X.shape, dtype=np.complex128)
-        z.real = X
-        z.imag = Y
+        z = np.empty(self.X.shape, dtype=np.complex128)
+        z.real = self.X
+        z.imag = self.Y
         # print(1, t.time() - init_time)
 
         init_time = t.time()
@@ -314,7 +314,7 @@ class IRSMain(object):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             init_time = t.time()
-            sums = np.zeros(shape=np.shape(X), dtype=np.complex128)
+            sums = np.zeros(shape=np.shape(self.X), dtype=np.complex128)
             # print(6, t.time() - init_time)
 
             init_time = t.time()

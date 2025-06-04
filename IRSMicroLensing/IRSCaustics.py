@@ -438,7 +438,7 @@ class IRSCaustics(IRSMain):
             y_rays = np.linspace(-self.ang_width/2 - self.ang_res/2 + self.ang_res/(2*self.rays_per_pixel), self.ang_width/2 + self.ang_res/2 - self.ang_res/(2*self.rays_per_pixel), self.rays_per_pixel*self.pixels)
             
             # Calculating meshgrid of X and Y coordinates
-            X, Y = np.meshgrid(x_rays, y_rays)
+            self.X, self.Y = np.meshgrid(x_rays, y_rays)
             
         elif self.mode == 'annulus':
             # Defining vector of radial coordinates for each ray
@@ -448,15 +448,17 @@ class IRSCaustics(IRSMain):
             thetas = np.linspace(0, 2*np.pi - (2*np.pi/self.num_theta), self.num_theta).reshape(1, -1)
 
             # Calculating meshgrid of X and Y coordinates
-            X = np.dot(rs, np.cos(thetas))
-            Y = np.dot(rs, np.sin(thetas))
+            self.X = np.dot(rs, np.cos(thetas))
+            self.Y = np.dot(rs, np.sin(thetas))
 
         final_time = t.time() - init_time
         if self.print_stats: print(f'Creating mesh grid: {round(final_time, 3)} seconds')
 
         # Calculating source pixels
         init_time = t.time()
-        self.xs, self.ys = self.calc_source_pixels(X, Y)
+        self.xs, self.ys = self.calc_source_pixels()
+        del self.X
+        del self.Y
         # print(self.xs.shape, self.ys.shape)
         final_time = t.time() - init_time
         if self.print_stats: print(f'Calculating source pixels: {round(final_time, 3)} seconds')
@@ -464,6 +466,8 @@ class IRSCaustics(IRSMain):
         # Calculating indices of translated pixel after deflection
         init_time = t.time()
         indx, indy = self.trans_ind()
+        del self.xs
+        del self.ys
         # print(self.indx.shape, self.indy.shape)
         final_time = t.time() - init_time
         if self.print_stats: print(f'Calculating indices of translated pixel after deflection: {round(final_time, 3)} seconds')
@@ -488,23 +492,23 @@ class IRSCaustics(IRSMain):
 
         # Combining indx and indy into matrix of 2-element arrays (x and y coordinates)
         comb_mat = np.stack((indx, indy), axis=2)
+        del indx
+        del indy
 
         final_time = t.time() - init_time
         if self.print_stats: print(f'Calculating translated pixels: {round(final_time, 3)} seconds')
 
         # Calculating repeated coordinates and their counts in comb_mat
-        init_time = t.time()
-        self.stacked_mat = comb_mat.reshape(-1, 2)
+        stacked_mat = comb_mat.reshape(-1, 2)
+        del comb_mat
 
-        # mask = (self.stacked_mat[:, 0] != self.pixels*1000) & (self.stacked_mat[:, 1] != self.pixels*1000)
-        # self.stacked_mat = self.stacked_mat[mask]
-
-        # self.sorted_mat = IRSCaustics.sort_coordinates(self.stacked_mat)
-        if self.print_stats: print(f'Sorting translated pixels: {round(final_time, 3)} seconds')
-
+        # mask = (stacked_mat[:, 0] != self.pixels*1000) & (stacked_mat[:, 1] != self.pixels*1000)
+        # stacked_mat = stacked_mat[mask]
+        # self.sorted_mat = IRSCaustics.sort_coordinates(stacked_mat)
         
         init_time = t.time()
-        self.repetitions, self.counts = IRSCaustics.calc_uniques(self.stacked_mat)
+        repetitions, counts = IRSCaustics.calc_uniques(stacked_mat)
+        del stacked_mat
         final_time = t.time() - init_time
         if self.print_stats: print(f'Finding pixel repetitions and counts: {round(final_time, 3)} seconds')
 
@@ -512,7 +516,9 @@ class IRSCaustics(IRSMain):
         init_time = t.time()
 
         magnifications = np.zeros(shape=(self.pixels, self.pixels), dtype=np.int64)
-        magnifications = IRSCaustics.calc_mags(self.pixels, magnifications, self.repetitions, self.counts)
+        magnifications = IRSCaustics.calc_mags(self.pixels, magnifications, repetitions, counts)
+        del repetitions
+        del counts
         
         if self.mode == 'whole':
             self.magnifications = magnifications / self.rays_per_pixel**2
@@ -560,11 +566,6 @@ class IRSCaustics(IRSMain):
         self.magnifications_log = np.log10(self.magnifications)
         # self.magnifications_log = self.magnifications
 
-        # Replacing all 0 values with 0.1 to plot in log10 space
-        # magnifications_log = np.where(self.magnifications == 0, 0.1, self.magnifications)
-        # magnifications_log = np.log10(magnifications_log)
-        # self.magnifications_log = np.where(magnifications_log == -1, 0, magnifications_log)
-
         # Plotting magnifications
         if self.show_plot:
             init_time = t.time()
@@ -584,7 +585,7 @@ class IRSCaustics(IRSMain):
             self.write_to_file()
             final_time = t.time() - init_time
             if self.print_stats: print(f'Saving magnification data in file ./Mag Map Data/{self.import_file}.txt: {round(final_time, 3)} seconds')
-        
+
         end_time = t.time() - begin_time
         if self.print_stats:
             print('---------------------')
