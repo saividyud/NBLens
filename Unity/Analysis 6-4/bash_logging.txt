@@ -1,0 +1,58 @@
+no change     /usr/local/mamba/23.3.1/condabin/conda
+no change     /usr/local/mamba/23.3.1/bin/conda
+no change     /usr/local/mamba/23.3.1/bin/conda-env
+no change     /usr/local/mamba/23.3.1/bin/activate
+no change     /usr/local/mamba/23.3.1/bin/deactivate
+no change     /usr/local/mamba/23.3.1/etc/profile.d/conda.sh
+no change     /usr/local/mamba/23.3.1/etc/fish/conf.d/conda.fish
+no change     /usr/local/mamba/23.3.1/shell/condabin/Conda.psm1
+no change     /usr/local/mamba/23.3.1/shell/condabin/conda-hook.ps1
+no change     /usr/local/mamba/23.3.1/lib/python3.10/site-packages/xontrib/conda.xsh
+no change     /usr/local/mamba/23.3.1/etc/profile.d/conda.csh
+no change     /home/senthilnathan.11/.bashrc
+No action taken.
+
+CommandNotFoundError: Your shell has not been properly configured to use 'conda deactivate'.
+To initialize your shell, run
+
+    $ conda init <SHELL_NAME>
+
+Currently supported shells are:
+  - bash
+  - fish
+  - tcsh
+  - xonsh
+  - zsh
+  - powershell
+
+See 'conda init --help' for more information and options.
+
+IMPORTANT: You may need to close and restart your shell after running 'conda init'.
+
+
+
+CommandNotFoundError: Your shell has not been properly configured to use 'conda deactivate'.
+To initialize your shell, run
+
+    $ conda init <SHELL_NAME>
+
+Currently supported shells are:
+  - bash
+  - fish
+  - tcsh
+  - xonsh
+  - zsh
+  - powershell
+
+See 'conda init --help' for more information and options.
+
+IMPORTANT: You may need to close and restart your shell after running 'conda init'.
+
+
+Total memory: 502.8628616333008
+Available memory: 447.4273338317871
+Free memory: 382.44860458374023
+Inactive memory: 80.17325210571289
+Used memory: 52.161598205566406
+
+Done

@@ -600,13 +600,13 @@ class IRSCaustics(IRSMain):
         init_time = t.time()
 
         # Performing convolution
-        convolved_brightnesses = sci.signal.fftconvolve(self.magnifications, source_profile, 'same')
+        self.convolved_brightnesses = sci.signal.fftconvolve(self.magnifications, source_profile, 'same')
 
         final_time = t.time() - init_time
 
         print(f'Convolving source profile with magnification map: {round(final_time, 3)} seconds')
 
-        return convolved_brightnesses
+        return self.convolved_brightnesses
 
 
     @staticmethod
