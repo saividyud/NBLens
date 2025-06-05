@@ -22,7 +22,7 @@ alpha2 = 30
 q2 = 1e-3 * q1
 
 # Annulus parameters
-num_theta = 5000
+num_theta = 20000
 num_r = 4 * num_theta
 
 single_lens_attributes = [
