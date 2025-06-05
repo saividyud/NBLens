@@ -41,7 +41,6 @@ print(f'Angular width: {ang_width}')
 print(f'Thickness: {thickness}')
 print(f'Annulus lower bound: {y_plus}')
 print(f'Annulus upper bound: {y_minus}')
-print()
 
 single_lens_parameters = {
     'pixels': 1000,
@@ -60,7 +59,28 @@ triple_lens_parameters.update({
 })
 
 print(f'Number of rays: {(num_r * num_theta):.4e}')
+print('=========================================================')
 
 ''' Simulating single lens magnification map '''
 single_lens = IRSC.IRSCaustics(annulus_param_dict=single_lens_parameters)
-single_lens_magnifications = single_lens.plot(cm_offset='auto',)
+single_lens_magnifications = single_lens.plot(cm_offset='auto', show_plot=False)
+
+print('=========================================================')
+
+''' Similating triple lens magnification map '''
+triple_lens = IRSC.IRSCaustics(annulus_param_dict=triple_lens_parameters)
+triple_lens_magnifications = triple_lens.plot(cm_offset='auto', show_plot=False)
+
+print('=========================================================')
+
+''' Saving class data to file '''
+init_time = t.time()
+with open('./Unity/Analysis 6-4/single_lens.pkl', 'wb') as single_lens_file:
+    pickle.dump(single_lens, single_lens_file)
+
+with open('./Unity/Analysis 6-4/triple_lens.pkl', 'wb') as triple_lens_file:
+    pickle.dump(triple_lens, triple_lens_file)
+
+print(f'Saving class data to file: {(t.time() - init_time):.3} seconds')
+
+print('Done')
