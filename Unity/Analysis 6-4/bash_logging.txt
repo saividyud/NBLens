@@ -1,1 +1,27 @@
-/var/spool/slurmd/job8765529/slurm_script: line 14: 1812070 Killed                  python "./Unity/Analysis 6-4/calculator.py"
+Custom library import time: 5.62 seconds
+Angular width: 0.07680319680319682
+Thickness: 0.059738867403980045
+Annulus lower bound: 1.030315425782361
+Annulus upper bound: -0.970576558378381
+Number of rays: 1.6000e+09
+=========================================================
+Creating mesh grid: 6.331 seconds
+Calculating source pixels: 31.816 seconds
+Calculating indices of translated pixel after deflection: 24.376 seconds
+Calculating translated pixels: 32.225 seconds
+Finding pixel repetitions and counts: 8.179 seconds
+Incrementing pixel magnifications based on counts and repetitions: 0.509 seconds
+---------------------
+Total time: 103.441 seconds
+=========================================================
+Creating mesh grid: 6.33 seconds
+Calculating source pixels: 40.226 seconds
+Calculating indices of translated pixel after deflection: 24.401 seconds
+Calculating translated pixels: 32.242 seconds
+Finding pixel repetitions and counts: 8.194 seconds
+Incrementing pixel magnifications based on counts and repetitions: 0.522 seconds
+---------------------
+Total time: 111.923 seconds
+=========================================================
+Saving class data to file: 0.293 seconds
+Done
