@@ -2,7 +2,7 @@
 
 #SBATCH --time=1:00:00
 #SBATCH --nodes=1
-#SBATCH --mem=64G
+#SBATCH --mem=128G
 #SBATCH --job-name=Calc_mag_map
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
