@@ -14,5 +14,5 @@ mamba activate .venv
 python "./Unity/Analysis 6-4/timing_test.py"
 
 git add -A
-git commit -m "Calc_mag_map job"
+git commit -m "Timing test job"
 git push
