@@ -759,7 +759,7 @@ class IRSCaustics(IRSMain):
         if self.save_plot != None:
             if isinstance(self.save_plot, str):
                 init_time = t.time()
-                self.fig_c.savefig(f'./figures/{self.save_plot}.png', dpi=500)
+                self.fig_c.savefig(f'./{self.save_plot}.png', dpi=500)
                 final_time = t.time() - init_time
                 if self.print_stats: print(f'Saving magnification map: {round(final_time, 3)} seconds')
 
@@ -1163,53 +1163,89 @@ class IRSCaustics(IRSMain):
         '''
         np.savetxt(f'./datafiles/{self.import_file}.txt', self.magnifications)
 
-    def calc_caustic_points(self):
+    @staticmethod
+    def lightcurve_calculator(u, alpha, ang_width, map_array):
         '''
-        Calculates caustic points by finding maxima of each row of image.
+        Calculates the starting and ending points of source trajectory through magnification map.
+
+        Parameters
+        ----------
+        u : float
+            Impact parameter
+        alpha : float
+            Angle from x axis in degrees
+        ang_width : float
+            Angular width of magnification map
+
+        Returns
+        -------
+        intersections : 2x2 NDArray
+            First row is starting point, second row is ending point
+        (rr, cc) : tuple of 1D NDArrays
+            Coordinates of line
+        (tE_start, tE_end) : tuple of floats
+            Starting and ending times of light curve in units of Einstein crossing time
+        line_values : 1D NDArray
+            All pixels along light curve
         '''
-        neighborhood = 5
+        alpha = np.deg2rad(alpha)
+        
+        intersections = []
 
-        mag_max = ndi.maximum_filter(self.magnifications_log, neighborhood)
-        maxima = self.magnifications_log == mag_max
-        mag_min = ndi.minimum_filter(self.magnifications_log, neighborhood)
+        # Starting point of line
+        x0 = -u * np.sin(alpha)
+        y0 = u * np.cos(alpha)
 
-        threshold = np.amax(self.magnifications_log) * 0.5
+        # Direction vector of line
+        dx = np.cos(alpha)
+        dy = np.sin(alpha)
 
-        diff = (mag_max - mag_min) > threshold
-        maxima[diff == 0] = 0
+        # Vertical edges
+        for x_edge in [-ang_width/2, ang_width/2]:
+            t = (x_edge - x0) / dx
+            y = y0 + t*dy
+            if -ang_width/2 <= y <= ang_width/2:
+                intersections.append((x_edge, y))
+        
+        # Horizontal edges
+        for y_edge in [-ang_width/2, ang_width/2]:
+            t = (y_edge - y0) / dy
+            x = x0 + t*dx
+            if -ang_width/2 <= x <= ang_width/2:
+                intersections.append((x, y_edge))
+        
+        intersections = np.array(intersections)
 
-        labeled, num_objects = ndi.label(maxima)
-        slices = ndi.find_objects(labeled)
+        # Starting and ending times of light curve in tE
+        t_E_start = -np.sqrt((intersections[0, 0] - x0)**2 + (intersections[0, 1] - y0)**2)
+        t_E_end = np.sqrt((intersections[1, 0] - x0)**2 + (intersections[1, 1] - y0)**2)
 
-        x, y = [], []
+        # Extracting starting and ending points
+        start = intersections[0]
+        end = intersections[1]
 
-        for dy, dx in slices:
-            x_center = (dx.start + dx.stop - 1)/2
-            x.append(x_center)
-            y_center = (dy.start + dy.stop - 1)/2    
-            y.append(y_center)
+        # Defining number of pixels and angular resolution of map
+        pixels = np.shape(map_array)[0]
+        ang_res = ang_width / pixels
 
-        plt.figure(figsize=(10, 8))
-        plt.scatter(x, y)
+        # Offset from scientific coordinates to index coordinates
+        offset = (pixels - 1) / 2.0
 
-        # points = np.zeros(shape=np.shape(self.magnifications_log), dtype=np.bool_)
+        # Redefining starting and ending indices
+        start = np.floor(start/ang_res + offset)
+        end = np.floor(end/ang_res + offset)
 
-        # for i, row in enumerate(self.delta):
-        #     points[i, sig.argrelextrema(row, np.greater)[0]] = True
-    
-        # labeled, num_objects = ndi.label(points)
-        # slices = ndi.find_objects(labeled)
+        # Get line pixel coordinates
+        rr, cc = skimage.draw.line(int(start[1]), int(start[0]), int(end[1]), int(end[0]))
 
-        # x, y = [], []
+        # Get brightness values along the line
+        line_values = map_array[rr[1:], cc[1:]]
 
-        # for dy, dx in slices:
-        #     x_center = (dx.start + dx.stop - 1)/2
-        #     x.append(x_center)
-        #     y_center = (dy.start + dy.stop - 1)/2    
-        #     y.append(y_center)
+        # Shifting coordinates back into scientific coordinates
+        rr = (rr - offset) * ang_res
+        cc = (cc - offset) * ang_res
 
-        # plt.figure(figsize=(10, 8))
-        # plt.scatter(x, y)
+        return intersections, (rr[1:], cc[1:]), (t_E_start, t_E_end), line_values
 
     @property
     def zoom(self):

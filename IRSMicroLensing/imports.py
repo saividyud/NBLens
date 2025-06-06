@@ -4,6 +4,7 @@ import math as m
 import numba as nb
 import scipy as sci
 from tqdm import tqdm
+import skimage.draw
 
 # Scientific libraries
 import astropy
