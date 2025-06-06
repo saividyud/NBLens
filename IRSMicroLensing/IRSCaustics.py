@@ -116,7 +116,9 @@ class IRSCaustics(IRSMain):
             self.y_plus = self.param_dict['y_plus']
             self.y_minus = self.param_dict['y_minus']
 
-        # print('Changed')
+            self.dr = self.param_dict['dr']
+            self.dtheta = self.param_dict['dtheta']
+
         # Initializing parent class
         # Creates some class variables: self.pixels, self.ang_width, self.lens_att, self.ang_res, self.L, self.total_M, self.import_file
         super().__init__(pixels=self.param_dict['pixels'], ang_width=self.param_dict['ang_width'], source_att=None, lens_att=self.param_dict['lens_att'])
@@ -197,7 +199,7 @@ class IRSCaustics(IRSMain):
         if dr != None:
             num_r = passed_params['thickness'] / dr
         elif num_r != None:
-            dr = passed_params['thickness'] / num_r
+            dr = passed_params['thickness'] / (num_r - 1)
 
         # Testing dtheta and num_theta
         dtheta, num_theta = passed_params.get('dtheta'), passed_params.get('num_theta')
@@ -342,52 +344,59 @@ class IRSCaustics(IRSMain):
         thickness = y_plus + y_minus
 
         return ang_width, thickness, (y_plus, y_minus), points
+    
+    @staticmethod
+    def num_ray_calculator(pixels: int, ang_width: float, delta: float, y_plus: float, y_minus: float, r_theta_ratio: int | float = 4):
+        # Analytic single lens magnification equation
+        A = lambda u: (u**2 + 2) / (u * np.sqrt(u**2 + 4))
 
-    def plot(self, zoom: tuple | list = None, cm_offset: str | tuple | list = [0, 0], save_plot=None, show_mm=False, show_lenses=False, show_dev=False, show_axes=True, print_stats=True, show_plot=True, file_save=False, cmap='gray'):
+        # Distance of corner of map
+        u = 1.1 * ang_width / np.sqrt(2)
+        
+        # Width of pixel
+        dx = ang_width / pixels
+
+        # Area of annulus
+        a_ann = (np.pi * (y_plus**2 - y_minus**2))
+
+        # Ray density in annulus
+        n_image = 1 / (A(u) * dx**2 * delta**2)
+
+        # Total number of rays
+        N_rays = n_image * a_ann
+
+        # Number of rays in theta
+        num_theta = int(np.ceil(np.sqrt(N_rays / r_theta_ratio)))
+
+        # Number of rays in r
+        num_r = int(np.ceil(r_theta_ratio * num_theta))
+
+        return num_r, num_theta
+
+    def calculate(self, cm_offset: str | tuple | list = [0, 0], print_stats=True, file_save=False):
         '''
-        Creates magnification map for lens system.
+        Calculates magnification map for lens system.
 
         Parameters
         ----------
-        zoom : tuple or int
-            How much the plot should be zoomed in by
         cm_offset : str, tuple, or list
             Origin offset from center of mass
-        save_plot : None, str, optional
-            If plots should be saved
-        show_mm : bool, optional
-            If MulensModel caustics should be plotted (only supported for two lenses)
-        show_lenses : bool, optional
-            If the lenses and Einstein ring should be plotted on top of caustics
-        show_dev : bool, optional
-            Calculates the deviation from single lens if a binary lens is passed
-        show_axes : bool, optional
-            If the plot should have formatting or take up the entire figure
         print_stats : bool, optional
             If the program outputs computation time and steps
-        show_plot : bool, optional
-            If the program creates the plot
         file_save : bool, optional
             Saves magnification map data in CSV file in ../datafiles/{filename}.csv
-        cmap: : string, optional
-            Colormap of images
 
         Returns
         -------
         magnifications : NxN NDArray
             Matrix of magnification values for each pixel
         '''
-        self.zoom = zoom
         self.cm_offset = cm_offset
-        self.save_plot = save_plot
-        self.show_mm = show_mm
-        self.show_lenses = show_lenses
-        self.show_dev = show_dev
-        self.show_axes = show_axes
         self.print_stats = print_stats
-        self.show_plot = show_plot
         self.file_save = file_save
-        self.cmap = cmap
+
+        self.show_mm = False
+        self.show_dev = False
 
         # Compiling Numba jit functions
         num = 2
@@ -397,28 +406,25 @@ class IRSCaustics(IRSMain):
         rand_eps = np.ones(shape=num, dtype=np.float64)
         IRSMain.lens_eq(num, rand_sum, rand_coords, rand_masscoords, rand_eps)
 
-
         init_rand_arr = np.random.randint(0, 10, size=(2, 2))
-        # IRSCaustics.sort_coordinates(init_rand_arr)
         IRSCaustics.calc_uniques(init_rand_arr)
 
         count_rand_arr = np.random.randint(0, 10, size=2)
         magnifications = np.zeros(shape=(100, 100), dtype=np.int64)
         IRSCaustics.calc_mags(100, magnifications, init_rand_arr, count_rand_arr)
-        # magnifications = np.zeros(shape=(100, 100), dtype=np.float64)
-        # IRSCaustics.calc_mags_annulus(100, magnifications, init_rand_arr, count_rand_arr, 0.1, 1.0)
 
         X_comp = np.random.random((3, 3))
         Y_comp = np.random.random((3, 3))
         ann_comp = 0.01
         IRSCaustics.create_annulus(ann_comp, X_comp, Y_comp)
 
+        # Beginning computation
         begin_time = t.time()
 
         # Creating meshgrid of pixel centers
         self.X_pix, self.Y_pix = np.meshgrid(np.linspace(-self.ang_width/2, self.ang_width/2, self.pixels), np.linspace(-self.ang_width/2, self.ang_width/2, self.pixels))
 
-        # Calculatiing lens center of mass
+        # Calculating lens center of mass
         self.lens_CM = self.calc_CM()
         # self.lens_CM = 0
         if self.cm_offset == 'auto':
@@ -457,18 +463,16 @@ class IRSCaustics(IRSMain):
         # Calculating source pixels
         init_time = t.time()
         self.xs, self.ys = self.calc_source_pixels()
-        del self.X
+        del self.X # Deleting large arrays
         del self.Y
-        # print(self.xs.shape, self.ys.shape)
         final_time = t.time() - init_time
         if self.print_stats: print(f'Calculating source pixels: {round(final_time, 3)} seconds')
 
         # Calculating indices of translated pixel after deflection
         init_time = t.time()
         indx, indy = self.trans_ind()
-        del self.xs
+        del self.xs # Deleting large arrays
         del self.ys
-        # print(self.indx.shape, self.indy.shape)
         final_time = t.time() - init_time
         if self.print_stats: print(f'Calculating indices of translated pixel after deflection: {round(final_time, 3)} seconds')
 
@@ -476,39 +480,24 @@ class IRSCaustics(IRSMain):
         init_time = t.time()
 
         # Finding wherever indx or indy is nan
-        # bool_arr_x = np.isnan(self.indx)
-        # bool_arr_y = np.isnan(self.indy)
-
-        # # Replacing nan values with some out of bounds value and making the numbers into integers
-        # indx_nonan = np.where(bool_arr_x, self.pixels*2, self.indx)
-        # indy_nonan = np.where(bool_arr_y, self.pixels*2, self.indy)
-
-        # indx = np.where(bool_arr_x, int(self.pixels*2), indx_nonan.astype(int))
-        # indy = np.where(bool_arr_y, int(self.pixels*2), indy_nonan.astype(int))
         indx = np.nan_to_num(indx, nan=self.pixels*1000).astype(int)
         indy = np.nan_to_num(indy, nan=self.pixels*1000).astype(int)
 
-        # print(indx.shape, indy.shape)
-
         # Combining indx and indy into matrix of 2-element arrays (x and y coordinates)
         comb_mat = np.stack((indx, indy), axis=2)
-        del indx
+        del indx # Deleting large arrays
         del indy
 
         final_time = t.time() - init_time
         if self.print_stats: print(f'Calculating translated pixels: {round(final_time, 3)} seconds')
 
         # Calculating repeated coordinates and their counts in comb_mat
-        stacked_mat = comb_mat.reshape(-1, 2)
-        del comb_mat
-
-        # mask = (stacked_mat[:, 0] != self.pixels*1000) & (stacked_mat[:, 1] != self.pixels*1000)
-        # stacked_mat = stacked_mat[mask]
-        # self.sorted_mat = IRSCaustics.sort_coordinates(stacked_mat)
-        
         init_time = t.time()
+        stacked_mat = comb_mat.reshape(-1, 2)
+        del comb_mat # Deleting large arrays
+
         repetitions, counts = IRSCaustics.calc_uniques(stacked_mat)
-        del stacked_mat
+        del stacked_mat # Deleting large arrays
         final_time = t.time() - init_time
         if self.print_stats: print(f'Finding pixel repetitions and counts: {round(final_time, 3)} seconds')
 
@@ -517,9 +506,10 @@ class IRSCaustics(IRSMain):
 
         magnifications = np.zeros(shape=(self.pixels, self.pixels), dtype=np.int64)
         magnifications = IRSCaustics.calc_mags(self.pixels, magnifications, repetitions, counts)
-        del repetitions
+        del repetitions # Deleting large arrays
         del counts
         
+        # Normalizing magnifications by finding the ratio of rays in source plane to image plane
         if self.mode == 'whole':
             self.magnifications = magnifications / self.rays_per_pixel**2
 
@@ -539,7 +529,179 @@ class IRSCaustics(IRSMain):
         final_time = t.time() - init_time
         if self.print_stats: print(f'Incrementing pixel magnifications based on counts and repetitions: {round(final_time, 3)} seconds')
 
+        # Flipping array to be in real coordinates
         self.magnifications = np.flip(self.magnifications, axis=0)
+
+        # Taking the log base 10 of magnifications
+        self.magnifications_log = np.log10(self.magnifications)
+
+        # Saving the magnification map data to a file
+        if self.file_save:
+            init_time = t.time()
+            self.write_to_file()
+            final_time = t.time() - init_time
+            if self.print_stats: print(f'Saving magnification data in file ./Mag Map Data/{self.import_file}.txt: {round(final_time, 3)} seconds')
+
+        end_time = t.time() - begin_time
+        if self.print_stats:
+            print('---------------------')
+            print(f'Total time: {round(end_time, 3)} seconds')
+
+        return self.magnifications
+
+    def series_calculate(self, cm_offset: str | tuple | list = [0, 0], print_stats=True, file_save=False, subdivisions: int = 10):
+        '''
+        Calculates magnification map for lens system by breaking annulus in image plane into chunks.
+
+        Parameters
+        ----------
+        cm_offset : str, tuple, or list
+            Origin offset from center of mass
+        print_stats : bool, optional
+            If the program outputs computation time and steps
+        file_save : bool, optional
+            Saves magnification map data in CSV file in ../datafiles/{filename}.csv
+        subdivisions : int, optional
+            How many subdivisions to make in r and theta space for series calculations; creates `subdivisions^2` steps
+
+        Returns
+        -------
+        magnifications : NxN NDArray
+            Matrix of magnification values for each pixel
+        '''
+        self.cm_offset = cm_offset
+        self.print_stats = print_stats
+        self.file_save = file_save
+        self.subdivisions = subdivisions
+
+        self.show_mm = False
+        self.show_dev = False
+
+        # Compiling Numba jit functions
+        num = 2
+        rand_sum = np.zeros(shape=(100, 100), dtype=np.complex128)
+        rand_coords = np.ones(shape=(100, 100), dtype=np.complex128)
+        rand_masscoords = np.zeros(shape=num, dtype=np.complex128)
+        rand_eps = np.ones(shape=num, dtype=np.float64)
+        IRSMain.lens_eq(num, rand_sum, rand_coords, rand_masscoords, rand_eps)
+
+        init_rand_arr = np.random.randint(0, 10, size=(2, 2))
+        IRSCaustics.calc_uniques(init_rand_arr)
+
+        count_rand_arr = np.random.randint(0, 10, size=2)
+        magnifications = np.zeros(shape=(100, 100), dtype=np.int64)
+        IRSCaustics.calc_mags(100, magnifications, init_rand_arr, count_rand_arr)
+
+        X_comp = np.random.random((3, 3))
+        Y_comp = np.random.random((3, 3))
+        ann_comp = 0.01
+        IRSCaustics.create_annulus(ann_comp, X_comp, Y_comp)
+
+        # Beginning computation
+        begin_time = t.time()
+
+        # Creating meshgrid of pixel centers
+        self.X_pix, self.Y_pix = np.meshgrid(np.linspace(-self.ang_width/2, self.ang_width/2, self.pixels), np.linspace(-self.ang_width/2, self.ang_width/2, self.pixels))
+
+        # Calculating lens center of mass
+        self.lens_CM = self.calc_CM()
+        # self.lens_CM = 0
+        if self.cm_offset == 'auto':
+            self.cm_offset = self.lens_CM
+
+        # Translating lens positions so the center of mass is at offsetted center of mass
+        self.lens_att[:, :2] = self.lens_att[:, :2] - self.lens_CM + self.cm_offset
+
+        # Calculating area of annulus
+        A_ann = np.pi * (self.y_plus**2 - self.y_minus**2)
+        
+        # Calculating ray density within annulus
+        sigma_ann = self.num_rays / A_ann
+
+        # Calculating area of pixel
+        A_pix = (self.ang_res * 1.0)**2
+
+        # Initializing array of magnifications
+        magnifications = np.zeros(shape=(self.pixels, self.pixels), dtype=np.int64)
+
+        # Initializing array of points in r and points in theta
+        rs = np.linspace(-self.y_minus, self.y_plus, self.num_r).reshape(-1, 1)
+        thetas = np.linspace(0, 2*np.pi - (2*np.pi/self.num_theta), self.num_theta).reshape(1, -1)
+
+        # Iterating through each theta value (may change to more than one theta)
+        # for theta in thetas[0]:
+        for i in range(0, len(thetas[0]), self.subdivisions):
+            theta = thetas[0, i:i+self.subdivisions].reshape(1, -1)
+
+            # Calculating meshgrid of X and Y coordinates of rays
+            self.X = np.dot(rs, np.cos(theta))
+            self.Y = np.dot(rs, np.sin(theta))
+
+            # Calculating source pixels
+            self.xs, self.ys = self.calc_source_pixels()
+            del self.X # Deleting large arrays
+            del self.Y
+        
+            # Calculating indices of translated pixel after deflection
+            indx, indy = self.trans_ind()
+            del self.xs # Deleting large arrays
+            del self.ys
+
+            # Finding wherever indx or indy is nan
+            indx = np.nan_to_num(indx, nan=self.pixels*1000).astype(int)
+            indy = np.nan_to_num(indy, nan=self.pixels*1000).astype(int)
+
+            # Combining indx and indy into matrix of 2-element arrays (x and y coordinates)
+            comb_mat = np.stack((indx, indy), axis=2)
+            del indx # Deleting large arrays
+            del indy
+
+            # Calculating repeated coordinates and their counts in comb_mat
+            stacked_mat = comb_mat.reshape(-1, 2)
+            del comb_mat # Deleting large arrays
+
+            repetitions, counts = IRSCaustics.calc_uniques(stacked_mat)
+            del stacked_mat # Deleting large arrays
+
+            # Iterating through the array of counts to find the number of times each coordinate was repeated and increment that coordinate magnification by 1
+            magnifications = IRSCaustics.calc_mags(self.pixels, magnifications, repetitions, counts)
+
+        # Calculating magnifications
+        self.magnifications = (magnifications / A_pix) / sigma_ann
+
+        # Flipping array to be in real coordinates
+        self.magnifications = np.flip(self.magnifications, axis=0)
+
+        # Taking the log base 10 of magnifications
+        self.magnifications_log = np.log10(self.magnifications)
+
+        # Saving the magnification map data to a file
+        if self.file_save:
+            init_time = t.time()
+            self.write_to_file()
+            final_time = t.time() - init_time
+            if self.print_stats: print(f'Saving magnification data in file ./Mag Map Data/{self.import_file}.txt: {round(final_time, 3)} seconds')
+
+        end_time = t.time() - begin_time
+        if self.print_stats:
+            print('---------------------')
+            print(f'Total time: {round(end_time, 3)} seconds')
+
+        return self.magnifications
+
+    def analyze(self, show_mm: True, show_dev: True):
+        '''
+        Analyze compared to MulensModel and deviations from analytic single lens formulas.
+
+        Parameters
+        ----------
+        show_mm : bool, optional
+            If MulensModel caustics should be plotted (only supported for two lenses)
+        show_dev : bool, optional
+            Calculates the deviation from single lens if a binary lens is passed
+        '''
+        self.show_mm = show_mm
+        self.show_dev = show_dev
 
         # Calculating MulensModel analytic caustic curves
         init_time = t.time()
@@ -558,21 +720,42 @@ class IRSCaustics(IRSMain):
                 warnings.simplefilter('ignore')
                 self.delta = (self.magnifications - self.a_mags) / self.a_mags
 
-            self.delta_log = np.log10(np.abs(self.delta))
-
             final_time = t.time() - init_time
             if self.print_stats: print(f'Calculating analytic magnification map: {round(final_time, 3)} seconds')
 
-        self.magnifications_log = np.log10(self.magnifications)
-        # self.magnifications_log = self.magnifications
+    def plot(self, zoom: tuple | list = None, save_plot=None, show_lenses=False, show_axes=True, cmap='gray'):
+        '''
+        Plots magnification map for lens system.
+
+        Parameters
+        ----------
+        zoom : tuple or int
+            How much the plot should be zoomed in by
+        save_plot : None, str, optional
+            If plots should be saved
+        show_lenses : bool, optional
+            If the lenses and Einstein ring should be plotted on top of caustics
+        show_axes : bool, optional
+            If the plot should have formatting or take up the entire figure
+        show_plot : bool, optional
+            If the program creates the plot
+        cmap: : string, optional
+            Colormap of images
+
+        '''
+        self.zoom = zoom
+        self.save_plot = save_plot
+        self.show_axes = show_axes
+        self.cmap = cmap
+        self.show_lenses = show_lenses
 
         # Plotting magnifications
-        if self.show_plot:
-            init_time = t.time()
-            self.fig_c, self.ax_c = self.plot_mags_map()
-            final_time = t.time() - init_time
-            if self.print_stats: print(f'Plotting magnification map: {round(final_time, 3)} seconds')
+        init_time = t.time()
+        self.fig_c, self.ax_c = self.plot_mags_map()
+        final_time = t.time() - init_time
+        if self.print_stats: print(f'Plotting magnification map: {round(final_time, 3)} seconds')
 
+        # Saving the plot as a png image
         if self.save_plot != None:
             if isinstance(self.save_plot, str):
                 init_time = t.time()
@@ -580,19 +763,6 @@ class IRSCaustics(IRSMain):
                 final_time = t.time() - init_time
                 if self.print_stats: print(f'Saving magnification map: {round(final_time, 3)} seconds')
 
-        if self.file_save:
-            init_time = t.time()
-            self.write_to_file()
-            final_time = t.time() - init_time
-            if self.print_stats: print(f'Saving magnification data in file ./Mag Map Data/{self.import_file}.txt: {round(final_time, 3)} seconds')
-
-        end_time = t.time() - begin_time
-        if self.print_stats:
-            print('---------------------')
-            print(f'Total time: {round(end_time, 3)} seconds')
-
-        return self.magnifications
-    
     def convolve(self, source_profile: np.ndarray) -> np.ndarray:
         '''
         Convolve a source profile with a magnification map.
@@ -928,10 +1098,8 @@ class IRSCaustics(IRSMain):
         if self.show_dev:
             # Zooming into seperations based on zoom
             delta_zoomed = self.delta[y_lower_bound:y_upper_bound, x_lower_bound:x_upper_bound]
-            delta_log_zoomed = self.delta_log[y_lower_bound:y_upper_bound, x_lower_bound:x_upper_bound]
 
             # Plotting deviation map with set view max
-            # plot = ax.contourf(x_zoomed, y_zoomed, delta_zoomed, cmap='bone', levels=100)
             plot = ax.imshow(delta_zoomed, cmap=self.cmap, extent=[-self.zoom[0]/2, self.zoom[0]/2, -self.zoom[1]/2, self.zoom[1]/2])
 
         else:
@@ -939,8 +1107,6 @@ class IRSCaustics(IRSMain):
             # magnifications_zoomed = self.magnifications[y_lower_bound:y_upper_bound, x_lower_bound:x_upper_bound]
 
             # Plotting magnification map with set view max
-            # plot = ax.contourf(x_zoomed, y_zoomed, magnifications_log_zoomed, cmap='viridis', levels=100, vmin=0)
-            # mag_log_zoom_smooth = ndi.gaussian_filter(magnifications_log_zoomed, [1, 1], mode='constant')
             plot = ax.imshow(magnifications_log_zoomed, cmap=self.cmap, extent=[-self.zoom[0]/2, self.zoom[0]/2, -self.zoom[1]/2, self.zoom[1]/2])
 
             # ax.scatter(self.X, self.Y, s=1, c='red')

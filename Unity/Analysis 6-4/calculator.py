@@ -63,13 +63,13 @@ print('=========================================================')
 
 ''' Simulating single lens magnification map '''
 single_lens = IRSC.IRSCaustics(annulus_param_dict=single_lens_parameters)
-single_lens_magnifications = single_lens.plot(cm_offset='auto', show_plot=False)
+single_lens_magnifications = single_lens.calculate(cm_offset='auto', show_plot=False)
 
 print('=========================================================')
 
 ''' Similating triple lens magnification map '''
 triple_lens = IRSC.IRSCaustics(annulus_param_dict=triple_lens_parameters)
-triple_lens_magnifications = triple_lens.plot(cm_offset='auto', show_plot=False)
+triple_lens_magnifications = triple_lens.calculate(cm_offset='auto', show_plot=False)
 
 print('=========================================================')
 
