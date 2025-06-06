@@ -630,7 +630,7 @@ class IRSCaustics(IRSMain):
 
         # Iterating through each theta value (may change to more than one theta)
         # for theta in thetas[0]:
-        for i in range(0, len(thetas[0]), self.subdivisions):
+        for i in tqdm(range(0, len(thetas[0]), self.subdivisions)):
             theta = thetas[0, i:i+self.subdivisions].reshape(1, -1)
 
             # Calculating meshgrid of X and Y coordinates of rays

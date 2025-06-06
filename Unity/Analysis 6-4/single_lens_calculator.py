@@ -21,9 +21,9 @@ s2 = 0.8
 alpha2 = 30
 q2 = 1e-3 * q1
 
-# Annulus parameters
-num_theta = 20000
-num_r = 4 * num_theta
+# Map parameters
+pixels = 2000
+delta = 0.01
 
 single_lens_attributes = [
     [0, 0, 0.001, 1]
@@ -36,14 +36,17 @@ triple_lens_attributes = [
 ]
 
 ang_width, thickness, (y_plus, y_minus), cusp_points = IRSC.IRSCaustics.ang_width_thickness_calculator(triple_lens_attributes)
+num_r, num_theta = IRSC.IRSCaustics.num_ray_calculator(pixels, ang_width, delta, y_plus, y_minus)
 
 print(f'Angular width: {ang_width}')
 print(f'Thickness: {thickness}')
 print(f'Annulus lower bound: {y_plus}')
 print(f'Annulus upper bound: {y_minus}')
+print(f'Number of rays in theta: {num_theta}')
+print(f'Number of rays in r: {num_r}')
 
 single_lens_parameters = {
-    'pixels': 1000,
+    'pixels': pixels,
     'ang_width': ang_width,
     'thickness': thickness,
     'y_plus': y_plus,
@@ -63,13 +66,7 @@ print('=========================================================')
 
 ''' Simulating single lens magnification map '''
 single_lens = IRSC.IRSCaustics(annulus_param_dict=single_lens_parameters)
-single_lens_magnifications = single_lens.calculate(cm_offset='auto', show_plot=False)
-
-print('=========================================================')
-
-''' Similating triple lens magnification map '''
-triple_lens = IRSC.IRSCaustics(annulus_param_dict=triple_lens_parameters)
-triple_lens_magnifications = triple_lens.calculate(cm_offset='auto', show_plot=False)
+single_lens_magnifications = single_lens.series_calculate(cm_offset='auto', subdivisions=10)
 
 print('=========================================================')
 
@@ -77,9 +74,6 @@ print('=========================================================')
 init_time = t.time()
 with open('./Unity/Analysis 6-4/single_lens.pkl', 'wb') as single_lens_file:
     pickle.dump(single_lens, single_lens_file)
-
-with open('./Unity/Analysis 6-4/triple_lens.pkl', 'wb') as triple_lens_file:
-    pickle.dump(triple_lens, triple_lens_file)
 
 print(f'Saving class data to file: {(t.time() - init_time):.3} seconds')
 
