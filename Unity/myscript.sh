@@ -6,7 +6,7 @@
 #SBATCH --job-name=timing_testing
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
-#SBATCH --output="./Unity/Analysis 6-4/bash_logging.txt"
+#SBATCH --output="./Unity/Analysis 6-4/timing_logging.txt"
 
 # Commands to run
 module load mamba
