@@ -6,12 +6,14 @@
 #SBATCH --job-name=triple_lens_1e11
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
-#SBATCH --output="./Unity/Analysis 6-4/triple_bash_logging.txt"
+
+#SBATCH --output="./Unity/Output Logs/triple_bash_output.txt"
+#SBATCH --error="./Unity/Error Logs/triple_bash_error.txt"
 
 # Commands to run
 module load mamba
 mamba activate .venv
-python "./Unity/Analysis 6-4/triple_lens_calculator.py"
+python "./Unity/Python Scripts/triple_lens_calculator.py"
 
 git add -A
 git commit -m "triple lens 1e11"

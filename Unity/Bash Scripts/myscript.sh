@@ -6,12 +6,14 @@
 #SBATCH --job-name=timing_testing
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
-#SBATCH --output="./Unity/Analysis 6-4/timing_logging.txt"
+
+#SBATCH --output="./Unity/Output Logs/timing_output.txt"
+#SBATCH --error="./Unity/Error Logs/timing_error.txt"
 
 # Commands to run
 module load mamba
 mamba activate .venv
-python "./Unity/Analysis 6-4/timing_test.py"
+python "./Unity/Python Scripts/timing_test.py"
 
 git add -A
 git commit -m "Timing test job"
