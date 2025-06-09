@@ -43,7 +43,7 @@ total_M = np.sum(triple_lens_arr[:, 3])
 lens_CM = CM_sum / total_M
 
 single_lens_attributes = [
-    [lens_CM[0], lens_CM[1], 0.001, 1]
+    [0.0002470252450260668, 1.3212232075066055e-07, 0.001, 1]
 ]
 
 ang_width, thickness, (y_plus, y_minus), cusp_points = IRSC.IRSCaustics.ang_width_thickness_calculator(triple_lens_attributes)
@@ -86,7 +86,7 @@ print('=========================================================')
 
 ''' Saving class data to file '''
 init_time = t.time()
-with open('./Unity/Simulations/single_lens_cm.pkl', 'wb') as single_lens_file:
+with open('./Unity/Simulations/single_lens_cusp.pkl', 'wb') as single_lens_file:
     pickle.dump(single_lens, single_lens_file)
 
 # with open('./Unity/Analysis 6-4/triple_lens_small.pkl', 'wb') as triple_lens_file:

@@ -1183,8 +1183,8 @@ class IRSCaustics(IRSMain):
             First row is starting point, second row is ending point
         (xs, ys) : tuple of 1D NDArrays
             Coordinates of line
-        (tE_start, tE_end) : tuple of floats
-            Starting and ending times of light curve in units of Einstein crossing time
+        times : 1D NDArray
+            Array of all time values, with 0 being at impact parameter of u
         line_values : 1D NDArray
             All pixels along light curve
         '''
@@ -1245,7 +1245,9 @@ class IRSCaustics(IRSMain):
         rr = (rr - offset) * ang_res
         cc = (cc - offset) * ang_res
 
-        return intersections, (cc[1:], rr[1:]), (t_E_start, t_E_end), line_values
+        times = np.linspace(t_E_start, t_E_end, line_values.shape[0])
+
+        return intersections, (cc[1:], rr[1:]), times, line_values
 
     @property
     def zoom(self):
