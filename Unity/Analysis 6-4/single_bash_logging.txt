@@ -13,3 +13,20 @@ Total time: 9454.2 seconds
 =========================================================
 Saving class data to file: 0.435 seconds
 Done
+[main 24c9211] Single lens 1e11 at CM
+ Committer: senthilnathan.11 <senthilnathan.11@u182.asc.ohio-state.edu>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly:
+
+    git config --global user.name "Your Name"
+    git config --global user.email you@example.com
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 3 files changed, 33 insertions(+), 1 deletion(-)
+ create mode 100644 Unity/Analysis 6-4/single_bash_logging2.txt
+To https://github.com/saividyud/NBLens.git
+   0035b91..24c9211  main -> main
