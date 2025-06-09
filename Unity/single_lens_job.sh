@@ -14,5 +14,5 @@ mamba activate .venv
 python "./Unity/Analysis 6-4/single_lens_calculator.py"
 
 git add -A
-git commit -m "Single lens 1e11"
+git commit -m "Single lens 1e11 at CM"
 git push
