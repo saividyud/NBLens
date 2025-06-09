@@ -25,14 +25,25 @@ q2 = 1e-3 * q1
 pixels = 2000
 delta = 0.01
 
-single_lens_attributes = [
-    [0, 0, 0.001, 1]
-]
-
 triple_lens_attributes = [
     [0, 0, 0.001, 1],
     [s1*np.cos(np.deg2rad(alpha1)), s1*np.sin(np.deg2rad(alpha1)), 0.001, q1],
     [s2*np.cos(np.deg2rad(alpha2)), s2*np.sin(np.deg2rad(alpha2)), 0.001, q2]
+]
+
+triple_lens_arr = np.array(triple_lens_attributes)
+
+CM_sum = 0
+
+for i in range(3):
+    CM_sum += triple_lens_arr[i, :2] * triple_lens_arr[i, 3]
+
+total_M = np.sum(triple_lens_arr[:, 3])
+
+lens_CM = CM_sum / total_M
+
+single_lens_attributes = [
+    [lens_CM[0], lens_CM[1], 0.001, 1]
 ]
 
 ang_width, thickness, (y_plus, y_minus), cusp_points = IRSC.IRSCaustics.ang_width_thickness_calculator(triple_lens_attributes)
@@ -72,7 +83,7 @@ print('=========================================================')
 
 ''' Saving class data to file '''
 init_time = t.time()
-with open('./Unity/Analysis 6-4/single_lens.pkl', 'wb') as single_lens_file:
+with open('./Unity/Simulations/single_lens_1e11_cm.pkl', 'wb') as single_lens_file:
     pickle.dump(single_lens, single_lens_file)
 
 print(f'Saving class data to file: {(t.time() - init_time):.3} seconds')
