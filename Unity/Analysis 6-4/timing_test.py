@@ -49,10 +49,10 @@ print('=========================================================')
 ''' Simulating magnification map '''
 binary_lens = IRSC.IRSCaustics(annulus_param_dict=lens_parameters)
 
-num = int(num_theta / 2)
-# num = 20
+# num = int(num_theta / 2)
+num = 100
 
-subdivisions = np.arange(0, num+1, 5).astype(int)
+subdivisions = np.arange(0, num+1, 1).astype(int)
 print(f'Number of iterations: {len(subdivisions)}')
 
 all_times = np.zeros_like(subdivisions, dtype=np.float64)
@@ -69,4 +69,4 @@ for i, subdivision in enumerate(subdivisions[1:]):
 
     dat = np.vstack((np.float64(subdivisions), all_times))
 
-    np.save('./Unity/Analysis 6-4/timing_data.npy', dat)
+    np.save('./Unity/Analysis 6-4/timing_data_2.npy', dat)
