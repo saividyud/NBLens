@@ -77,7 +77,7 @@ print('=========================================================')
 
 ''' Simulating single lens magnification map '''
 single_lens = IRSC.IRSCaustics(annulus_param_dict=single_lens_parameters)
-single_lens_magnifications = single_lens.series_calculate(cm_offset='auto', subdivisions=10)
+single_lens_magnifications = single_lens.series_calculate(cm_offset='auto', subdivisions=100)
 
 print('=========================================================')
 
