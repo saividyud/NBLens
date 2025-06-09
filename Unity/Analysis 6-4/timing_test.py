@@ -50,20 +50,23 @@ print('=========================================================')
 binary_lens = IRSC.IRSCaustics(annulus_param_dict=lens_parameters)
 
 num = int(num_theta / 2)
+# num = 20
 
-subdivisions = np.arange(0, num+1, 1).astype(int)
+subdivisions = np.arange(0, num+1, 5).astype(int)
+print(f'Number of iterations: {len(subdivisions)}')
 
-all_times = np.zeros(num+1)
+all_times = np.zeros_like(subdivisions, dtype=np.float64)
 
 init_time = t.time()
 binary_lens.calculate()
 all_times[0] = t.time() - init_time
 
-for subdivision in subdivisions[1:]:
+for i, subdivision in enumerate(subdivisions[1:]):
+    print(f'Subdivisions: {subdivision}')
     init_time = t.time()
     binary_lens.series_calculate(subdivisions=subdivision)
-    all_times[subdivision] = t.time() - init_time
+    all_times[i+1] = t.time() - init_time
 
-dat = np.vstack((subdivisions, all_times))
+    dat = np.vstack((np.float64(subdivisions), all_times))
 
-np.save('./Unity/Analysis 6-4/timing_data.npy', dat)
+    np.save('./Unity/Analysis 6-4/timing_data.npy', dat)
