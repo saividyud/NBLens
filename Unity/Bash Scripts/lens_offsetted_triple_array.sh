@@ -2,8 +2,8 @@
 
 #SBATCH --time=60:00:00
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=8
-#SBATCH --mem-per-cpu=8G
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=1G
 #SBATCH --job-name=triple_lens_offsetted_array
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
