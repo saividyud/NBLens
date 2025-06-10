@@ -25,6 +25,9 @@ pmrs=(0.1 0.01 0.001)
 alpha_index=$(( SLURM_ARRAY_TASK_ID / 4 ))
 pmrs_index=$(( SLURM_ARRAY_TASK_ID % 3 ))
 
-echo $alpha_index
-echo $pmrs_index
+# Extract parameters
+alpha=${alphas[$alpha_index]}
+pmr=${pmrs[$pmrs_index]}
+
+echo "Running $alpha degrees with $pmr mass ratio"
 
