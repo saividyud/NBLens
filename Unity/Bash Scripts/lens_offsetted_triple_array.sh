@@ -8,7 +8,7 @@
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
 
-#SBATCH --array=0-2
+#SBATCH --array=0-14
 
 #SBATCH --output="./Unity/Output Logs/Collection_0.8/triple_1e11_%a_output.txt"
 #SBATCH --error="./Unity/Error Logs/Collection_0.8/triple_1e11_%a_error.txt"
