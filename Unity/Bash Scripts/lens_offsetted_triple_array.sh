@@ -22,9 +22,9 @@ alphas=(0 45 90 135 180)
 pmrs=(0.1 0.01 0.001)
 
 # Compute indices
-A_index=$(( SLURM_ARRAY_TASK_ID / 4 ))
-S_index=$(( SLURM_ARRAY_TASK_ID % 4 ))
+alpha_index=$(( SLURM_ARRAY_TASK_ID / 4 ))
+pmrs_index=$(( SLURM_ARRAY_TASK_ID % 3 ))
 
-echo $A_index
-echo $S_index
+echo $alpha_index
+echo $pmrs_index
 
