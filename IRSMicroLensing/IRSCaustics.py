@@ -216,7 +216,7 @@ class IRSCaustics(IRSMain):
         return full_params, (y_plus, y_minus), points
 
     @staticmethod
-    def ang_width_thickness_calculator(lens_att: list):
+    def ang_width_thickness_calculator(lens_att: list | np.ndarray):
         '''
         Calculates the angular width of sampling region and thickness of shooting region using Equations 8-10 in https://arxiv.org/pdf/astro-ph/0505363.
 

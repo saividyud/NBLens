@@ -44,12 +44,23 @@ print(f's2 = {s2}')
 print(f'alpha1 = {alpha1}')
 print(f'alpha2 = {alpha2}')
 
+# Defining single lens attributes
+single_lens_attributes = np.array([
+    [0, 0, 1]
+])
+
+# Defining binary lens attributes
+binary_lens_attributes = np.array([
+    [0, 0, 1],
+    [s1*np.cos(np.deg2rad(alpha1)), s1*np.sin(np.deg2rad(alpha1)), q1],
+])
+
 # Triple lens attributes
-triple_lens_attributes = [
+triple_lens_attributes = np.array([
     [0, 0, 1],
     [s1*np.cos(np.deg2rad(alpha1)), s1*np.sin(np.deg2rad(alpha1)), q1],
     [s2*np.cos(np.deg2rad(alpha2)), s2*np.sin(np.deg2rad(alpha2)), q2]
-]
+])
 
 # Rotation matrix for first planet
 first_planet_DCM = np.array([
@@ -64,8 +75,8 @@ second_planet_DCM = np.array([
 ])
 
 # Calculating translation of coordinate origin for each planet
-q1 = triple_lens_attributes[1][2]
-q2 = triple_lens_attributes[2][2]
+q1 = triple_lens_attributes[1, 2]
+q2 = triple_lens_attributes[2, 2]
 
 delta1_rot = np.array([q1 / ((1 + q1) * (s1 + 1/s1)), 0]).reshape(-1, 1)
 delta2_rot = np.array([q2 / ((1 + q2) * (s2 + 1/s2)), 0]).reshape(-1, 1)
@@ -76,16 +87,11 @@ delta2 = np.dot(second_planet_DCM, delta2_rot).reshape(2)
 total_offset = (q1*delta1 + q2*delta2)/(q1 + q2)
 print(f'Total offset: {total_offset}')
 
-# Defining single lens attributes
-single_lens_attributes = [
-    [total_offset[0], total_offset[1], 1]
-]
+# Correcting binary lens attributes
+binary_lens_attributes[:, :2] -= delta1
 
-# Defining binary lens attributes
-binary_lens_attributes = [
-    [total_offset[0], total_offset[1], 1],
-    [s1*np.cos(np.deg2rad(alpha1)) + total_offset[0], s1*np.sin(np.deg2rad(alpha1)) + total_offset[1], q1],
-]
+# Correcting triple lens attributes
+triple_lens_attributes[:, :2] -= total_offset
 
 # Map parameters
 pixels = 2000
@@ -93,9 +99,6 @@ delta = 0.01
 
 ang_width, thickness, (y_plus, y_minus), cusp_points = IRSC.IRSCaustics.ang_width_thickness_calculator(triple_lens_attributes)
 num_r, num_theta = IRSC.IRSCaustics.num_ray_calculator(pixels, ang_width, delta, y_plus, y_minus)
-
-num_theta = 5000
-num_r = 4 * num_theta
 
 print(f'Angular width: {ang_width}')
 print(f'Thickness: {thickness}')
@@ -110,19 +113,19 @@ single_lens_parameters = {
     'thickness': thickness,
     'y_plus': y_plus,
     'y_minus': y_minus,
-    'lens_att': single_lens_attributes,
+    'lens_att': single_lens_attributes.tolist(),
     'num_theta': num_theta,
     'num_r': num_r
 }
 
 binary_lens_parameters = single_lens_parameters.copy()
 binary_lens_parameters.update({
-    'lens_att': binary_lens_attributes
+    'lens_att': binary_lens_attributes.tolist()
 })
 
 triple_lens_parameters = single_lens_parameters.copy()
 triple_lens_parameters.update({
-    'lens_att': triple_lens_attributes
+    'lens_att': triple_lens_attributes.tolist()
 })
 
 print(f'Number of rays: {(num_r * num_theta):.4e}')
@@ -131,10 +134,16 @@ print('=========================================================')
 ''' Simulating L lens magnification map '''
 if args['lenses'] == 'single':
     param_dict = single_lens_parameters
+    file_path = f'./Unity/Simulations/Collection_0.8/single_1e11.pkl'
+
 elif args['lenses'] == 'binary':
     param_dict = binary_lens_parameters
+    file_path = f'./Unity/Simulations/Collection_0.8/binary_1e11.pkl'
+
 elif args['lenses'] == 'triple':
     param_dict = triple_lens_parameters
+    file_path = f'./Unity/Simulations/Collection_0.8/triple_1e11_{int(alpha2)}_{q2:.0e}.pkl'
+
 else:
     raise ValueError(f'Wrong lens configuration passed in. Got {args["lenses"]}.')
 
@@ -147,7 +156,7 @@ print('=========================================================')
 
 ''' Saving class data to file '''
 init_time = t.time()
-with open(f'./Unity/Simulations/Collection_0.8/{args["lenses"]}_1e11_{int(alpha2)}_{q2}.pkl', 'wb') as calculator_file:
+with open(file_path, 'wb') as calculator_file:
     pickle.dump(calculator, calculator_file)
 
 print(f'Saving class data to file: {(t.time() - init_time):.3} seconds')
