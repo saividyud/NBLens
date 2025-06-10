@@ -2,8 +2,8 @@
 
 #SBATCH --time=60:00:00
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=1G
+#SBATCH --cpus-per-task=4
+#SBATCH --mem-per-cpu=8G
 #SBATCH --job-name=triple_lens_offsetted_array
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
@@ -30,4 +30,6 @@ alpha=${alphas[$alpha_index]}
 pmr=${pmrs[$pmrs_index]}
 
 echo "Running $alpha degrees with $pmr mass ratio"
+
+python "./Unity/Python Scripts/lenses_offsetted.py" -a2 $alpha -pmr $pmr -l triple
 
