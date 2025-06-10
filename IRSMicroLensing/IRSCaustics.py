@@ -241,6 +241,12 @@ class IRSCaustics(IRSMain):
         # Number of lens objects
         L = np.shape(lens_att)[0]
 
+        # If radii
+        if np.shape(lens_att)[1] == 4:
+            mass_ind = 3
+        else:
+            mass_ind = 2
+
         # Initializing maximum distance from origin list
         max_dist_rot = []
         max_dist = []
@@ -256,7 +262,7 @@ class IRSCaustics(IRSMain):
             two_lenses = np.array([lens_att[0], lens])
 
             # Finding which index the bigger mass was passed in (primary lens)
-            big_mass = np.where(two_lenses[:, 3] == np.max(two_lenses[:, 3]))[0][0]
+            big_mass = np.where(two_lenses[:, mass_ind] == np.max(two_lenses[:, mass_ind]))[0][0]
 
             # Secondary lens
             small_mass = int(not big_mass)
@@ -290,7 +296,7 @@ class IRSCaustics(IRSMain):
             s = np.linalg.norm(v)
 
             # Calculating mass ratio between lenses (q)
-            q = two_lenses[small_mass, 3] / two_lenses[big_mass, 3]
+            q = two_lenses[small_mass, mass_ind] / two_lenses[big_mass, mass_ind]
 
             # Calculating center of mass in binary axis
             lens_CMs_rot[i, 0] = q*s / (1 + q)
@@ -1248,6 +1254,22 @@ class IRSCaustics(IRSMain):
         times = np.linspace(t_E_start, t_E_end, line_values.shape[0])
 
         return intersections, (cc[1:], rr[1:]), times, line_values
+
+    @property
+    def show_lenses(self):
+        '''
+        Type : bool
+
+        Whether or not to show lenses.
+        '''
+        return self._show_lenses
+    
+    @show_lenses.setter
+    def show_lenses(self, val):
+        if val and self.lens_att.shape[1] == 3:
+            raise ValueError(f'If lenses must be shown, then radii must be passed in lens_att.')
+        else:
+            self._show_lenses = val
 
     @property
     def zoom(self):

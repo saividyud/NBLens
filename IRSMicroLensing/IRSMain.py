@@ -60,8 +60,14 @@ class IRSMain(object):
         # Number of lens objects
         self.L = np.shape(self.lens_att)[0]
 
+        # If no radii
+        if np.shape(self.lens_att)[1] == 4:
+            self.mass_index = 3
+        else:
+            self.mass_index = 2
+
         # Total mass of lens objects
-        self.total_M = np.sum(self.lens_att[:, 3])
+        self.total_M = np.sum(self.lens_att[:, self.mass_index])
 
         # Defining import file
         for frame in inspect.stack()[1:]:
@@ -175,7 +181,7 @@ class IRSMain(object):
         CM_sum = 0
 
         for i in range(self.L):
-            CM_sum += self.lens_att[i, :2] * self.lens_att[i, 3]
+            CM_sum += self.lens_att[i, :2] * self.lens_att[i, self.mass_index]
         
         return CM_sum / self.total_M
 
@@ -304,7 +310,7 @@ class IRSMain(object):
         # print(3, t.time() - init_time)
 
         init_time = t.time()
-        epsilon = self.lens_att[:, 3] / self.total_M # [dimensionless] 1xL
+        epsilon = self.lens_att[:, self.mass_index] / self.total_M # [dimensionless] 1xL
         # print(4, t.time() - init_time)
         
         init_time = t.time()
@@ -478,7 +484,7 @@ class IRSMain(object):
                 for lens in val:
                     # Checking if each element in lens_att is a list
                     if isinstance(lens, list):
-                        if np.shape(lens)[0] == 4:
+                        if np.shape(lens)[0] == 4 or np.shape(lens)[0] == 3:
                             # Checking if each element inside each lens is a float or an int
                             for n in lens:
                                 if isinstance(n, (int, float)):
@@ -486,7 +492,7 @@ class IRSMain(object):
                                 else:
                                     raise TypeError(f'Each element in list in attribute "lens_att" must be a float or integer. Got {type(n)}.')
                         else:
-                            raise ValueError(f'Each list in attribute "lens_att" must be of length 4. Got {np.shape(lens)}.')
+                            raise ValueError(f'Each list in attribute "lens_att" must be of length 3 or 4. Got {np.shape(lens)}.')
                     else:
                         raise TypeError(f'Each element in attribute "lens_att" must be a list. Got {type(lens)}.')
             else:

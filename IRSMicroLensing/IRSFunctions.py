@@ -108,7 +108,6 @@ class IRSFunctions:
 
         return theta_e.to(u.mas), r_E.to(u.au)
     
-    @staticmethod
     def source_profile(ang_res, rad, xc=0.0, yc=0.0, profile_type='uniform', LD=0):
         '''
         Initializes brightness levels due to sources.
@@ -162,6 +161,22 @@ class IRSFunctions:
             a = ((1 - (LD * (1 - (3/2 * cos_theta))))/(2*np.pi)) * (r2 <= rad**2)
         
         return a
+    
+    def find_cusp_points(caustic_points):
+        points = caustic_points.T  # Shape: (400, 2)
+
+        vectors = np.diff(points, axis=0)  # Shape: (399, 2)
+
+        norms = np.linalg.norm(vectors, axis=1, keepdims=True)
+        unit_vectors = vectors / norms
+
+        dot_products = np.sum(unit_vectors[:-1] * unit_vectors[1:], axis=1)
+        dot_products = np.clip(dot_products, -1.0, 1.0)  # Clip to avoid numerical errors
+        angles = np.rad2deg(np.arccos(dot_products))  # In degrees
+
+        cusp_indices = np.where(angles > 50)[0] + 1  # +1 to shift to the index of the corner point
+
+        return caustic_points[0, cusp_indices], caustic_points[1, cusp_indices]
 
     def plot_system_proj(a_pl,phi,i,r_E=None,OMEGA=0,omega=0,theta=0,ax=None,kwargs={},proj_kwargs={'color':'crimson'}):
         """
