@@ -22,7 +22,7 @@ alphas=(0 45 90 135 180)
 pmrs=(0.1 0.01 0.001)
 
 # Compute indices
-alpha_index=$(( SLURM_ARRAY_TASK_ID / 5 ))
+alpha_index=$(( SLURM_ARRAY_TASK_ID / 3 ))
 pmrs_index=$(( SLURM_ARRAY_TASK_ID % 3 ))
 
 # Extract parameters
