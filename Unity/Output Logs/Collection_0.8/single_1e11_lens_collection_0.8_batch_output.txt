@@ -1,0 +1,26 @@
+Custom library import time: 11.2 seconds
+{'angle2': '45', 'planet_mass_ratio': '1e-3', 'lenses': 'single'}
+
+=========================================================
+Lens parameters:
+q1 = 0.001
+q2 = 1e-06
+s1 = 0.8
+s2 = 0.8
+alpha1 = 0
+alpha2 = 45.0
+Total offset: [4.86831074e-04 3.44585207e-10]
+Angular width: 0.07680319680319682
+Thickness: 0.059738867403980045
+Annulus lower bound: -0.970576558378381
+Annulus upper bound: 1.030315425782361
+Number of rays in theta: 5000
+Number of rays in r: 20000
+Number of rays: 1.0000e+08
+=========================================================
+Shooting single:
+---------------------
+Total time: 4.378 seconds
+=========================================================
+Saving class data to file: 0.336 seconds
+Done
