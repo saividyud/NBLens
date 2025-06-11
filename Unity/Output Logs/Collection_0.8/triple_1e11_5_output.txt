@@ -1,0 +1,27 @@
+Running 45 degrees with 0.001 mass ratio
+Custom library import time: 6.56 seconds
+{'angle2': '45', 'planet_mass_ratio': '0.001', 'lenses': 'triple'}
+
+=========================================================
+Lens parameters:
+q1 = 0.001
+q2 = 1e-06
+s1 = 0.8
+s2 = 0.8
+alpha1 = 0
+alpha2 = 45.0
+Total offset: [4.86831074e-04 3.44585207e-10]
+Angular width: 0.07680319680319682
+Thickness: 0.059738867403980045
+Annulus lower bound: -0.970576558378381
+Annulus upper bound: 1.030315425782361
+Number of rays in theta: 194884
+Number of rays in r: 779536
+Number of rays: 1.5192e+11
+=========================================================
+Shooting triple:
+---------------------
+Total time: 12724.807 seconds
+=========================================================
+Saving class data to file: 0.438 seconds
+Done

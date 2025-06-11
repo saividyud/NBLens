@@ -1,0 +1,27 @@
+Running 90 degrees with 0.1 mass ratio
+Custom library import time: 11.3 seconds
+{'angle2': '90', 'planet_mass_ratio': '0.1', 'lenses': 'triple'}
+
+=========================================================
+Lens parameters:
+q1 = 0.001
+q2 = 0.0001
+s1 = 0.8
+s2 = 0.8
+alpha1 = 0
+alpha2 = 90.0
+Total offset: [4.43015964e-04 4.43414639e-06]
+Angular width: 0.07680319680319682
+Thickness: 0.059738867403980045
+Annulus lower bound: -0.970576558378381
+Annulus upper bound: 1.030315425782361
+Number of rays in theta: 194884
+Number of rays in r: 779536
+Number of rays: 1.5192e+11
+=========================================================
+Shooting triple:
+---------------------
+Total time: 13398.114 seconds
+=========================================================
+Saving class data to file: 0.475 seconds
+Done
