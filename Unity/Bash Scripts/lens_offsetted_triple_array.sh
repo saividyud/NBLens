@@ -36,4 +36,4 @@ pmr=2
 
 echo "Running $alpha degrees with $pmr mass ratio and $seperation seperation"
 
-python "./Unity/Python Scripts/lenses_offsetted.py" -s2 $seperation -a2 $alpha -pmr $pmr -l triple -o triple_offset
+# python "./Unity/Python Scripts/lenses_offsetted.py" -s2 $seperation -a2 $alpha -pmr $pmr -l triple -o triple_offset

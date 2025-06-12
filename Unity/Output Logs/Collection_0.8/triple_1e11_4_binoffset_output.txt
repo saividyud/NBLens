@@ -1,0 +1,22 @@
+Running 180 degrees with 0.001 mass ratio with origin of binary offset
+Custom library import time: 14.8 seconds
+{'angle2': '180', 'planet_mass_ratio': '0.001', 'lenses': 'triple', 'origin': 'binary_offset'}
+
+=========================================================
+Lens parameters:
+q1 = 0.001
+q2 = 1e-06
+s1 = 0.8
+s2 = 0.8
+alpha1 = 0
+alpha2 = 180.0
+Total offset: [4.86830242e-04 5.96791294e-26]
+Angular width: 0.07680319680319682
+Thickness: 0.059738867403980045
+Annulus lower bound: -0.970576558378381
+Annulus upper bound: 1.030315425782361
+Number of rays in theta: 194884
+Number of rays in r: 779536
+Number of rays: 1.5192e+11
+=========================================================
+Shooting triple:
