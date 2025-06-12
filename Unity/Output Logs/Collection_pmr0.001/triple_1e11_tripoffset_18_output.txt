@@ -1,1 +1,34 @@
-Running 135 degrees with 2 mass ratio and 0.4 seperation
+Running 135 degrees with 0.001 mass ratio and 0.4 seperation
+x86_64
+#1 SMP Mon Dec 2 06:32:20 EST 2024
+Linux
+x86_64
+187.02853393554688
+3.8103294372558594
+181.8296241760254
+Custom library import time: 21.3 seconds
+{'sep2': '0.4', 'angle2': '135', 'planet_mass_ratio': '0.001', 'lenses': 'triple', 'origin': 'triple_offset'}
+
+=========================================================
+Lens parameters:
+q1 = 0.001
+q2 = 1e-06
+s1 = 0.8
+s2 = 0.4
+alpha1 = 0
+alpha2 = 135.0
+Total offset: [4.86830486e-04 2.43586095e-10]
+Angular width: 0.07680319680319682
+Thickness: 0.059738867403980045
+Annulus lower bound: -0.970576558378381
+Annulus upper bound: 1.030315425782361
+Number of rays in theta: 194884
+Number of rays in r: 779536
+Number of rays: 1.5192e+11
+=========================================================
+Shooting triple:
+---------------------
+Total time: 15167.461 seconds
+=========================================================
+Saving class data to file: 0.529 seconds
+Done

@@ -1,1 +1,34 @@
-Running 90 degrees with 2 mass ratio and 0.9 seperation
+Running 90 degrees with 0.001 mass ratio and 0.9 seperation
+x86_64
+#1 SMP Mon Dec 2 06:32:20 EST 2024
+Linux
+x86_64
+503.2894821166992
+9.24251937866211
+490.7679557800293
+Custom library import time: 8.08 seconds
+{'sep2': '0.9', 'angle2': '90', 'planet_mass_ratio': '0.001', 'lenses': 'triple', 'origin': 'triple_offset'}
+
+=========================================================
+Lens parameters:
+q1 = 0.001
+q2 = 1e-06
+s1 = 0.8
+s2 = 0.9
+alpha1 = 0
+alpha2 = 90.0
+Total offset: [4.86830730e-04 4.96740331e-10]
+Angular width: 0.07680319680319682
+Thickness: 0.059738867403980045
+Annulus lower bound: -0.970576558378381
+Annulus upper bound: 1.030315425782361
+Number of rays in theta: 194884
+Number of rays in r: 779536
+Number of rays: 1.5192e+11
+=========================================================
+Shooting triple:
+---------------------
+Total time: 13923.233 seconds
+=========================================================
+Saving class data to file: 0.681 seconds
+Done
