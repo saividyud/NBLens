@@ -145,7 +145,7 @@ triple_lens_parameters.update({
 
 print(f'Number of rays: {(num_r * num_theta):.4e}')
 print('=========================================================')
-exit()
+
 ''' Simulating L lens magnification map '''
 if args['lenses'] == 'single':
     param_dict = single_lens_parameters
