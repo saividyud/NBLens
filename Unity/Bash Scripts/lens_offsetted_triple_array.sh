@@ -27,12 +27,12 @@ pmrs=(0.1 0.01 0.001)
 # pmrs_index=$(( SLURM_ARRAY_TASK_ID % 3 ))
 seperations_index=$(( SLURM_ARRAY_TASK_ID / 5 ))
 alpha_index=$(( SLURM_ARRAY_TASK_ID % 5 ))
+pmrs_index=2
 
 # Extract parameters
 seperation=${seperations[$seperations_index]}
 alpha=${alphas[$alpha_index]}
-# pmr=${pmrs[$pmrs_index]}
-pmr=2
+pmr=${pmrs[$pmrs_index]}
 
 echo "Running $alpha degrees with $pmr mass ratio and $seperation seperation"
 
