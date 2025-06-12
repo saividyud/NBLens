@@ -18,6 +18,7 @@ parser = argparse.ArgumentParser(description='Compute single lens magnification 
 parser.add_argument('-a2', '--angle2', help='Angle of secondary small planet')
 parser.add_argument('-pmr', '--planet_mass_ratio', help='Small planet / big planet mass ratio')
 parser.add_argument('-l', '--lenses', help='Shoot single, binary, or triple lens')
+parser.add_argument('-o', '--origin', help='Coordinate origin')
 
 args = vars(parser.parse_args())
 print(args)
@@ -91,7 +92,21 @@ print(f'Total offset: {total_offset}')
 binary_lens_attributes[:, :2] -= delta1
 
 # Correcting triple lens attributes
-triple_lens_attributes[:, :2] -= total_offset
+if args['origin'] == 'triple_offset':
+    triple_lens_attributes[:, :2] -= total_offset
+elif args['origin'] == 'binary_offset':
+    triple_lens_attributes[:, :2] -= delta1
+elif args['origin'] == 'cm':
+    CM_sum = 0
+
+    for i in range(3):
+        CM_sum += triple_lens_attributes[i, :2] * triple_lens_attributes[i, 2]
+
+    total_M = np.sum(triple_lens_attributes[:, 2])
+
+    lens_CM = CM_sum / total_M
+
+    triple_lens_attributes[:, :2] -= lens_CM
 
 # Map parameters
 pixels = 2000
@@ -130,7 +145,7 @@ triple_lens_parameters.update({
 
 print(f'Number of rays: {(num_r * num_theta):.4e}')
 print('=========================================================')
-
+exit()
 ''' Simulating L lens magnification map '''
 if args['lenses'] == 'single':
     param_dict = single_lens_parameters
@@ -142,7 +157,7 @@ elif args['lenses'] == 'binary':
 
 elif args['lenses'] == 'triple':
     param_dict = triple_lens_parameters
-    file_path = f'./Unity/Simulations/Collection_0.8/triple_1e11_{int(alpha2)}_{q2:.0e}.pkl'
+    file_path = f'./Unity/Simulations/Collection_0.8/triple_1e11_{int(alpha2)}_{q2:.0e}_{args["origin"]}.pkl'
 
 else:
     raise ValueError(f'Wrong lens configuration passed in. Got {args["lenses"]}.')

@@ -1302,3 +1302,7 @@ class IRSCaustics(IRSMain):
             self._zoom = [self.ang_width, self.ang_width]
         else:
             raise TypeError(f'Attribute "zoom" must be an tuple or list. Got {type(val)}.')
+        
+def caustic_reader(file_path: str) -> IRSCaustics:
+    with open(file_path, 'rb') as f:
+        return pickle.load(f)
