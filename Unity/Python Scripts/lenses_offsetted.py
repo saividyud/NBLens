@@ -4,6 +4,20 @@ import sys
 import argparse
 sys.path.append('.')
 
+import platform
+import psutil
+
+print(platform.machine())
+print(platform.version())
+print(platform.system())
+print(platform.processor())
+
+memory = psutil.virtual_memory()
+
+print(memory.total / (1024 ** 3))
+print(memory.used / (1024 ** 3))
+print(memory.available / (1024 ** 3))
+
 import numpy as np
 
 init_time = t.time()
@@ -15,6 +29,7 @@ print(f'Custom library import time: {(t.time() - init_time):.3} seconds')
 parser = argparse.ArgumentParser(description='Compute single lens magnification map offsetted by triple lens effective center.')
 
 # Adding arguments
+parser.add_argument('-s2', '--sep2', help='Seperation of secondary small planet')
 parser.add_argument('-a2', '--angle2', help='Angle of secondary small planet')
 parser.add_argument('-pmr', '--planet_mass_ratio', help='Small planet / big planet mass ratio')
 parser.add_argument('-l', '--lenses', help='Shoot single, binary, or triple lens')
@@ -34,7 +49,7 @@ alpha1 = 0
 q1 = 1e-3
 
 # Small planet parameters
-s2 = 0.8
+s2 = np.float64(args['sep2'])
 alpha2 = np.float64(args['angle2'])
 q2 = np.float64(args['planet_mass_ratio']) * q1
 
@@ -149,15 +164,15 @@ print('=========================================================')
 ''' Simulating L lens magnification map '''
 if args['lenses'] == 'single':
     param_dict = single_lens_parameters
-    file_path = f'./Unity/Simulations/Collection_0.8/single_1e11.pkl'
+    file_path = f'./Unity/Simulations/Collection_pmr0.001/single_1e11.pkl'
 
 elif args['lenses'] == 'binary':
     param_dict = binary_lens_parameters
-    file_path = f'./Unity/Simulations/Collection_0.8/binary_1e11.pkl'
+    file_path = f'./Unity/Simulations/Collection_pmr0.001/binary_1e11.pkl'
 
 elif args['lenses'] == 'triple':
     param_dict = triple_lens_parameters
-    file_path = f'./Unity/Simulations/Collection_0.8/triple_1e11_{int(alpha2)}_{q2:.0e}_{args["origin"]}.pkl'
+    file_path = f'./Unity/Simulations/Collection_pmr0.001/triple_1e11_{int(alpha2)}_{q2:.0e}_{args["origin"]}.pkl'
 
 else:
     raise ValueError(f'Wrong lens configuration passed in. Got {args["lenses"]}.')

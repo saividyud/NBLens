@@ -31,4 +31,4 @@ pmr=${pmrs[$pmrs_index]}
 
 echo "Running $alpha degrees with $pmr mass ratio with origin of binary offset"
 
-python "./Unity/Python Scripts/lenses_offsetted.py" -a2 $alpha -pmr $pmr -l triple -o binary_offset
+python "./Unity/Python Scripts/lenses_offsetted.py" -a2 $alpha -pmr $pmr -l triple -o binary_offset,
