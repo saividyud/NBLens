@@ -164,7 +164,7 @@ print(f'Number of rays: {(num_r * num_theta):.4e}')
 print('=========================================================')
 
 ''' Simulating L lens magnification map '''
-file_directory = f'./Unity/Simulations/Collection_pmr0.001/'
+file_directory = f'./Unity/Simulations/Collection_0.8/'
 
 if args['lenses'] == 'single':
     param_dict = single_lens_parameters
@@ -176,7 +176,7 @@ elif args['lenses'] == 'binary':
 
 elif args['lenses'] == 'triple':
     param_dict = triple_lens_parameters
-    file_name = f'triple_1e11_{int(alpha2)}_{s2:.0e}_{args["origin"]}.pkl'
+    file_name = f'triple_1e11_{int(alpha2)}_{q2:.0e}_{args["origin"]}.pkl'
 
 else:
     raise ValueError(f'Wrong lens configuration passed in. Got {args["lenses"]}.')

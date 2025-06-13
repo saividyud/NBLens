@@ -4,14 +4,14 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem-per-cpu=8G
-#SBATCH --job-name=triple_lens_binoffset_array
+#SBATCH --job-name=triple_lens_binoffset_array_2
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
 
 #SBATCH --array=0-4
 
-#SBATCH --output="./Unity/Output Logs/Collection_0.8/triple_1e11_%a_binoffset_output.txt"
-#SBATCH --error="./Unity/Error Logs/Collection_0.8/triple_1e11_%a_binoffset_error.txt"
+#SBATCH --output="./Unity/Output Logs/Collection_0.8/triple_1e11_%a_binoffset_output_2.txt"
+#SBATCH --error="./Unity/Error Logs/Collection_0.8/triple_1e11_%a_binoffset_error_2.txt"
 
 # Commands to run
 module load mamba
@@ -23,7 +23,7 @@ pmrs=(0.1 0.01 0.001)
 
 # Compute indices
 alpha_index=$((SLURM_ARRAY_TASK_ID))
-pmrs_index=2
+pmrs_index=0
 
 # Extract parameters
 alpha=${alphas[$alpha_index]}
@@ -31,4 +31,4 @@ pmr=${pmrs[$pmrs_index]}
 
 echo "Running $alpha degrees with $pmr mass ratio with origin of binary offset"
 
-python "./Unity/Python Scripts/lenses_offsetted.py" -a2 $alpha -pmr $pmr -l triple -o binary_offset,
+python "./Unity/Python Scripts/lenses_offsetted.py" -s2 0.8 -a2 $alpha -pmr $pmr -l triple -o binary_offset,
