@@ -3,10 +3,11 @@ x86_64
 #1 SMP Mon Dec 2 06:32:20 EST 2024
 Linux
 x86_64
-187.02853393554688
-3.8103294372558594
-181.8296241760254
-Custom library import time: 21.3 seconds
+u038.asc.ohio-state.edu
+187.0288963317871
+4.564666748046875
+180.5846176147461
+Custom library import time: 17.5 seconds
 {'sep2': '0.4', 'angle2': '90', 'planet_mass_ratio': '0.001', 'lenses': 'triple', 'origin': 'triple_offset'}
 
 =========================================================
@@ -28,7 +29,7 @@ Number of rays: 1.5192e+11
 =========================================================
 Shooting triple:
 ---------------------
-Total time: 13190.407 seconds
+Total time: 16083.42 seconds
 =========================================================
-Saving class data to file: 0.466 seconds
+Saving class data to file: 1.24 seconds
 Done
