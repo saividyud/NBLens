@@ -187,9 +187,6 @@ file_path = file_directory + file_name
 if not os.path.exists(file_directory):
     raise FileNotFoundError(f'File directory {file_directory} does not exist.')
 
-print(file_path)
-exit()
-
 print(f'Shooting {args["lenses"]}:')
 
 calculator = IRSC.IRSCaustics(annulus_param_dict=param_dict)
