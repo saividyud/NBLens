@@ -6,11 +6,13 @@ sys.path.append('.')
 
 import platform
 import psutil
+import os
 
 print(platform.machine())
 print(platform.version())
 print(platform.system())
 print(platform.processor())
+print(platform.node())
 
 memory = psutil.virtual_memory()
 
@@ -162,20 +164,31 @@ print(f'Number of rays: {(num_r * num_theta):.4e}')
 print('=========================================================')
 
 ''' Simulating L lens magnification map '''
+file_directory = f'./Unity/Simulations/Collection_pmr0.001/'
+
 if args['lenses'] == 'single':
     param_dict = single_lens_parameters
-    file_path = f'./Unity/Simulations/Collection_pmr0.001/single_1e11.pkl'
+    file_name = 'single_1e11.pkl'
 
 elif args['lenses'] == 'binary':
     param_dict = binary_lens_parameters
-    file_path = f'./Unity/Simulations/Collection_pmr0.001/binary_1e11.pkl'
+    file_name = f'binary_1e11.pkl'
 
 elif args['lenses'] == 'triple':
     param_dict = triple_lens_parameters
-    file_path = f'./Unity/Simulations/Collection_pmr0.001/triple_1e11_{int(alpha2)}_{s2:.0e}_{args["origin"]}.pkl'
+    file_name = f'triple_1e11_{int(alpha2)}_{s2:.0e}_{args["origin"]}.pkl'
 
 else:
     raise ValueError(f'Wrong lens configuration passed in. Got {args["lenses"]}.')
+
+file_path = file_directory + file_name
+
+# Checking if file directory exists
+if not os.path.exists(file_directory):
+    raise FileNotFoundError(f'File directory {file_directory} does not exist.')
+
+print(file_path)
+exit()
 
 print(f'Shooting {args["lenses"]}:')
 
