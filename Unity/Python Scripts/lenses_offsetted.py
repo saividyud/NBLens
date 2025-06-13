@@ -172,7 +172,7 @@ elif args['lenses'] == 'binary':
 
 elif args['lenses'] == 'triple':
     param_dict = triple_lens_parameters
-    file_path = f'./Unity/Simulations/Collection_pmr0.001/triple_1e11_{int(alpha2)}_{q2:.0e}_{args["origin"]}.pkl'
+    file_path = f'./Unity/Simulations/Collection_pmr0.001/triple_1e11_{int(alpha2)}_{s2:.0e}_{args["origin"]}.pkl'
 
 else:
     raise ValueError(f'Wrong lens configuration passed in. Got {args["lenses"]}.')
