@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem-per-cpu=8G
-#SBATCH --job-name=triple_lens_offsetted_array
+#SBATCH --job-name=triple_offsetted_array_s_vary
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
 
@@ -36,4 +36,4 @@ pmr=${pmrs[$pmrs_index]}
 
 echo "Running $alpha degrees with $pmr mass ratio and $seperation seperation"
 
-# python "./Unity/Python Scripts/lenses_offsetted.py" -s2 $seperation -a2 $alpha -pmr $pmr -l triple -o triple_offset
+python "./Unity/Python Scripts/lenses_offsetted.py" -s2 $seperation -a2 $alpha -pmr $pmr -l triple -o triple_offset

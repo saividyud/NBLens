@@ -20,3 +20,8 @@ Number of rays in r: 779536
 Number of rays: 1.5192e+11
 =========================================================
 Shooting triple:
+---------------------
+Total time: 26452.153 seconds
+=========================================================
+Saving class data to file: 0.583 seconds
+Done
