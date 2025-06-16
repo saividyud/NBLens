@@ -2,8 +2,8 @@
 
 #SBATCH --time=60:00:00
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
-#SBATCH --mem-per-cpu=8G
+#SBATCH --cpus-per-task=8
+#SBATCH --mem-per-cpu=4G
 #SBATCH --job-name=triple_offsetted_array_s_vary_2
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu

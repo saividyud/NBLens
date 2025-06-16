@@ -192,6 +192,8 @@ else:
 
 file_path = file_directory + file_name
 
+print(f'Simulation file path: {file_path}')
+
 # Checking if file directory exists
 if not os.path.exists(file_directory):
     raise FileNotFoundError(f'File directory {file_directory} does not exist.')
