@@ -319,9 +319,6 @@ class IRSMain(object):
             warnings.simplefilter('ignore')
 
             sums = np.zeros(shape=np.shape(X), dtype=np.complex128)
-            # print(6, t.time() - init_time)
-
-
             zeta = z - IRSMain.lens_eq(self.L, sums, zbar, zmbar, epsilon)
 
         # Extracting positions from complex number

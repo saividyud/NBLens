@@ -640,18 +640,18 @@ class IRSCaustics(IRSMain):
             theta = thetas[0, i:i+self.rows].reshape(1, -1)
 
             # Calculating meshgrid of X and Y coordinates of rays
-            self.X = np.dot(rs, np.cos(theta))
-            self.Y = np.dot(rs, np.sin(theta))
+            X = np.dot(rs, np.cos(theta))
+            Y = np.dot(rs, np.sin(theta))
 
             # Calculating source pixels
-            self.xs, self.ys = self.calc_source_pixels()
-            del self.X # Deleting large arrays
-            del self.Y
+            xs, ys = self.calc_source_pixels(X, Y)
+            del X # Deleting large arrays
+            del Y
         
             # Calculating indices of translated pixel after deflection
-            indx, indy = self.trans_ind()
-            del self.xs # Deleting large arrays
-            del self.ys
+            indx, indy = self.trans_ind(xs, ys)
+            del xs # Deleting large arrays
+            del ys
 
             # Finding wherever indx or indy is nan
             indx = np.nan_to_num(indx, nan=self.pixels*1000).astype(int)
