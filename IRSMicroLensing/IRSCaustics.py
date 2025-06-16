@@ -555,7 +555,7 @@ class IRSCaustics(IRSMain):
 
         return self.magnifications
 
-    def series_calculate(self, cm_offset: str | tuple | list = [0, 0], print_stats=True, file_save=False, subdivisions: int = 10):
+    def series_calculate(self, cm_offset: str | tuple | list = [0, 0], print_stats=True, file_save=False, rows: int = 10):
         '''
         Calculates magnification map for lens system by breaking annulus in image plane into chunks.
 
@@ -578,7 +578,7 @@ class IRSCaustics(IRSMain):
         self.cm_offset = cm_offset
         self.print_stats = print_stats
         self.file_save = file_save
-        self.subdivisions = subdivisions
+        self.rows = rows
 
         self.show_mm = False
         self.show_dev = False
@@ -636,8 +636,8 @@ class IRSCaustics(IRSMain):
 
         # Iterating through each theta value (may change to more than one theta)
         # for theta in thetas[0]:
-        for i in tqdm(range(0, len(thetas[0]), self.subdivisions)):
-            theta = thetas[0, i:i+self.subdivisions].reshape(1, -1)
+        for i in tqdm(range(0, len(thetas[0]), self.rows)):
+            theta = thetas[0, i:i+self.rows].reshape(1, -1)
 
             # Calculating meshgrid of X and Y coordinates of rays
             self.X = np.dot(rs, np.cos(theta))
@@ -694,6 +694,158 @@ class IRSCaustics(IRSMain):
             print(f'Total time: {round(end_time, 3)} seconds')
 
         return self.magnifications
+
+    def parallel_calculate(self, cm_offset: str | tuple | list = [0, 0], print_stats=True, file_save=False, cpus: int = 6):
+        '''
+        Calculates magnification map for lens system by breaking annulus in image plane into chunks.
+
+        Parameters
+        ----------
+        cm_offset : str, tuple, or list
+            Origin offset from center of mass
+        print_stats : bool, optional
+            If the program outputs computation time and steps
+        file_save : bool, optional
+            Saves magnification map data in CSV file in ../datafiles/{filename}.csv
+        cpus : int, optional
+            Number of cpus to spread the computation across
+
+        Returns
+        -------
+        magnifications : NxN NDArray
+            Matrix of magnification values for each pixel
+        '''
+        self.cm_offset = cm_offset
+        self.print_stats = print_stats
+        self.file_save = file_save
+        self.cpus = cpus
+
+        self.show_mm = False
+        self.show_dev = False
+
+        # Compiling Numba jit functions
+        num = 2
+        rand_sum = np.zeros(shape=(100, 100), dtype=np.complex128)
+        rand_coords = np.ones(shape=(100, 100), dtype=np.complex128)
+        rand_masscoords = np.zeros(shape=num, dtype=np.complex128)
+        rand_eps = np.ones(shape=num, dtype=np.float64)
+        IRSMain.lens_eq(num, rand_sum, rand_coords, rand_masscoords, rand_eps)
+
+        init_rand_arr = np.random.randint(0, 10, size=(2, 2))
+        IRSCaustics.calc_uniques(init_rand_arr)
+
+        count_rand_arr = np.random.randint(0, 10, size=2)
+        magnifications = np.zeros(shape=(100, 100), dtype=np.int64)
+        IRSCaustics.calc_mags(100, magnifications, init_rand_arr, count_rand_arr)
+
+        X_comp = np.random.random((3, 3))
+        Y_comp = np.random.random((3, 3))
+        ann_comp = 0.01
+        IRSCaustics.create_annulus(ann_comp, X_comp, Y_comp)
+
+        # Beginning computation
+        begin_time = t.time()
+
+        # Creating meshgrid of pixel centers
+        self.X_pix, self.Y_pix = np.meshgrid(np.linspace(-self.ang_width/2, self.ang_width/2, self.pixels), np.linspace(-self.ang_width/2, self.ang_width/2, self.pixels))
+
+        # Calculating lens center of mass
+        self.lens_CM = self.calc_CM()
+        # self.lens_CM = 0
+        if self.cm_offset == 'auto':
+            self.cm_offset = self.lens_CM
+
+        # Translating lens positions so the center of mass is at offsetted center of mass
+        self.lens_att[:, :2] = self.lens_att[:, :2] - self.lens_CM + self.cm_offset
+
+        # Calculating area of annulus
+        A_ann = np.pi * (self.y_plus**2 - self.y_minus**2)
+        
+        # Calculating ray density within annulus
+        sigma_ann = self.num_rays / A_ann
+
+        # Calculating area of pixel
+        A_pix = (self.ang_res * 1.0)**2
+
+        # Initializing array of magnifications
+        magnifications = np.zeros(shape=(self.pixels, self.pixels), dtype=np.int64)
+
+        # Initializing array of points in r and points in theta
+        self.rs = np.linspace(-self.y_minus, self.y_plus, self.num_r).reshape(-1, 1)
+        thetas = np.linspace(0, 2*np.pi - (2*np.pi/self.num_theta), self.num_theta).reshape(1, -1)
+
+        theta_group = np.array_split(thetas[0], self.cpus)
+
+        # Using multiprocessing to calculate magnifications in parallel
+        import concurrent.futures as cf
+
+        with cf.ProcessPoolExecutor(max_workers=self.cpus) as executor:
+            magnifications_groups = list(executor.map(self._worker_calc_magnification_parallel, theta_group))
+        
+        # Combining the results from all processes
+        magnifications = np.sum(magnifications_groups, axis=0)
+
+        # Calculating magnifications
+        self.magnifications = (magnifications / A_pix) / sigma_ann
+
+        # Flipping array to be in real coordinates
+        self.magnifications = np.flip(self.magnifications, axis=0)
+
+        # Taking the log base 10 of magnifications
+        self.magnifications_log = np.log10(self.magnifications)
+
+        # Saving the magnification map data to a file
+        if self.file_save:
+            init_time = t.time()
+            self.write_to_file()
+            final_time = t.time() - init_time
+            if self.print_stats: print(f'Saving magnification data in file ./Mag Map Data/{self.import_file}.txt: {round(final_time, 3)} seconds')
+
+        end_time = t.time() - begin_time
+        if self.print_stats:
+            print('---------------------')
+            print(f'Total time: {round(end_time, 3)} seconds')
+
+        return self.magnifications
+    
+    def _worker_calc_magnification_parallel(self, theta_group: np.ndarray):
+        theta = theta_group.reshape(1, -1)
+
+        # Calculating meshgrid of X and Y coordinates of rays
+        X = np.dot(self.rs, np.cos(theta))
+        Y = np.dot(self.rs, np.sin(theta))
+
+        # Calculating source pixels
+        xs, ys = self.calc_source_pixels(X, Y)
+        del X # Deleting large arrays
+        del Y
+    
+        # Calculating indices of translated pixel after deflection
+        indx, indy = self.trans_ind(xs, ys)
+        del xs # Deleting large arrays
+        del ys
+
+        # Finding wherever indx or indy is nan
+        indx = np.nan_to_num(indx, nan=self.pixels*1000).astype(int)
+        indy = np.nan_to_num(indy, nan=self.pixels*1000).astype(int)
+
+        # Combining indx and indy into matrix of 2-element arrays (x and y coordinates)
+        comb_mat = np.stack((indx, indy), axis=2)
+        del indx # Deleting large arrays
+        del indy
+
+        # Calculating repeated coordinates and their counts in comb_mat
+        stacked_mat = comb_mat.reshape(-1, 2)
+        del comb_mat # Deleting large arrays
+
+        repetitions, counts = IRSCaustics.calc_uniques(stacked_mat)
+        del stacked_mat # Deleting large arrays
+
+        # Iterating through the array of counts to find the number of times each coordinate was repeated and increment that coordinate magnification by 1
+        magnifications_group = np.zeros(shape=(self.pixels, self.pixels), dtype=np.int64)
+        magnifications_group = IRSCaustics.calc_mags(self.pixels, magnifications_group, repetitions, counts)
+
+        return magnifications_group
 
     def analyze(self, show_mm: True, show_dev: True):
         '''

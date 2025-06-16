@@ -277,13 +277,16 @@ class IRSMain(object):
         
         return a
 
-    def calc_source_pixels(self):
+    def calc_source_pixels(self, X=None, Y=None):
         '''
         Calculates the source pixels that each ray lands on after being deflected by lens.
 
         Parameters
         ----------
-        None
+        X : NxN Numpy array
+            X-coordinates of mesh grid
+        Y : NxN Numpy array
+            Y-coordinates of mesh grid
 
         Returns
         -------
@@ -292,53 +295,39 @@ class IRSMain(object):
         ys : NxN Numpy array
             Y-coordinates of translated pixel
         '''
-        # Translating into complex coordinates (source pixels)
-        init_time = t.time()
-        # z = self.X + self.Y*1j # [theta_e] NxN
-        z = np.empty(self.X.shape, dtype=np.complex128)
-        z.real = self.X
-        z.imag = self.Y
-        # print(1, t.time() - init_time)
+        if X is None and Y is None:
+            # Translating into complex coordinates (source pixels)
+            z = np.empty(self.X.shape, dtype=np.complex128)
+            z.real = self.X
+            z.imag = self.Y
+        elif X is not None and Y is not None:
+            # Translating into complex coordinates (source pixels)
+            z = np.empty(X.shape, dtype=np.complex128)
+            z.real = X
+            z.imag = Y
 
-        init_time = t.time()
         zbar = np.conj(z) # [theta_e] NxN
-        # print(2, t.time() - init_time)
 
         # Translating into complex coordinates (lens coordinates)
-        init_time = t.time()
         zm = self.lens_att[:, 0] + self.lens_att[:, 1]*1j # [theta_e] 1xL
-        # print(3, t.time() - init_time)
 
-        init_time = t.time()
         epsilon = self.lens_att[:, self.mass_index] / self.total_M # [dimensionless] 1xL
-        # print(4, t.time() - init_time)
         
-        init_time = t.time()
         zmbar = np.conj(zm) # [theta_e] 1xL
-        # print(5, t.time() - init_time)
         
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            init_time = t.time()
-            sums = np.zeros(shape=np.shape(self.X), dtype=np.complex128)
+
+            sums = np.zeros(shape=np.shape(X), dtype=np.complex128)
             # print(6, t.time() - init_time)
 
-            init_time = t.time()
 
-            # sum = np.sum(epsilon[:, np.newaxis, np.newaxis] / (zbar - zmbar[:, np.newaxis, np.newaxis]), axis=0)
-
-            # sum = IRSMain.lens_eq(self.L, sums, zbar, zmbar, epsilon)
             zeta = z - IRSMain.lens_eq(self.L, sums, zbar, zmbar, epsilon)
-            # print(7, t.time() - init_time)
 
         # Extracting positions from complex number
-        init_time = t.time()
         xs = np.real(zeta) # [theta_e]
-        # print(9, t.time() - init_time)
 
-        init_time = t.time()
         ys = np.imag(zeta) # [theta_e]
-        # print(10, t.time() - init_time)
 
         return xs, ys # [theta_e]
     
@@ -367,13 +356,16 @@ class IRSMain(object):
 
         return sums
 
-    def trans_ind(self):
+    def trans_ind(self, xs=None, ys=None):
         '''
         Calculates the translated indices for each pixel (which source pixel each image pixel lands on).
 
         Parameters
         ----------
-        None
+        xs : NxN Numpy array
+            X-coordinates of translated pixel
+        ys : NxN Numpy array
+            Y-coordinates of translated pixel
 
         Returns
         -------
@@ -382,17 +374,18 @@ class IRSMain(object):
         indy : NxN Numpy array
             Translated source Y value for each image pixel
         '''
-        bool_x = (self.xs < -self.ang_width/2) | (self.xs > self.ang_width/2)
-        indx = np.where(bool_x, np.nan, self.xs)
+        if xs is None and ys is None:
+            xs = self.xs
+            ys = self.ys
 
-        bool_y = (self.ys < -self.ang_width/2) | (self.ys > self.ang_width/2)
-        indy = np.where(bool_y, np.nan, self.ys)
+        bool_x = (xs < -self.ang_width/2) | (xs > self.ang_width/2)
+        indx = np.where(bool_x, np.nan, xs)
+
+        bool_y = (ys < -self.ang_width/2) | (ys > self.ang_width/2)
+        indy = np.where(bool_y, np.nan, ys)
 
         indx = indx/self.ang_res + self.pixels/2
         indy = indy/self.ang_res + self.pixels/2
-
-        # indx = indx/self.ang_res + indx.shape[0]/2
-        # indy = indy/self.ang_res + indy.shape[0]/2
 
         return indx, indy
 
