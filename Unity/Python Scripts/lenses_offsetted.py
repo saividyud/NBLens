@@ -2,6 +2,7 @@ import pickle
 import time as t
 import sys
 import argparse
+import numexpr
 sys.path.append('.')
 
 import platform
@@ -51,7 +52,7 @@ alpha1 = 0
 q1 = 1e-3
 
 # Small planet parameters
-s2 = np.float64(args['sep2'])
+s2 = np.float64(numexpr.evaluate(args['sep2']).item())
 alpha2 = np.float64(args['angle2'])
 q2 = np.float64(args['planet_mass_ratio']) * q1
 
@@ -129,8 +130,16 @@ elif args['origin'] == 'cm':
 pixels = 2000
 delta = 0.01
 
-ang_width, thickness, (y_plus, y_minus), cusp_points = IRSC.IRSCaustics.ang_width_thickness_calculator(triple_lens_attributes)
-num_r, num_theta = IRSC.IRSCaustics.num_ray_calculator(pixels, ang_width, delta, y_plus, y_minus)
+# ang_width, thickness, (y_plus, y_minus), cusp_points = IRSC.IRSCaustics.ang_width_thickness_calculator(triple_lens_attributes)
+# num_r, num_theta = IRSC.IRSCaustics.num_ray_calculator(pixels, ang_width, delta, y_plus, y_minus)
+
+# Using pre-calculated values
+ang_width = 0.07680319680319682
+thickness = 0.059738867403980045
+y_minus = -0.970576558378381
+y_plus = 1.030315425782361
+num_r = 779536
+num_theta = 194884
 
 print(f'Angular width: {ang_width}')
 print(f'Thickness: {thickness}')
@@ -164,7 +173,7 @@ print(f'Number of rays: {(num_r * num_theta):.4e}')
 print('=========================================================')
 
 ''' Simulating L lens magnification map '''
-file_directory = f'./Unity/Simulations/Collection_0.8/'
+file_directory = f'./Unity/Simulations/Collection_pmr0.001/'
 
 if args['lenses'] == 'single':
     param_dict = single_lens_parameters
@@ -176,7 +185,7 @@ elif args['lenses'] == 'binary':
 
 elif args['lenses'] == 'triple':
     param_dict = triple_lens_parameters
-    file_name = f'triple_1e11_{int(alpha2)}_{q2:.0e}_{args["origin"]}.pkl'
+    file_name = f'triple_1e11_{int(alpha2)}_{s2:.2e}_{args["origin"]}.pkl'
 
 else:
     raise ValueError(f'Wrong lens configuration passed in. Got {args["lenses"]}.')

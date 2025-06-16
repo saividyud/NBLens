@@ -4,21 +4,22 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem-per-cpu=8G
-#SBATCH --job-name=triple_offsetted_array_s_vary
+#SBATCH --job-name=triple_offsetted_array_s_vary_2
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
 
-#SBATCH --array=0-39
+#SBATCH --array=0-49
 
 #SBATCH --output="./Unity/Output Logs/Collection_pmr0.001/triple_1e11_tripoffset_%a_output.txt"
 #SBATCH --error="./Unity/Error Logs/Collection_pmr0.001/triple_1e11_tripoffset_%a_error.txt"
 
 # Commands to run
-module load mamba
-mamba activate .venv
+# module load mamba
+# mamba activate .venv
 
 # Defining parameters
-seperations=(0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.9)
+# seperations=(0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.9)
+seperations=(1 1/0.9 1/0.8 1/0.7 1/0.6 1/0.5 1/0.4 1/0.3 1/0.2 1/0.1)
 alphas=(0 45 90 135 180)
 pmrs=(0.1 0.01 0.001)
 
