@@ -14,8 +14,8 @@
 #SBATCH --error="./Unity/Error Logs/Collection_pmr0.001/triple_1e11_tripoffset_%a_error.txt"
 
 # Commands to run
-# module load mamba
-# mamba activate .venv
+module load mamba
+mamba activate .venv
 
 # Defining parameters
 # seperations=(0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.9)
