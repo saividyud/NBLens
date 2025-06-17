@@ -1,0 +1,36 @@
+Running 180 degrees with 0.001 mass ratio and 1/0.2 seperation
+x86_64
+#1 SMP Mon Dec 2 06:32:20 EST 2024
+Linux
+x86_64
+u177.asc.ohio-state.edu
+502.86283111572266
+53.340301513671875
+446.2688446044922
+Custom library import time: 7.1 seconds
+{'sep2': '1/0.2', 'angle2': '180', 'planet_mass_ratio': '0.001', 'lenses': 'triple', 'origin': 'triple_offset'}
+
+=========================================================
+Lens parameters:
+q1 = 0.001
+q2 = 1e-06
+s1 = 0.8
+s2 = 5.0
+alpha1 = 0
+alpha2 = 180.0
+Total offset: [4.86830538e-04 2.35273491e-26]
+Angular width: 0.07680319680319682
+Thickness: 0.059738867403980045
+Annulus lower bound: -0.970576558378381
+Annulus upper bound: 1.030315425782361
+Number of rays in theta: 194884
+Number of rays in r: 779536
+Number of rays: 1.5192e+11
+=========================================================
+Simulation file path: ./Unity/Simulations/Collection_pmr0.001/triple_1e11_180_5.00e+00_triple_offset.pkl
+Shooting triple:
+---------------------
+Total time: 10257.222 seconds
+=========================================================
+Saving class data to file: 0.48 seconds
+Done

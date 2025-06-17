@@ -1,21 +1,21 @@
-Running 0 degrees with 0.001 mass ratio and 0.9 seperation
+Running 0 degrees with 0.001 mass ratio and 1/0.3 seperation
 x86_64
 #1 SMP Mon Dec 2 06:32:20 EST 2024
 Linux
 x86_64
-u167.asc.ohio-state.edu
-502.86285400390625
-8.09200668334961
-491.5584831237793
-Custom library import time: 6.22 seconds
-{'sep2': '0.9', 'angle2': '0', 'planet_mass_ratio': '0.001', 'lenses': 'triple', 'origin': 'triple_offset'}
+u128.asc.ohio-state.edu
+187.02659606933594
+6.804134368896484
+178.8206443786621
+Custom library import time: 16.3 seconds
+{'sep2': '1/0.3', 'angle2': '0', 'planet_mass_ratio': '0.001', 'lenses': 'triple', 'origin': 'triple_offset'}
 
 =========================================================
 Lens parameters:
 q1 = 0.001
 q2 = 1e-06
 s1 = 0.8
-s2 = 0.9
+s2 = 3.3333333333333335
 alpha1 = 0
 alpha2 = 0.0
 Total offset: [0.00048683 0.        ]
@@ -27,9 +27,10 @@ Number of rays in theta: 194884
 Number of rays in r: 779536
 Number of rays: 1.5192e+11
 =========================================================
+Simulation file path: ./Unity/Simulations/Collection_pmr0.001/triple_1e11_0_3.33e+00_triple_offset.pkl
 Shooting triple:
 ---------------------
-Total time: 9810.973 seconds
+Total time: 17763.225 seconds
 =========================================================
-Saving class data to file: 0.458 seconds
+Saving class data to file: 0.569 seconds
 Done
