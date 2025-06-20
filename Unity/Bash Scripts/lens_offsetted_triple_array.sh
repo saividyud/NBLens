@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#SBATCH --time=60:00:00
+#SBATCH --time=12:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=4G
@@ -19,7 +19,7 @@ mamba activate .venv
 
 # Defining parameters
 # seperations=(0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.9)
-seperations=(1 1/0.9 1/0.8 1/0.7 1/0.6 1/0.5 1/0.4 1/0.3 1/0.2 1/0.1)
+# seperations=(1 1/0.9 1/0.8 1/0.7 1/0.6 1/0.5 1/0.4 1/0.3 1/0.2 1/0.1)
 alphas=(0 45 90 135 180)
 pmrs=(3e-2 3e-3)
 
