@@ -185,7 +185,7 @@ elif args['lenses'] == 'binary':
 
 elif args['lenses'] == 'triple':
     param_dict = triple_lens_parameters
-    file_name = f'triple_1e11_{int(alpha2)}_{q2:.0e}_{args["origin"]}.pkl'
+    file_name = f'triple_1e11_{int(alpha2)}_{q2:.0e}.pkl'
 
 else:
     raise ValueError(f'Wrong lens configuration passed in. Got {args["lenses"]}.')

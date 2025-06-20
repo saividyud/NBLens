@@ -4,14 +4,14 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=4G
-#SBATCH --job-name=triple_offsetted_array_s_vary_2
+#SBATCH --job-name=triple_offsetted_array_3
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
 
-#SBATCH --array=0-49
+#SBATCH --array=0-9
 
-#SBATCH --output="./Unity/Output Logs/Collection_pmr0.001/triple_1e11_tripoffset_%a_output.txt"
-#SBATCH --error="./Unity/Error Logs/Collection_pmr0.001/triple_1e11_tripoffset_%a_error.txt"
+#SBATCH --output="./Unity/Output Logs/Collection_0.8/triple_1e11_%a_tripoffset_output.txt"
+#SBATCH --error="./Unity/Error Logs/Collection_0.8/triple_1e11_%a_tripoffset_error.txt"
 
 # Commands to run
 module load mamba
@@ -21,17 +21,17 @@ mamba activate .venv
 # seperations=(0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.9)
 seperations=(1 1/0.9 1/0.8 1/0.7 1/0.6 1/0.5 1/0.4 1/0.3 1/0.2 1/0.1)
 alphas=(0 45 90 135 180)
-pmrs=(0.1 0.01 0.001)
+pmrs=(3e-2 3e-3)
 
 # Compute indices
-# alpha_index=$(( SLURM_ARRAY_TASK_ID / 3 ))
-# pmrs_index=$(( SLURM_ARRAY_TASK_ID % 3 ))
-seperations_index=$(( SLURM_ARRAY_TASK_ID / 5 ))
-alpha_index=$(( SLURM_ARRAY_TASK_ID % 5 ))
-pmrs_index=2
+alpha_index=$(( SLURM_ARRAY_TASK_ID / 2 ))
+pmrs_index=$(( SLURM_ARRAY_TASK_ID % 2 ))
+# seperations_index=$(( SLURM_ARRAY_TASK_ID / 5 ))
+# alpha_index=$(( SLURM_ARRAY_TASK_ID % 5 ))
+# pmrs_index=2
 
 # Extract parameters
-seperation=${seperations[$seperations_index]}
+seperation=0.8
 alpha=${alphas[$alpha_index]}
 pmr=${pmrs[$pmrs_index]}
 

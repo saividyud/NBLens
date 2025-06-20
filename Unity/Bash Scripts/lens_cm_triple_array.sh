@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=4G
-#SBATCH --job-name=triple_lens_cm_array_2
+#SBATCH --job-name=triple_lens_cm_array_3
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
 
@@ -19,7 +19,7 @@ mamba activate .venv
 
 # Defining parameters
 alphas=(0 45 90 135 180)
-pmrs=(0.1 0.01)
+pmrs=(3e-2 3e-3)
 
 # Compute indices
 alpha_index=$((SLURM_ARRAY_TASK_ID / 2))

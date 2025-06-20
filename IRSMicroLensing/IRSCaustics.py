@@ -1397,7 +1397,7 @@ class IRSCaustics(IRSMain):
         rr, cc = skimage.draw.line(int(start[1]), int(start[0]), int(end[1]), int(end[0]))
 
         # Get brightness values along the line
-        line_values = map_array[rr[1:], cc[1:]]
+        line_values = map_array[rr[1:-1], cc[1:-1]]
 
         # Shifting coordinates back into scientific coordinates
         rr = (rr - offset) * ang_res
@@ -1405,7 +1405,7 @@ class IRSCaustics(IRSMain):
 
         times = np.linspace(t_E_start, t_E_end, line_values.shape[0])
 
-        return intersections, (cc[1:], rr[1:]), times, line_values
+        return intersections, (cc[1:-1], rr[1:-1]), times, line_values
 
     @property
     def show_lenses(self):
