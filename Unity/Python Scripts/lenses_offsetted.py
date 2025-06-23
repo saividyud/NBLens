@@ -126,6 +126,9 @@ elif args['origin'] == 'cm':
 
     triple_lens_attributes[:, :2] -= lens_CM
 
+else:
+    raise ValueError(f'Wrong origin passed in. Got {args["origin"]}.')
+
 # Map parameters
 pixels = 2000
 delta = 0.01
