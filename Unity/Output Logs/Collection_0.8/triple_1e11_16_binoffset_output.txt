@@ -1,0 +1,36 @@
+Running 180 degrees with 1e-1 mass ratio with origin of binary offset
+x86_64
+#1 SMP Mon Dec 2 06:32:20 EST 2024
+Linux
+x86_64
+u171.asc.ohio-state.edu
+502.8628349304199
+21.305801391601562
+478.17012786865234
+Custom library import time: 6.59 seconds
+{'sep2': '0.8', 'angle2': '180', 'planet_mass_ratio': '1e-1', 'lenses': 'triple', 'origin': 'binary_offset'}
+
+=========================================================
+Lens parameters:
+q1 = 0.001
+q2 = 0.0001
+s1 = 0.8
+s2 = 0.8
+alpha1 = 0
+alpha2 = 180.0
+Total offset: [4.38581818e-04 5.43026318e-22]
+Angular width: 0.07680319680319682
+Thickness: 0.059738867403980045
+Annulus lower bound: -0.970576558378381
+Annulus upper bound: 1.030315425782361
+Number of rays in theta: 194884
+Number of rays in r: 779536
+Number of rays: 1.5192e+11
+=========================================================
+Simulation file path: ./Unity/Simulations/Collection_0.8/triple_1e11_180_1e-04.pkl
+Shooting triple:
+---------------------
+Total time: 11029.713 seconds
+=========================================================
+Saving class data to file: 0.694 seconds
+Done
