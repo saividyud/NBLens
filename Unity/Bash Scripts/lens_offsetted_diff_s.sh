@@ -30,4 +30,4 @@ offset=${offsets[$offsets_index]}
 
 echo "Running $alpha degrees with $pmr mass ratio and $seperation seperation with $offset offset"
 
-python "./Unity/Python Scripts/lenses_offsetted.py" -s2 $seperation -a2 45 -pmr 0.01 -l triple -o $offset
+python "./Unity/Python Scripts/s_varried_offsetted.py" -s2 $seperation -a2 45 -pmr 0.01 -l triple -o $offset
