@@ -18,10 +18,10 @@ mamba activate .venv
 
 # Defining parameters
 seperations=(0.5 0.6 0.7 0.8 0.9 1 1/0.9 1/0.8 1/0.7 1/0.6 1/0.5)
-offsets=("cm", "binary_offset", "triple_offset")
+offsets=(cm binary_offset triple_offset)
 
 # Compute indices
-seperations_index=$((SLURM_ARRAY_TASK_ID) / 3)
+seperations_index=$((SLURM_ARRAY_TASK_ID / 3))
 offsets_index=$((SLURM_ARRAY_TASK_ID % 3))
 
 # Extract parameters
