@@ -1,0 +1,4 @@
+/var/spool/slurmd/job8809305/slurm_script: command substitution: line 24: syntax error near unexpected token `/'
+/var/spool/slurmd/job8809305/slurm_script: command substitution: line 24: `(SLURM_ARRAY_TASK_ID) / 3'
+Running  degrees with  mass ratio and 0.5 seperation with binary_offset, offset
+slurmstepd: error: *** JOB 8809305 ON u178 CANCELLED AT 2025-06-24T12:54:40 ***

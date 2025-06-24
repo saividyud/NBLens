@@ -1,0 +1,34 @@
+/var/spool/slurmd/job8809315/slurm_script: command substitution: line 24: syntax error near unexpected token `/'
+/var/spool/slurmd/job8809315/slurm_script: command substitution: line 24: `(SLURM_ARRAY_TASK_ID) / 3'
+Running  degrees with  mass ratio and 0.5 seperation with triple_offset offset
+x86_64
+#1 SMP Mon Dec 2 06:32:20 EST 2024
+Linux
+x86_64
+u178.asc.ohio-state.edu
+502.862850189209
+78.54336929321289
+421.1076316833496
+Custom library import time: 19.3 seconds
+{'sep2': '0.5', 'angle2': '45', 'planet_mass_ratio': '0.01', 'lenses': 'triple', 'origin': 'triple_offset'}
+
+=========================================================
+Lens parameters:
+q1 = 0.001
+q2 = 1e-05
+s1 = 0.8
+s2 = 0.5
+alpha1 = 0
+alpha2 = 45.0
+Total offset: [4.82520638e-04 2.80039489e-08]
+Angular width: 0.07680319680319682
+Thickness: 0.059738867403980045
+Annulus lower bound: -0.970576558378381
+Annulus upper bound: 1.030315425782361
+Number of rays in theta: 194884
+Number of rays in r: 779536
+Number of rays: 1.5192e+11
+=========================================================
+Simulation file path: ./Unity/Simulations/Collection_0.8/triple_1e11_45_1e-05_triple_offset.pkl
+Shooting triple:
+  0%|          | 0/19489 [00:00<?, ?it/s]  0%|          | 1/19489 [00:00<3:06:57,  1.74it/s]  0%|          | 2/19489 [00:01<3:02:46,  1.78it/s]  0%|          | 3/19489 [00:01<3:01:42,  1.79it/s]  0%|          | 4/19489 [00:02<3:00:14,  1.80it/s]  0%|          | 5/19489 [00:02<3:02:19,  1.78it/s]  0%|          | 6/19489 [00:03<3:04:32,  1.76it/s]  0%|          | 7/19489 [00:03<3:05:24,  1.75it/s]  0%|          | 8/19489 [00:04<3:05:43,  1.75it/s]  0%|          | 9/19489 [00:05<3:04:53,  1.76it/s]  0%|          | 10/19489 [00:05<3:04:01,  1.76it/s]  0%|          | 11/19489 [00:06<3:03:53,  1.77it/s]  0%|          | 12/19489 [00:06<3:02:32,  1.78it/s]  0%|          | 13/19489 [00:07<3:03:22,  1.77it/s]  0%|          | 14/19489 [00:07<3:03:24,  1.77it/s]  0%|          | 15/19489 [00:08<3:03:58,  1.76it/s]  0%|          | 16/19489 [00:09<3:03:47,  1.77it/s]  0%|          | 17/19489 [00:09<3:04:29,  1.76it/s]  0%|          | 18/19489 [00:10<3:04:10,  1.76it/s]  0%|          | 19/19489 [00:10<3:03:35,  1.77it/s]  0%|          | 20/19489 [00:11<3:02:23,  1.78it/s]  0%|          | 21/19489 [00:11<3:01:49,  1.78it/s]  0%|          | 22/19489 [00:12<3:02:16,  1.78it/s]  0%|          | 23/19489 [00:12<3:02:52,  1.77it/s]  0%|          | 24/19489 [00:13<3:03:38,  1.77it/s]  0%|          | 25/19489 [00:14<3:03:52,  1.76it/s]  0%|          | 26/19489 [00:14<3:04:00,  1.76it/s]slurmstepd: error: *** JOB 8809315 ON u178 CANCELLED AT 2025-06-24T12:54:40 ***

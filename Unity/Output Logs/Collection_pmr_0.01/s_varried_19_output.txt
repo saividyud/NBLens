@@ -1,0 +1,27 @@
+/var/spool/slurmd/job8809320/slurm_script: command substitution: line 24: syntax error near unexpected token `/'
+/var/spool/slurmd/job8809320/slurm_script: command substitution: line 24: `(SLURM_ARRAY_TASK_ID) / 3'
+Running  degrees with  mass ratio and 0.5 seperation with binary_offset, offset
+x86_64
+#1 SMP Mon Dec 2 06:32:20 EST 2024
+Linux
+x86_64
+u135.asc.ohio-state.edu
+187.02654266357422
+5.536994934082031
+180.0352783203125
+Custom library import time: 6.14 seconds
+{'sep2': '0.5', 'angle2': '45', 'planet_mass_ratio': '0.01', 'lenses': 'triple', 'origin': 'binary_offset,'}
+
+=========================================================
+Lens parameters:
+q1 = 0.001
+q2 = 1e-05
+s1 = 0.8
+s2 = 0.5
+alpha1 = 0
+alpha2 = 45.0
+Total offset: [4.82520638e-04 2.80039489e-08]
+Traceback (most recent call last):
+  File "/home/senthilnathan.11/Documents/GitHub/NBLens/./Unity/Python Scripts/lenses_offsetted.py", line 130, in <module>
+    raise ValueError(f'Wrong origin passed in. Got {args["origin"]}.')
+ValueError: Wrong origin passed in. Got binary_offset,.
