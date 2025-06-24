@@ -3,11 +3,11 @@ x86_64
 #1 SMP Mon Dec 2 06:32:20 EST 2024
 Linux
 x86_64
-u175.asc.ohio-state.edu
-502.86288833618164
-37.42812728881836
-462.4268913269043
-Custom library import time: 27.3 seconds
+u178.asc.ohio-state.edu
+502.862850189209
+15.308677673339844
+484.34053802490234
+Custom library import time: 10.7 seconds
 {'sep2': '0.8', 'angle2': '0', 'planet_mass_ratio': '3e-3', 'lenses': 'triple', 'origin': 'binary_offset'}
 
 =========================================================
@@ -27,10 +27,10 @@ Number of rays in theta: 194884
 Number of rays in r: 779536
 Number of rays: 1.5192e+11
 =========================================================
-Simulation file path: ./Unity/Simulations/Collection_0.8/triple_1e11_0_3e-06.pkl
+Simulation file path: ./Unity/Simulations/Collection_0.8/triple_1e11_0_3e-06_binary_offset.pkl
 Shooting triple:
 ---------------------
-Total time: 10793.487 seconds
+Total time: 11063.161 seconds
 =========================================================
-Saving class data to file: 0.557 seconds
+Saving class data to file: 0.471 seconds
 Done

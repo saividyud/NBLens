@@ -5,9 +5,9 @@ Linux
 x86_64
 u179.asc.ohio-state.edu
 502.8628578186035
-267.92285537719727
-231.40063095092773
-Custom library import time: 10.9 seconds
+99.15656280517578
+400.1540641784668
+Custom library import time: 6.72 seconds
 {'sep2': '0.8', 'angle2': '180', 'planet_mass_ratio': '3e-3', 'lenses': 'triple', 'origin': 'cm'}
 
 =========================================================
@@ -27,10 +27,10 @@ Number of rays in theta: 194884
 Number of rays in r: 779536
 Number of rays: 1.5192e+11
 =========================================================
-Simulation file path: ./Unity/Simulations/Collection_0.8/triple_1e11_180_3e-06.pkl
+Simulation file path: ./Unity/Simulations/Collection_0.8/triple_1e11_180_3e-06_cm.pkl
 Shooting triple:
 ---------------------
-Total time: 10484.443 seconds
+Total time: 12564.15 seconds
 =========================================================
-Saving class data to file: 0.712 seconds
+Saving class data to file: 0.542 seconds
 Done
