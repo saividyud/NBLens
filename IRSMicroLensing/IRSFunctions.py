@@ -107,10 +107,10 @@ class IRSFunctions:
         r_E = sim_dist[1] * theta_e.value
 
         return theta_e.to(u.mas), r_E.to(u.au)
-    
-    def source_profile(ang_res, rad, xc=0.0, yc=0.0, profile_type='uniform', LD=0):
+
+    def source_profile(ang_res, rad, xc=0.0, yc=0.0, profile_type='uniform', LD=0, supersample=10, scale_factor=1):
         '''
-        Initializes brightness levels due to sources.
+        Initializes brightness levels due to sources using row-wise supersampling.
 
         Parameters
         ----------
@@ -123,44 +123,70 @@ class IRSFunctions:
         yc : float, optional
             Y-position of source
         profile_type : str, optional
-            Type of distrubution for source (defaulted to Gaussian distribution)
-            Supported types:
-                uniform: homogenous circular distribution
-                Gauss: Gaussian circular distribution
-                LD: Limb-darkened distribution
+            Type of distribution for source ('uniform', 'Gauss', 'LD')
         LD : float, optional
-            Limb-darkening coefficient (only used if profile_type is 'LD')
+            Limb-darkening coefficient (used if profile_type is 'LD')
+        supersample : int, optional
+            Number of subpixels per pixel dimension (e.g., 10 means 10x10 per pixel)
+        scale_factor : int, optional
+            Scale factor for the source profile (default is 1, no scaling)
 
         Returns
         -------
-        a : array-like
-            Brightness values for each x and y coordinate in mesh
+        a : 2D np.ndarray
+            Brightness values for each pixel in the grid
         '''
+        # Pixel grid size
+        pix_width = scale_factor * int(2 * rad / ang_res)
+        ang_width = rad
 
-        pix_width = 1*rad / ang_res
-
-        ang_width = 1*rad
-
-        x = np.linspace(-ang_width, ang_width, int(pix_width))
-        y = np.linspace(-ang_width, ang_width, int(pix_width))
-
+        # Define pixel center coordinates
+        x = np.linspace(-ang_width, ang_width, pix_width)
+        y = np.linspace(-ang_width, ang_width, pix_width)
         X, Y = np.meshgrid(x, y)
 
-        r2 = (X - xc)**2 + (Y - yc)**2
-        
-        if profile_type == 'uniform':
-            a = r2 <= rad**2
+        a = np.zeros_like(X, dtype=np.float64)
 
-        elif profile_type == 'Gauss':
-            a = np.exp(-r2*0.5 / rad**2)
+        # Supersampling grid offsets
+        offset = np.linspace(-0.5, 0.5, supersample, endpoint=False) + 0.5 / supersample
+        dx, dy = np.meshgrid(offset, offset)
+        dx = dx.flatten()
+        dy = dy.flatten()
+        subpixel_count = len(dx)
 
-        elif profile_type == 'LD':
-            with warnings.catch_warnings():
-                warnings.simplefilter('ignore')
-                cos_theta = np.nan_to_num(np.sqrt(1 - (r2 / rad**2)), nan=0)
-            a = ((1 - (LD * (1 - (3/2 * cos_theta))))/(2*np.pi)) * (r2 <= rad**2)
-        
+        for i in range(X.shape[0]):
+            y_center = Y[i, 0]
+            x_centers = X[i, :]
+
+            # Shape: (num_pixels, num_subpixels)
+            sub_x = x_centers[:, None] + ang_res * dx[None, :]
+            sub_y = y_center + ang_res * dy[None, :]
+
+            r2 = (sub_x - xc)**2 + (sub_y - yc)**2
+            mask = r2 <= rad**2
+
+            if profile_type == 'uniform':
+                a[i, :] = np.sum(mask, axis=1) / subpixel_count
+
+            elif profile_type == 'Gauss':
+                brightness = np.exp(-0.5 * r2 / rad**2)
+                brightness[~mask] = 0  # zero outside circle
+                a[i, :] = np.mean(brightness, axis=1)
+
+            elif profile_type == 'LD':
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore')
+                    cos_theta = np.sqrt(1 - r2 / rad**2)
+                    cos_theta = np.nan_to_num(cos_theta, nan=0.0)
+                LD_profile = (1 - LD * (1 - 1.5 * cos_theta)) / (2 * np.pi)
+                LD_profile[~mask] = 0
+                a[i, :] = np.mean(LD_profile, axis=1)
+
+        # Normalize total brightness
+        a = a / np.sum(a)
+
         return a
+
     
     def find_cusp_points(caustic_points):
         points = caustic_points.T  # Shape: (400, 2)

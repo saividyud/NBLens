@@ -928,7 +928,7 @@ class IRSCaustics(IRSMain):
         init_time = t.time()
 
         # Performing convolution
-        self.convolved_brightnesses = sci.signal.fftconvolve(self.magnifications, source_profile, 'same')
+        self.convolved_brightnesses = sci.signal.oaconvolve(self.magnifications, source_profile, 'same')
 
         final_time = t.time() - init_time
 
@@ -1258,14 +1258,14 @@ class IRSCaustics(IRSMain):
             delta_zoomed = self.delta[y_lower_bound:y_upper_bound, x_lower_bound:x_upper_bound]
 
             # Plotting deviation map with set view max
-            plot = ax.imshow(delta_zoomed, cmap=self.cmap, extent=[-self.zoom[0]/2, self.zoom[0]/2, -self.zoom[1]/2, self.zoom[1]/2])
+            plot = ax.imshow(delta_zoomed, cmap=self.cmap, extent=[-self.ang_width/2 - self.ang_res/2, self.ang_width/2 + self.ang_res/2, -self.ang_width/2 - self.ang_res/2, self.ang_width/2 + self.ang_res/2])
 
         else:
             magnifications_log_zoomed = self.magnifications_log[y_lower_bound:y_upper_bound, x_lower_bound:x_upper_bound]
             # magnifications_zoomed = self.magnifications[y_lower_bound:y_upper_bound, x_lower_bound:x_upper_bound]
 
             # Plotting magnification map with set view max
-            plot = ax.imshow(magnifications_log_zoomed, cmap=self.cmap, extent=[-self.zoom[0]/2, self.zoom[0]/2, -self.zoom[1]/2, self.zoom[1]/2])
+            plot = ax.imshow(magnifications_log_zoomed, cmap=self.cmap, extent=[-self.ang_width/2 - self.ang_res/2, self.ang_width/2 + self.ang_res/2, -self.ang_width/2 - self.ang_res/2, self.ang_width/2 + self.ang_res/2])
 
             # ax.scatter(self.X, self.Y, s=1, c='red')
 
@@ -1298,8 +1298,8 @@ class IRSCaustics(IRSMain):
             ax.axis('off')
         
         ax.axis('scaled')
-        ax.set_xlim(-self.zoom[0]/2, self.zoom[0]/2)
-        ax.set_ylim(-self.zoom[1]/2, self.zoom[1]/2)
+        ax.set_xlim(-self.ang_width/2 - self.ang_res/2, self.ang_width/2 + self.ang_res/2)
+        ax.set_ylim(-self.ang_width/2 - self.ang_res/2, self.ang_width/2 + self.ang_res/2)
 
         # Displaying model parameters (if MulensModel is enabled)
         if self.show_mm:
@@ -1322,18 +1322,24 @@ class IRSCaustics(IRSMain):
         np.savetxt(f'./datafiles/{self.import_file}.txt', self.magnifications)
 
     @staticmethod
-    def lightcurve_calculator(u, alpha, ang_width, map_array):
+    def lightcurve_calculator(u, alpha, ang_width, map_array: np.ndarray, lens_CM: tuple | np.ndarray=(0, 0), offset: tuple | np.ndarray=(0, 0), n_samples: int=1e4):
         '''
         Calculates the starting and ending points of source trajectory through magnification map.
 
         Parameters
         ----------
         u : float
-            Impact parameter
+            Impact parameter from the lens center of mass
         alpha : float
-            Angle from x axis in degrees
+            Angle of source trajectory from x axis in degrees
         ang_width : float
             Angular width of magnification map
+        lens_CM: 2-element tuple, list, or NDArray
+            Center of mass of lens system in scientific coordinates
+        offset : 2-element tuple, list, or NDArray
+            Current origin offset from star position in scientific coordinates
+        map_array : 2D NDArray
+            Magnification map array
 
         Returns
         -------
@@ -1344,15 +1350,20 @@ class IRSCaustics(IRSMain):
         times : 1D NDArray
             Array of all time values, with 0 being at impact parameter of u
         line_values : 1D NDArray
-            All pixels along light curve
+            All pixel brightnesses along light curve
         '''
+        u0 = -u # Negate u to match the convention of the lensing model
         alpha = np.deg2rad(alpha)
         
         intersections = []
 
         # Starting point of line
-        x0 = -u * np.sin(alpha)
-        y0 = u * np.cos(alpha)
+        x0_inert = -u0 * np.sin(alpha)
+        y0_inert = u0 * np.cos(alpha)
+
+        # Converting to center of mass frame
+        x0 = x0_inert - offset[0] + lens_CM[0]
+        y0 = y0_inert - offset[1] + lens_CM[1]
 
         # Direction vector of line
         dx = np.cos(alpha)
@@ -1387,11 +1398,11 @@ class IRSCaustics(IRSMain):
         ang_res = ang_width / pixels
 
         # Offset from scientific coordinates to index coordinates
-        offset = (pixels - 1) / 2.0
+        pix_offset = (pixels - 1) / 2.0
 
         # Redefining starting and ending indices
-        start = np.floor(start/ang_res + offset)
-        end = np.floor(end/ang_res + offset)
+        start = np.floor(start/ang_res + pix_offset)
+        end = np.ceil(end/ang_res + pix_offset)
 
         # Get line pixel coordinates
         rr, cc = skimage.draw.line(int(start[1]), int(start[0]), int(end[1]), int(end[0]))
@@ -1400,8 +1411,8 @@ class IRSCaustics(IRSMain):
         line_values = map_array[rr[1:-1], cc[1:-1]]
 
         # Shifting coordinates back into scientific coordinates
-        rr = (rr - offset) * ang_res
-        cc = (cc - offset) * ang_res
+        rr = (rr - pix_offset) * ang_res
+        cc = (cc - pix_offset) * ang_res
 
         times = np.linspace(t_E_start, t_E_end, line_values.shape[0])
 
