@@ -24,6 +24,9 @@ if __name__ == '__main__':
 
     import numpy as np
 
+    import multiprocessing as mp
+    mp.set_start_method('spawn')
+
     init_time = t.time()
     from IRSMicroLensing import IRSCaustics as IRSC
     from IRSMicroLensing import IRSFunctions as IRSF

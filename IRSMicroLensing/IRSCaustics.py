@@ -791,7 +791,7 @@ class IRSCaustics(IRSMain):
 
             magnifications_group = []
             cpu_times = []
-            for f in as_completed(futures):
+            for f in cf.as_completed(futures):
                 magnifications_group.append(f.result()[0])
                 cpu_times.append(f.result()[1])
 
