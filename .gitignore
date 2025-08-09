@@ -1,4 +1,5 @@
 .venv
 .numba_cache
+.vscode
 IRSMicroLensing/__pycache__
 Unity/Simulations
