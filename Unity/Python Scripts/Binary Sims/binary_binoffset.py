@@ -74,8 +74,8 @@ if __name__ == '__main__':
     binary_lens_attributes[:, :2] -= delta1
 
     # Map parameters
-    # pixels = 2000
-    pixels = 1000
+    pixels = 2000
+    # pixels = 1000
     delta = 0.01
 
     # ang_width, thickness, (y_plus, y_minus), cusp_points = IRSC.IRSCaustics.ang_width_thickness_calculator(triple_lens_attributes)
@@ -86,10 +86,10 @@ if __name__ == '__main__':
     thickness = 0.059738867403980045
     y_minus = -0.970576558378381
     y_plus = 1.030315425782361
-    # num_r = 813688
-    # num_theta = 203422
-    num_r = 20000
-    num_theta = 5000
+    num_r = 813688
+    num_theta = 203422
+    # num_r = 20000
+    # num_theta = 5000
 
     print(f'Angular width: {ang_width}')
     print(f'Thickness: {thickness}')

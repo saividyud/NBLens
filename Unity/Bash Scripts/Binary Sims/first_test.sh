@@ -13,4 +13,4 @@
 # Commands to run
 module load mamba
 mamba activate .venv
-python "./Unity/Python Scripts/Binary Sim/binary_binoffset.py" -s1 0.8 -q1 0.001
+python "./Unity/Python Scripts/Binary Sims/binary_binoffset.py" -s1 0.8 -q1 0.001

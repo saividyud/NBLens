@@ -1,0 +1,42 @@
+x86_64
+#1 SMP Mon Dec 2 06:32:20 EST 2024
+Linux
+x86_64
+u071.asc.ohio-state.edu
+187.02717971801758
+40.94696807861328
+144.63586807250977
+Custom library import time: 16.5 seconds
+{'sep1': '0.8', 'star_mass_ratio': '0.001'}
+
+=========================================================
+Lens parameters:
+q1 = 0.001
+s1 = 0.8
+alpha1 = 0
+Binary offset: [0.00048732 0.        ]
+Angular width: 0.07680319680319682
+Thickness: 0.059738867403980045
+Annulus lower bound: -0.970576558378381
+Annulus upper bound: 1.030315425782361
+Number of rays in theta: 203422
+Number of rays in r: 813688
+Number of rays: 1.6552e+11
+=========================================================
+Simulation file path: ./Unity/Simulations/Binary_Collection/binary_1e-03_0.8_parallel.pkl
+Shooting binary lens:
+
+Terminating: fork() called from a process already using GNU OpenMP, this is unsafe.
+Traceback (most recent call last):
+  File "/home/senthilnathan.11/Documents/GitHub/NBLens/./Unity/Python Scripts/Binary Sims/binary_binoffset.py", line 132, in <module>
+    magnifications = calculator.parallel_calculate(cm_offset='auto', cpus=6)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/senthilnathan.11/Documents/GitHub/NBLens/IRSMicroLensing/IRSCaustics.py", line 795, in parallel_calculate
+    magnifications_group.append(f.result()[0])
+                                ^^^^^^^^^^
+  File "/home/senthilnathan.11/.conda/envs/.venv/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/senthilnathan.11/.conda/envs/.venv/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+concurrent.futures.process.BrokenProcessPool: A process in the process pool was terminated abruptly while the future was running or pending.
