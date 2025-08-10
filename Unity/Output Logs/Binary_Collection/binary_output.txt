@@ -1,0 +1,60 @@
+
+CommandNotFoundError: Your shell has not been properly configured to use 'conda deactivate'.
+To initialize your shell, run
+
+    $ conda init <SHELL_NAME>
+
+Currently supported shells are:
+  - bash
+  - fish
+  - tcsh
+  - xonsh
+  - zsh
+  - powershell
+
+See 'conda init --help' for more information and options.
+
+IMPORTANT: You may need to close and restart your shell after running 'conda init'.
+
+
+x86_64
+#1 SMP Fri Jun 27 05:59:19 EDT 2025
+Linux
+x86_64
+u040.asc.ohio-state.edu
+187.0953712463379
+12.333759307861328
+173.44948959350586
+Custom library import time: 19.2 seconds
+{'sep1': '0.8', 'star_mass_ratio': '0.001'}
+
+=========================================================
+Lens parameters:
+q1 = 0.001
+s1 = 0.8
+alpha1 = 0
+Binary offset: [0.00048732 0.        ]
+Angular width: 0.07680319680319682
+Thickness: 0.059738867403980045
+Annulus lower bound: -0.970576558378381
+Annulus upper bound: 1.030315425782361
+Number of rays in theta: 5000
+Number of rays in r: 20000
+Number of rays: 1.0000e+08
+=========================================================
+Simulation file path: ./Unity/Simulations/Binary_Collection/binary_1e-03_0.8_parallel.pkl
+Shooting binary lens:
+
+CPU 1 time: 0.878 seconds
+CPU 2 time: 11.42 seconds
+CPU 3 time: 11.72 seconds
+CPU 4 time: 0.7278 seconds
+CPU 5 time: 11.01 seconds
+CPU 6 time: 11.12 seconds
+
+
+---------------------
+Total time: 42.124 seconds
+=========================================================
+Saving class data to file: 0.125 seconds
+Done
