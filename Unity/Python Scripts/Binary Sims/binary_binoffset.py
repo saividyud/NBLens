@@ -119,7 +119,7 @@ if __name__ == '__main__':
     file_directory = f'./Unity/Simulations/Binary_Collection/'
 
     param_dict = binary_lens_parameters
-    file_name = f'binary_{q1:.0e}_{args["sep1"]}_parallel.pkl'
+    file_name = f'binary_{q1:.0e}_{args["sep1"]}_parallel_unity_10_cpus.pkl'
 
     file_path = file_directory + file_name
 
@@ -132,7 +132,7 @@ if __name__ == '__main__':
     print(f'Shooting binary lens:\n')
 
     calculator = IRSC.IRSCaustics(annulus_param_dict=param_dict)
-    magnifications = calculator.parallel_calculate(cm_offset='auto', cpus=6)
+    magnifications = calculator.parallel_calculate(cm_offset='auto', cpus=10)
     # magnifications = calculator.series_calculate(cm_offset='auto')
 
     print('=========================================================')
