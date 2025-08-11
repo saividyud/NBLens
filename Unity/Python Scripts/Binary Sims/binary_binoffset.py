@@ -23,6 +23,7 @@ if __name__ == '__main__':
     print(memory.available / (1024 ** 3))
 
     import numpy as np
+    import pandas as pd
 
     import multiprocessing as mp
     mp.set_start_method('spawn')
@@ -78,21 +79,22 @@ if __name__ == '__main__':
 
     # Map parameters
     pixels = 2000
-    # pixels = 1000
     delta = 0.01
 
-    # ang_width, thickness, (y_plus, y_minus), cusp_points = IRSC.IRSCaustics.ang_width_thickness_calculator(triple_lens_attributes)
-    # num_r, num_theta = IRSC.IRSCaustics.num_ray_calculator(pixels, ang_width, delta, y_plus, y_minus)
+    # Reading in pre-calculated values
+    file = pd.read_csv('./Unity Analysis/binary_attributes.csv')
 
-    # Using pre-calculated values
-    ang_width = 0.07680319680319682
-    thickness = 0.059738867403980045
-    y_minus = -0.970576558378381
-    y_plus = 1.030315425782361
-    num_r = 813688
-    num_theta = 203422
-    # num_r = 20000
-    # num_theta = 5000
+    row = file[(file['s1'] == s1) & (file['q1'] == q1)].iloc[0]
+    row = np.array(row)
+
+    s1 = row[0]
+    q1 = row[1]
+    ang_width = row[2]
+    thickness = row[3]
+    y_plus = row[4]
+    y_minus = row[5]
+    num_r = int(row[6])
+    num_theta = int(row[7])
 
     print(f'Angular width: {ang_width}')
     print(f'Thickness: {thickness}')
@@ -119,7 +121,7 @@ if __name__ == '__main__':
     file_directory = f'./Unity/Simulations/Binary_Collection/'
 
     param_dict = binary_lens_parameters
-    file_name = f'binary_{q1:.0e}_{args["sep1"]}_parallel_unity_10_cpus.pkl'
+    file_name = f'binary_{q1:.0e}_{s1:.2e}.pkl'
 
     file_path = file_directory + file_name
 
