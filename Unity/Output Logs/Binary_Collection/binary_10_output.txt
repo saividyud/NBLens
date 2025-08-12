@@ -1,0 +1,46 @@
+Running 0.3 separation with 3e-5 mass ratio with origin of binary offset
+x86_64
+#1 SMP Mon Dec 2 06:32:20 EST 2024
+Linux
+x86_64
+u087.asc.ohio-state.edu
+187.02853393554688
+5.812568664550781
+179.49932861328125
+Custom library import time: 7.64 seconds
+{'sep1': '0.3', 'star_mass_ratio': '3e-5'}
+
+=========================================================
+Lens parameters:
+q1 = 3e-05
+s1 = 0.3
+alpha1 = 0
+Binary offset: [8.25663303e-06 0.00000000e+00]
+Angular width: 3.7470467722703015e-05
+Thickness: 2.914518400309873e-05
+Annulus lower bound: -0.9999854275141786
+Annulus upper bound: 1.0000145726981815
+Number of rays in theta: 203538
+Number of rays in r: 814152
+Number of rays: 1.6571e+11
+=========================================================
+Simulation file path: ./Unity/Simulations/Binary_Collection/binary_3e-05_3.00e-01.pkl
+Shooting binary lens:
+
+CPU 1 time: 7.774e+03 seconds
+CPU 2 time: 7.847e+03 seconds
+CPU 3 time: 7.929e+03 seconds
+CPU 4 time: 7.972e+03 seconds
+CPU 5 time: 7.985e+03 seconds
+CPU 6 time: 8.026e+03 seconds
+CPU 7 time: 8.007e+03 seconds
+CPU 8 time: 8.033e+03 seconds
+CPU 9 time: 8.043e+03 seconds
+CPU 10 time: 8.009e+03 seconds
+
+
+---------------------
+Total time: 8051.993 seconds
+=========================================================
+Saving class data to file: 0.485 seconds
+Done

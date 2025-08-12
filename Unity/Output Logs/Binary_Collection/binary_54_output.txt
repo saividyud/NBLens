@@ -1,0 +1,46 @@
+Running 0.9 separation with 3e-4 mass ratio with origin of binary offset
+x86_64
+#1 SMP Mon Dec 2 06:32:20 EST 2024
+Linux
+x86_64
+u089.asc.ohio-state.edu
+187.02855682373047
+49.08125686645508
+136.60797500610352
+Custom library import time: 8.02 seconds
+{'sep1': '0.9', 'star_mass_ratio': '3e-4'}
+
+=========================================================
+Lens parameters:
+q1 = 0.0003
+s1 = 0.9
+alpha1 = 0
+Binary offset: [0.00014913 0.        ]
+Angular width: 0.1069203239028291
+Thickness: 0.0831644946861879
+Annulus lower bound: -0.959281920910572
+Annulus upper bound: 1.04244641559676
+Number of rays in theta: 203313
+Number of rays in r: 813252
+Number of rays: 1.6534e+11
+=========================================================
+Simulation file path: ./Unity/Simulations/Binary_Collection/binary_3e-04_9.00e-01.pkl
+Shooting binary lens:
+
+CPU 1 time: 7.633e+03 seconds
+CPU 2 time: 7.844e+03 seconds
+CPU 3 time: 7.892e+03 seconds
+CPU 4 time: 7.841e+03 seconds
+CPU 5 time: 7.848e+03 seconds
+CPU 6 time: 7.961e+03 seconds
+CPU 7 time: 8.144e+03 seconds
+CPU 8 time: 8.196e+03 seconds
+CPU 9 time: 8.164e+03 seconds
+CPU 10 time: 8.239e+03 seconds
+
+
+---------------------
+Total time: 8257.327 seconds
+=========================================================
+Saving class data to file: 0.64 seconds
+Done
