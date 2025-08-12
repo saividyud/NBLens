@@ -30,4 +30,4 @@ q1=${q1s[$q1_index]}
 
 echo "Running $s1 separation with $q1 mass ratio with origin of binary offset"
 
-python "./Unity/Python Scripts/Binary Sims/binary_binoffset.py" -s1 $s1 -q1 $q1
+python "./Unity/Python Scripts/Single Sims/single_binoffset.py" -s1 $s1 -q1 $q1
