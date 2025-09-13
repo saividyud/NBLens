@@ -316,28 +316,26 @@ class IRSCaustics(IRSMain):
                 cm_offset = lens_CMs_rot[i]
 
             # Finding positive x and negative x positions - Equation 8
-            x_pos_rot = q / ((1 + s)*(1 + s**-1)) - lens_CMs_rot[i, 0] + cm_offset[0] - cm_translation[0]
-            x_neg_rot = -q / ((1 - s)*(1 - s**-1)) - lens_CMs_rot[i, 0] + cm_offset[0] - cm_translation[0]
+            x_pos_rot = q / ((1 + s)*(1 + s**-1)) - lens_CMs_rot[i, 0]
+            x_neg_rot = -q / ((1 - s)*(1 - s**-1)) - lens_CMs_rot[i, 0]
 
             # Finding positive y and negative y positions - Equation 9
-            y_pos_rot = (2*q * np.abs(np.sin(phi_c)**3)) / (s + s**-1 - 2*cos_phi_c)**2 - lens_CMs_rot[i, 1] + cm_offset[1] - cm_translation[1]
-            y_neg_rot = -(2*q * np.abs(np.sin(phi_c)**3)) / (s + s**-1 - 2*cos_phi_c)**2 - lens_CMs_rot[i, 1] + cm_offset[1] - cm_translation[1]
+            y_pos_rot = (2*q * np.abs(np.sin(phi_c)**3)) / (s + s**-1 - 2*cos_phi_c)**2 - lens_CMs_rot[i, 1]
+            y_neg_rot = -(2*q * np.abs(np.sin(phi_c)**3)) / (s + s**-1 - 2*cos_phi_c)**2 - lens_CMs_rot[i, 1]
 
             # Storing the maximum distance from the origin of the caustic
             max_dist_rot.append(np.max(np.abs(np.array([x_pos_rot, x_neg_rot, y_pos_rot, y_neg_rot]))))
 
             # Rotating bounding points back from binary axis to inertial axis
-            x_pos = np.dot(Rot, np.array([x_pos_rot, 0]))
-            x_neg = np.dot(Rot, np.array([x_neg_rot, 0]))
+            x_pos = np.dot(Rot, np.array([x_pos_rot, 0])) + cm_offset - cm_translation
+            x_neg = np.dot(Rot, np.array([x_neg_rot, 0])) + cm_offset - cm_translation
 
-            y_pos = np.dot(Rot, np.array([0, y_pos_rot]))
-            y_neg = np.dot(Rot, np.array([0, y_neg_rot]))
+            y_pos = np.dot(Rot, np.array([0, y_pos_rot])) # + cm_offset - cm_translation
+            y_neg = np.dot(Rot, np.array([0, y_neg_rot])) # + cm_offset - cm_translation
 
             # Finding maximum distance from the origin and storing it
             points[i, :, :] = np.array([x_pos, x_neg, y_pos, y_neg])
             max_dist.append(np.max(np.abs(points[i, :, :])))
-
-        print(max_dist)
 
         # Now finding the maximum of the list of maximum distances from the origin of each caustic with a padding
         ang_width = 2*max(max_dist) * padding
@@ -347,7 +345,6 @@ class IRSCaustics(IRSMain):
 
         # Finding the maximum distance from the origin of magnification map
         u = 1.1 * ang_width / np.sqrt(2)
-        print(u)
 
         # Finding major and minor image positions (y+ > 0 and y- < 0)
         y_plus = 0.5 * (u + np.sqrt(u**2 + 4))

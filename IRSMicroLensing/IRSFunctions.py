@@ -154,7 +154,7 @@ class IRSFunctions:
         dy = dy.flatten()
         subpixel_count = len(dx)
 
-        for i in range(X.shape[0]):
+        for i in tqdm(range(X.shape[0])):
             y_center = Y[i, 0]
             x_centers = X[i, :]
 
