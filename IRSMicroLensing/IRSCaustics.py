@@ -633,7 +633,6 @@ class IRSCaustics(IRSMain):
         # Initializing array of points in r and points in theta
         rs = np.linspace(np.abs(self.y_minus), np.abs(self.y_plus), self.num_r).reshape(-1, 1)
         thetas = np.linspace(0, 2*np.pi, self.num_theta, endpoint=False).reshape(1, -1)
-        print('Initialized rs and thetas arrays.')
 
         # Iterating through each set of theta values
         for i in tqdm(range(0, len(thetas[0]), self.rows)):
@@ -642,8 +641,6 @@ class IRSCaustics(IRSMain):
             # Calculating meshgrid of X and Y coordinates of rays
             X = np.dot(rs, np.cos(theta)) - annulus_offset[0]
             Y = np.dot(rs, np.sin(theta)) - annulus_offset[1]
-
-            print(np.shape(X))
 
             # Calculating source pixels
             xs, ys = self.calc_source_pixels(X, Y)
