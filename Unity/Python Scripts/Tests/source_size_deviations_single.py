@@ -24,7 +24,7 @@ if __name__ == '__main__':
 
     import numpy as np
     import pandas as pd
-    
+
     # import multiprocessing as mp
     # mp.set_start_method('spawn')
 
@@ -47,8 +47,7 @@ if __name__ == '__main__':
 
     # Defining binary lens attributes
     lens_attributes = np.array([
-        [0, 0, 1],
-        [s, 0, q]
+        [0, 0, 1]
     ])
 
     # Binary offset
@@ -56,15 +55,15 @@ if __name__ == '__main__':
     print(f'Binary offset: {binary_offset}')
 
     # Correcting binary lens attributes
-    lens_attributes[:, :2] -= binary_offset
+    # lens_attributes[:, :2] -= binary_offset
 
     # Map parameters
     pixels = 2559
     delta = 0.01
 
     ang_width = 0.08149921923899223
-    y_plus = 1.0302202608142927
-    y_minus = 0.9696983882307868
+    y_plus = 1.030712620637792
+    y_minus = 0.9702025375232263
     thickness = y_plus - y_minus
     num_r = 976980
     num_theta = 244245
@@ -94,7 +93,7 @@ if __name__ == '__main__':
     file_directory = f'./Unity/Simulations/Tests/'
 
     param_dict = binary_lens_parameters
-    file_name = f'source_size_deviations_2.pkl'
+    file_name = f'source_size_deviations_single_2.pkl'
 
     file_path = file_directory + file_name
 
@@ -104,11 +103,11 @@ if __name__ == '__main__':
     if not os.path.exists(file_directory):
         raise FileNotFoundError(f'File directory {file_directory} does not exist.')
 
-    print(f'Shooting binary lens:\n')
+    print(f'Shooting single lens:\n')
 
     calculator = IRSC.IRSCaustics(annulus_param_dict=param_dict)
     magnifications = calculator.series_calculate(cm_offset='auto', rows=10)
-    # magnifications = calculator.parallel_calculate(cm_ofxfset='auto', cpus=6, rows=10)
+    # magnifications = calculator.parallel_calculate(cm_offset='auto', cpus=6, rows=10)
 
     print('=========================================================')
 
