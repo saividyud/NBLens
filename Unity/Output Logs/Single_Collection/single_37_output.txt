@@ -1,0 +1,38 @@
+Running 0.7 separation with 1e-5 mass ratio with origin of binary offset
+x86_64
+#1 SMP Mon Dec 2 06:32:20 EST 2024
+Linux
+x86_64
+u179.asc.ohio-state.edu
+502.8628578186035
+4.98651123046875
+494.36559295654297
+Custom library import time: 4.89 seconds
+{'sep1': '0.7', 'star_mass_ratio': '1e-5'}
+
+=========================================================
+Lens parameters:
+q1 = 1e-05
+s1 = 0.7
+alpha1 = 0
+Binary offset: [4.6979396e-06 0.0000000e+00]
+Angular width: 0.0002831113911083
+Thickness: 0.0002202089829322
+Annulus lower bound: -0.9998899015700334
+Annulus upper bound: 1.0001101105529655
+Number of rays in theta: 203538
+Number of rays in r: 814152
+Number of rays: 1.6571e+11
+=========================================================
+Simulation file path: ./Unity/Simulations/Single_Collection/single_1e-05_7.00e-01.pkl
+Shooting binary lens:
+
+CPU 1 time: 1.183e+04 seconds
+CPU 2 time: 1.186e+04 seconds
+
+
+---------------------
+Total time: 11861.039 seconds
+=========================================================
+Saving class data to file: 0.578 seconds
+Done
