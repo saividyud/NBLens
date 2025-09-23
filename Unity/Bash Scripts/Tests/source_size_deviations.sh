@@ -4,11 +4,11 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=2G
-#SBATCH --job-name=source_size_deviations
+#SBATCH --job-name=source_size_deviations_single
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
 
-#SBATCH --output="./Unity/Output Logs/Tests/source_size_deviations.txt"
+#SBATCH --output="./Unity/Output Logs/Tests/source_size_deviations_single.txt"
 
 # Commands to run
 module load mamba

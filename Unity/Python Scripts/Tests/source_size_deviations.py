@@ -45,9 +45,8 @@ if __name__ == '__main__':
     print(f'alpha1 = {alpha}')
 
     # Defining binary lens attributes
-    binary_lens_attributes = np.array([
-        [0, 0, 1],
-        [s*np.cos(np.deg2rad(alpha)), s*np.sin(np.deg2rad(alpha)), q],
+    lens_attributes = np.array([
+        [0, 0, 1]
     ])
 
     # Binary offset
@@ -55,7 +54,7 @@ if __name__ == '__main__':
     print(f'Binary offset: {binary_offset}')
 
     # Correcting binary lens attributes
-    binary_lens_attributes[:, :2] -= binary_offset
+    # lens_attributes[:, :2] -= binary_offset
 
     # Map parameters
     pixels = 2558
@@ -81,7 +80,7 @@ if __name__ == '__main__':
         'thickness': thickness,
         'y_plus': y_plus,
         'y_minus': y_minus,
-        'lens_att': binary_lens_attributes.tolist(),
+        'lens_att': lens_attributes.tolist(),
         'num_theta': num_theta,
         'num_r': num_r
     }
@@ -93,7 +92,7 @@ if __name__ == '__main__':
     file_directory = f'./Unity/Simulations/Tests/'
 
     param_dict = binary_lens_parameters
-    file_name = f'source_size_deviations.pkl'
+    file_name = f'source_size_deviations_single.pkl'
 
     file_path = file_directory + file_name
 
@@ -103,7 +102,7 @@ if __name__ == '__main__':
     if not os.path.exists(file_directory):
         raise FileNotFoundError(f'File directory {file_directory} does not exist.')
 
-    print(f'Shooting binary lens:\n')
+    print(f'Shooting single lens:\n')
 
     calculator = IRSC.IRSCaustics(annulus_param_dict=param_dict)
     magnifications = calculator.series_calculate(cm_offset='auto', annulus_offset=binary_offset, rows=10)
