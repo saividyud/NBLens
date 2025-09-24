@@ -24,7 +24,7 @@ if __name__ == '__main__':
 
     import numpy as np
     import pandas as pd
-    
+
     # import multiprocessing as mp
     # mp.set_start_method('spawn')
 
@@ -59,15 +59,16 @@ if __name__ == '__main__':
     lens_attributes[:, :2] -= binary_offset
 
     # Map parameters
-    pixels = 2559
+    pixels = 4588
     delta = 0.01
 
-    ang_width = 0.08149921923899223
-    y_plus = 1.0302202608142927
-    y_minus = 0.9696983882307868
+    ang_width = 0.345727450083596
+    num_r = 1700804
+    num_theta = 425201
+
+    y_plus = 1.13605536519944
+    y_minus = 0.8793615814347195
     thickness = y_plus - y_minus
-    num_r = 976980
-    num_theta = 244245
 
     print(f'Angular width: {ang_width}')
     print(f'Thickness: {thickness}')
@@ -94,7 +95,7 @@ if __name__ == '__main__':
     file_directory = f'./Unity/Simulations/Tests/'
 
     param_dict = binary_lens_parameters
-    file_name = f'source_size_deviations_2.pkl'
+    file_name = f'source_size_deviations_3.pkl'
 
     file_path = file_directory + file_name
 
@@ -108,7 +109,7 @@ if __name__ == '__main__':
 
     calculator = IRSC.IRSCaustics(annulus_param_dict=param_dict)
     magnifications = calculator.series_calculate(cm_offset='auto', rows=10)
-    # magnifications = calculator.parallel_calculate(cm_ofxfset='auto', cpus=6, rows=10)
+    # magnifications = calculator.parallel_calculate(cm_offset='auto', cpus=6, rows=10)
 
     print('=========================================================')
 

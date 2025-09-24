@@ -58,15 +58,16 @@ if __name__ == '__main__':
     # lens_attributes[:, :2] -= binary_offset
 
     # Map parameters
-    pixels = 2559
+    pixels = 4588
     delta = 0.01
 
-    ang_width = 0.08149921923899223
-    y_plus = 1.030712620637792
-    y_minus = 0.9702025375232263
+    ang_width = 0.345727450083596
+    num_r = 1700804
+    num_theta = 425201
+
+    y_plus = 1.136547316616518
+    y_minus = 0.8798577810002515
     thickness = y_plus - y_minus
-    num_r = 976980
-    num_theta = 244245
 
     print(f'Angular width: {ang_width}')
     print(f'Thickness: {thickness}')
@@ -93,7 +94,7 @@ if __name__ == '__main__':
     file_directory = f'./Unity/Simulations/Tests/'
 
     param_dict = binary_lens_parameters
-    file_name = f'source_size_deviations_single_2.pkl'
+    file_name = f'source_size_deviations_single_3.pkl'
 
     file_path = file_directory + file_name
 
