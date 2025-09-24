@@ -108,7 +108,7 @@ if __name__ == '__main__':
     print(f'Shooting binary lens:\n')
 
     calculator = IRSC.IRSCaustics(annulus_param_dict=param_dict)
-    magnifications = calculator.series_calculate(cm_offset='auto', rows=10)
+    magnifications = calculator.series_calculate(cm_offset='auto', rows=5)
     # magnifications = calculator.parallel_calculate(cm_offset='auto', cpus=6, rows=10)
 
     print('=========================================================')
