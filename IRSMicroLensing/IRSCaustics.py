@@ -691,7 +691,7 @@ class IRSCaustics(IRSMain):
 
         return self.magnifications
 
-    def parallel_calculate(self, cm_offset: str | tuple | list = [0, 0], print_stats=True, file_save=False, cpus: int = 6, rows: int = 10):
+    def parallel_calculate(self, cm_offset: str | tuple | list = [0, 0], annulus_offset: str | tuple | list = [0, 0], print_stats=True, file_save=False, cpus: int = 6, rows: int = 10):
         '''
         Calculates magnification map for lens system by breaking annulus in image plane into chunks.
 
@@ -699,6 +699,8 @@ class IRSCaustics(IRSMain):
         ----------
         cm_offset : str, tuple, or list
             Origin offset from center of mass
+        annulus_offset : str, tuple, or list
+            Offset of annulus center from origin
         print_stats : bool, optional
             If the program outputs computation time and steps
         file_save : bool, optional
@@ -783,7 +785,7 @@ class IRSCaustics(IRSMain):
 
         with cf.ProcessPoolExecutor(max_workers=self.cpus) as executor:
             # magnifications_groups = list(tqdm(executor.map(self._worker_calc_magnification_parallel, theta_group), total=len(theta_group)))
-            futures = [executor.submit(self._worker_calc_magnification_parallel, theta, worker_id) for worker_id, theta in enumerate(theta_group)]
+            futures = [executor.submit(self._worker_calc_magnification_parallel, theta, worker_id, annulus_offset) for worker_id, theta in enumerate(theta_group)]
 
             magnifications_group = []
             cpu_times = []
@@ -818,7 +820,7 @@ class IRSCaustics(IRSMain):
 
         return self.magnifications
 
-    def _worker_calc_magnification_parallel(self, theta_group: np.ndarray, worker_id: int):
+    def _worker_calc_magnification_parallel(self, theta_group: np.ndarray, worker_id: int, annulus_offset: list | np.ndarray):
         # Initializing array of magnifications
         magnifications_group = np.zeros(shape=(self.pixels, self.pixels), dtype=np.int64)
         
@@ -832,8 +834,8 @@ class IRSCaustics(IRSMain):
             theta = thetas[0, i:i+self.rows].reshape(1, -1)
 
             # Calculating meshgrid of X and Y coordinates of rays
-            X = np.dot(self.rs, np.cos(theta))
-            Y = np.dot(self.rs, np.sin(theta))
+            X = np.dot(self.rs, np.cos(theta)) - annulus_offset[0]
+            Y = np.dot(self.rs, np.sin(theta)) - annulus_offset[1]
 
             # Calculating source pixels
             xs, ys = self.calc_source_pixels(X, Y)
