@@ -1,46 +1,33 @@
 Running 0.6 separation with 1e-6 mass ratio with origin of binary offset
 x86_64
-#1 SMP Mon Dec 2 06:32:20 EST 2024
+#1 SMP Fri Jun 27 05:59:19 EDT 2025
 Linux
 x86_64
-u038.asc.ohio-state.edu
-187.0288963317871
-11.166900634765625
-174.31005096435547
-Custom library import time: 8.39 seconds
-{'sep1': '0.6', 'star_mass_ratio': '1e-6'}
+u144.asc.ohio-state.edu
+62.336769104003906
+9.113391876220703
+52.58938980102539
+Custom library import time: 17.1 seconds
+{'sep': '0.6', 'star_mass_ratio': '1e-6'}
 
 =========================================================
 Lens parameters:
 q1 = 1e-06
 s1 = 0.6
-alpha1 = 0
 Binary offset: [4.41176029e-07 0.00000000e+00]
-Angular width: 1.2600002399997598e-05
-Thickness: 9.80050185406256e-06
-Annulus lower bound: -0.9999950997610793
-Annulus upper bound: 1.0000049002629332
-Number of rays in theta: 203538
-Number of rays in r: 814152
-Number of rays: 1.6571e+11
+['0.6' np.float64(1e-06) np.int64(4627) np.float64(0.0001626562499999)
+ np.int64(1735804) np.int64(433951) np.float64(1.0000603824734495)
+ np.float64(0.9999396211738352)]
+Pixels: 4627
+Angular width: 0.0001626562499999
+Annulus lower bound: 0.9999396211738352
+Annulus upper bound: 1.0000603824734495
+Thickness: 0.00012076129961435811
+Number of rays in theta: 433951
+Number of rays in r: 1735804
+Number of rays: 7.5325e+11
 =========================================================
 Simulation file path: ./Unity/Simulations/Binary_Collection/binary_1e-06_6.00e-01.pkl
 Shooting binary lens:
 
-CPU 1 time: 1.301e+04 seconds
-CPU 2 time: 1.314e+04 seconds
-CPU 3 time: 1.35e+04 seconds
-CPU 4 time: 1.369e+04 seconds
-CPU 5 time: 1.371e+04 seconds
-CPU 6 time: 1.373e+04 seconds
-CPU 7 time: 1.375e+04 seconds
-CPU 8 time: 1.378e+04 seconds
-CPU 9 time: 1.375e+04 seconds
-CPU 10 time: 1.382e+04 seconds
-
-
----------------------
-Total time: 13833.759 seconds
-=========================================================
-Saving class data to file: 1.3 seconds
-Done
+  0%|          | 0/43396 [00:00<?, ?it/s]  0%|          | 1/43396 [00:02<29:22:22,  2.44s/it]  0%|          | 2/43396 [00:04<29:51:14,  2.48s/it]  0%|          | 3/43396 [00:07<29:42:22,  2.46s/it]  0%|          | 4/43396 [00:09<29:37:31,  2.46s/it]  0%|          | 5/43396 [00:12<29:29:56,  2.45s/it]  0%|          | 6/43396 [00:14<29:27:58,  2.44s/it]  0%|          | 7/43396 [00:17<29:26:50,  2.44s/it]  0%|          | 8/43396 [00:19<29:23:48,  2.44s/it]  0%|          | 9/43396 [00:22<29:27:43,  2.44s/it]  0%|          | 10/43396 [00:24<29:26:59,  2.44s/it]  0%|          | 11/43396 [00:26<29:27:06,  2.44s/it]  0%|          | 12/43396 [00:29<29:25:42,  2.44s/it]  0%|          | 13/43396 [00:31<29:25:38,  2.44s/it]  0%|          | 14/43396 [00:34<29:23:08,  2.44s/it]  0%|          | 15/43396 [00:36<29:23:34,  2.44s/it]  0%|          | 16/43396 [00:39<29:23:07,  2.44s/it]  0%|          | 17/43396 [00:41<29:23:16,  2.44s/it]  0%|          | 18/43396 [00:43<29:21:43,  2.44s/it]  0%|          | 19/43396 [00:46<29:12:02,  2.42s/it]  0%|          | 20/43396 [00:48<29:14:01,  2.43s/it]  0%|          | 21/43396 [00:51<29:16:00,  2.43s/it]  0%|          | 22/43396 [00:53<29:18:17,  2.43s/it]  0%|          | 23/43396 [00:56<29:19:14,  2.43s/it]  0%|          | 24/43396 [00:58<29:21:51,  2.44s/it]  0%|          | 25/43396 [01:00<29:20:17,  2.44s/it]  0%|          | 26/43396 [01:03<29:21:12,  2.44s/it]  0%|          | 27/43396 [01:05<29:20:41,  2.44s/it]  0%|          | 28/43396 [01:08<29:21:50,  2.44s/it]  0%|          | 29/43396 [01:10<29:11:37,  2.42s/it]  0%|          | 30/43396 [01:13<29:15:57,  2.43s/it]  0%|          | 31/43396 [01:15<29:17:07,  2.43s/it]slurmstepd: error: *** JOB 9012305 ON u144 CANCELLED AT 2025-10-01T12:29:14 ***

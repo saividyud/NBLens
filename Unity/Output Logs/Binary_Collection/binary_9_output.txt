@@ -3,44 +3,31 @@ x86_64
 #1 SMP Fri Jun 27 05:59:19 EDT 2025
 Linux
 x86_64
-u083.asc.ohio-state.edu
-62.3367805480957
-2.0546188354492188
-59.360565185546875
-Custom library import time: 20.2 seconds
-{'sep1': '0.3', 'star_mass_ratio': '1e-5'}
+u172.asc.ohio-state.edu
+502.8628845214844
+103.60334777832031
+395.97547912597656
+Custom library import time: 17.1 seconds
+{'sep': '0.3', 'star_mass_ratio': '1e-5'}
 
 =========================================================
 Lens parameters:
 q1 = 1e-05
 s1 = 0.3
-alpha1 = 0
 Binary offset: [2.75226606e-06 0.00000000e+00]
-Angular width: 1.2489915917167362e-05
-Thickness: 9.714874665611715e-06
-Annulus lower bound: -0.9999951425744644
-Annulus upper bound: 1.00000485744913
-Number of rays in theta: 203538
-Number of rays in r: 814152
-Number of rays: 1.6571e+11
+['0.3' np.float64(1e-05) np.int64(4764) np.float64(0.0002070764400434)
+ np.int64(1795016) np.int64(448754) np.float64(1.0000768504513593)
+ np.float64(0.99992315546735)]
+Pixels: 4764
+Angular width: 0.0002070764400434
+Annulus lower bound: 0.99992315546735
+Annulus upper bound: 1.0000768504513593
+Thickness: 0.00015369498400930048
+Number of rays in theta: 448754
+Number of rays in r: 1795016
+Number of rays: 8.0552e+11
 =========================================================
 Simulation file path: ./Unity/Simulations/Binary_Collection/binary_1e-05_3.00e-01.pkl
 Shooting binary lens:
 
-CPU 1 time: 6.599e+03 seconds
-CPU 2 time: 6.656e+03 seconds
-CPU 3 time: 6.889e+03 seconds
-CPU 4 time: 6.892e+03 seconds
-CPU 5 time: 6.912e+03 seconds
-CPU 6 time: 6.947e+03 seconds
-CPU 7 time: 6.952e+03 seconds
-CPU 8 time: 7.102e+03 seconds
-CPU 9 time: 7.187e+03 seconds
-CPU 10 time: 7.199e+03 seconds
-
-
----------------------
-Total time: 7267.402 seconds
-=========================================================
-Saving class data to file: 1.52 seconds
-Done
+  0%|          | 0/44876 [00:00<?, ?it/s]  0%|          | 1/44876 [00:01<23:29:18,  1.88s/it]  0%|          | 2/44876 [00:03<23:09:01,  1.86s/it]  0%|          | 3/44876 [00:05<23:04:56,  1.85s/it]  0%|          | 4/44876 [00:07<22:58:29,  1.84s/it]  0%|          | 5/44876 [00:09<22:52:44,  1.84s/it]  0%|          | 6/44876 [00:11<22:52:27,  1.84s/it]  0%|          | 7/44876 [00:12<22:47:06,  1.83s/it]  0%|          | 8/44876 [00:14<22:46:15,  1.83s/it]  0%|          | 9/44876 [00:16<22:39:46,  1.82s/it]  0%|          | 10/44876 [00:18<22:43:32,  1.82s/it]  0%|          | 11/44876 [00:20<22:39:25,  1.82s/it]  0%|          | 12/44876 [00:21<22:42:46,  1.82s/it]  0%|          | 13/44876 [00:23<22:38:07,  1.82s/it]  0%|          | 14/44876 [00:25<22:35:30,  1.81s/it]  0%|          | 15/44876 [00:27<22:38:48,  1.82s/it]  0%|          | 16/44876 [00:29<22:40:22,  1.82s/it]  0%|          | 17/44876 [00:31<22:43:01,  1.82s/it]  0%|          | 18/44876 [00:32<22:40:03,  1.82s/it]  0%|          | 19/44876 [00:34<22:44:19,  1.82s/it]  0%|          | 20/44876 [00:36<22:40:38,  1.82s/it]slurmstepd: error: *** JOB 9012285 ON u172 CANCELLED AT 2025-10-01T12:29:14 ***
