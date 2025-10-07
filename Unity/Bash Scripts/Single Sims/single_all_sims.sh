@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
-#SBATCH --time=12:00:00
+#SBATCH --time=44:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=4G
+#SBATCH --mem-per-cpu=2G
 #SBATCH --job-name=single_lens_array
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
 
-#SBATCH --array=0-27
+#SBATCH --array=0-118
 
 #SBATCH --output="./Unity/Output Logs/Single_Collection/single_%a_output.txt"
 
@@ -17,17 +17,17 @@ module load mamba
 mamba activate .venv
 
 # Defining parameters
-s1s=(0.3 0.4 0.5 0.9)
-q1s=(1e-6 3e-6 1e-5 3e-5 1e-4 3e-4 1e-3)
+ss=(0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1/0.9 1/0.8 1/0.7 1/0.6 1/0.5 1/0.4 1/0.3 1/0.2)
+qs=(1e-6 3e-6 1e-5 3e-5 1e-4 3e-4 1e-3)
 
 # Compute indices
-s1_index=$((SLURM_ARRAY_TASK_ID / 7))
-q1_index=$((SLURM_ARRAY_TASK_ID % 7))
+s_index=$((SLURM_ARRAY_TASK_ID / 7))
+q_index=$((SLURM_ARRAY_TASK_ID % 7))
 
 # Extract parameters
-s1=${s1s[$s1_index]}
-q1=${q1s[$q1_index]}
+s=${ss[$s_index]}
+q=${qs[$q_index]}
 
-echo "Running $s1 separation with $q1 mass ratio with origin of binary offset"
+echo "Running $s separation with $q mass ratio with origin of (0, 0)"
 
-python "./Unity/Python Scripts/Single Sims/single_binoffset.py" -s1 $s1 -q1 $q1
+python "./Unity/Python Scripts/Single Sims/single_binoffset.py" -s $s -q $q
