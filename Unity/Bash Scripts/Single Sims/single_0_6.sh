@@ -8,7 +8,7 @@
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
 
-#SBATCH --array=0-55
+#SBATCH --array=0-4
 
 #SBATCH --output="./Unity/Output Logs/Single_Collection/single_0.6_%a_output.txt"
 
@@ -21,7 +21,6 @@ ss=0.6
 qs=(1e-5 3e-5 1e-4 3e-4 1e-3)
 
 # Compute indices
-s_index=$((SLURM_ARRAY_TASK_ID / 5))
 q_index=$((SLURM_ARRAY_TASK_ID % 5))
 
 # Extract parameters
