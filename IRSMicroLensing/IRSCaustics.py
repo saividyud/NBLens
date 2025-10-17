@@ -691,7 +691,7 @@ class IRSCaustics(IRSMain):
 
         return self.magnifications
 
-    def parallel_calculate(self, cm_offset: str | tuple | list = [0, 0], annulus_offset: str | tuple | list = [0, 0], print_stats=True, file_save=False, cpus: int = 6, rows: int = 10):
+    def parallel_calculate(self, cm_offset: str | tuple | list = [0, 0], annulus_offset: str | tuple | list = [0, 0], print_stats=True, file_save=False, cpus: int = 6, rows: int = 10, legacy=False):
         '''
         Calculates magnification map for lens system by breaking annulus in image plane into chunks.
 
@@ -720,6 +720,8 @@ class IRSCaustics(IRSMain):
         self.file_save = file_save
         self.cpus = cpus
         self.rows = rows
+        self.legacy = legacy
+        self.annulus_offset = annulus_offset
 
         self.show_mm = False
         self.show_dev = False
@@ -772,8 +774,8 @@ class IRSCaustics(IRSMain):
         magnifications = np.zeros(shape=(self.pixels, self.pixels), dtype=np.int64)
 
         # Initializing array of points in r and points in theta
-        self.rs = np.linspace(-self.y_minus, self.y_plus, self.num_r).reshape(-1, 1)
-        thetas = np.linspace(0, 2*np.pi - (2*np.pi/self.num_theta), self.num_theta).reshape(1, -1)
+        self.rs = np.linspace(np.abs(self.y_minus), np.abs(self.y_plus), self.num_r).reshape(-1, 1)
+        thetas = np.linspace(0, 2*np.pi, self.num_theta, endpoint=False).reshape(1, -1)
 
         theta_group = np.array_split(thetas[0], self.cpus)
 
@@ -784,21 +786,25 @@ class IRSCaustics(IRSMain):
         import concurrent.futures as cf
 
         with cf.ProcessPoolExecutor(max_workers=self.cpus) as executor:
-            # magnifications_groups = list(tqdm(executor.map(self._worker_calc_magnification_parallel, theta_group), total=len(theta_group)))
-            futures = [executor.submit(self._worker_calc_magnification_parallel, theta, worker_id, annulus_offset) for worker_id, theta in enumerate(theta_group)]
+            if self.legacy:
+                magnifications_groups = list(executor.map(self._worker_calc_magnification_parallel_legacy, theta_group))
+            
+            else:
+                # magnifications_groups = list(tqdm(executor.map(self._worker_calc_magnification_parallel, theta_group), total=len(theta_group)))
+                futures = [executor.submit(self._worker_calc_magnification_parallel, theta, worker_id) for worker_id, theta in enumerate(theta_group)]
 
-            magnifications_group = []
-            cpu_times = []
-            for f in cf.as_completed(futures):
-                magnifications_group.append(f.result()[0])
-                cpu_times.append(f.result()[1])
+                magnifications_groups = []
+                cpu_times = []
+                for f in cf.as_completed(futures):
+                    magnifications_groups.append(f.result()[0])
+                    cpu_times.append(f.result()[1])
 
-        if self.print_stats:
-            for i, cpu_time in enumerate(cpu_times):
-                print(f'CPU {i+1} time: {cpu_time:.4} seconds')
+                if self.print_stats:
+                    for i, cpu_time in enumerate(cpu_times):
+                        print(f'CPU {i+1} time: {cpu_time:.4} seconds')
 
         # Combining the results from all processes
-        magnifications = np.sum(magnifications_group, axis=0)
+        magnifications = np.sum(magnifications_groups, axis=0)
 
         # Calculating magnifications
         self.magnifications = (magnifications / A_pix) / sigma_ann
@@ -820,7 +826,7 @@ class IRSCaustics(IRSMain):
 
         return self.magnifications
 
-    def _worker_calc_magnification_parallel(self, theta_group: np.ndarray, worker_id: int, annulus_offset: list | np.ndarray):
+    def _worker_calc_magnification_parallel(self, theta_group: np.ndarray, worker_id: int):
         # Initializing array of magnifications
         magnifications_group = np.zeros(shape=(self.pixels, self.pixels), dtype=np.int64)
         
@@ -834,8 +840,8 @@ class IRSCaustics(IRSMain):
             theta = thetas[0, i:i+self.rows].reshape(1, -1)
 
             # Calculating meshgrid of X and Y coordinates of rays
-            X = np.dot(self.rs, np.cos(theta)) - annulus_offset[0]
-            Y = np.dot(self.rs, np.sin(theta)) - annulus_offset[1]
+            X = np.dot(self.rs, np.cos(theta)) - self.annulus_offset[0]
+            Y = np.dot(self.rs, np.sin(theta)) - self.annulus_offset[1]
 
             # Calculating source pixels
             xs, ys = self.calc_source_pixels(X, Y)
@@ -871,6 +877,45 @@ class IRSCaustics(IRSMain):
         pbar.close()
 
         return magnifications_group, t.time() - init_time
+
+    def _worker_calc_magnification_parallel_legacy(self, theta_group: np.ndarray):
+        theta = theta_group.reshape(1, -1)
+
+        # Calculating meshgrid of X and Y coordinates of rays
+        X = np.dot(self.rs, np.cos(theta)) - self.annulus_offset[0]
+        Y = np.dot(self.rs, np.sin(theta)) - self.annulus_offset[1]
+
+        # Calculating source pixels
+        xs, ys = self.calc_source_pixels(X, Y)
+        del X # Deleting large arrays
+        del Y
+    
+        # Calculating indices of translated pixel after deflection
+        indx, indy = self.trans_ind(xs, ys)
+        del xs # Deleting large arrays
+        del ys
+
+        # Finding wherever indx or indy is nan
+        indx = np.nan_to_num(indx, nan=self.pixels*1000).astype(int)
+        indy = np.nan_to_num(indy, nan=self.pixels*1000).astype(int)
+
+        # Combining indx and indy into matrix of 2-element arrays (x and y coordinates)
+        comb_mat = np.stack((indx, indy), axis=2)
+        del indx # Deleting large arrays
+        del indy
+
+        # Calculating repeated coordinates and their counts in comb_mat
+        stacked_mat = comb_mat.reshape(-1, 2)
+        del comb_mat # Deleting large arrays
+
+        repetitions, counts = IRSCaustics.calc_uniques(stacked_mat)
+        del stacked_mat # Deleting large arrays
+
+        # Iterating through the array of counts to find the number of times each coordinate was repeated and increment that coordinate magnification by 1
+        magnifications_group = np.zeros(shape=(self.pixels, self.pixels), dtype=np.int64)
+        magnifications_group = IRSCaustics.calc_mags(self.pixels, magnifications_group, repetitions, counts)
+
+        return magnifications_group
 
     def analyze(self, show_mm: True, show_dev: True, X_pix, Y_pix):
         '''
