@@ -8,7 +8,7 @@
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
 
-#SBATCH --array=0-118
+#SBATCH --array=0-4
 
 #SBATCH --output="./Unity/Output Logs/Analysis/analysis_%a_output.txt"
 
