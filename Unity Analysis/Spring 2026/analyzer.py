@@ -5,29 +5,25 @@ import numpy as np
 import pandas as pd
 import numexpr
 
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-
 import IRSMicroLensing.IRSFunctions as IRSF
 import IRSMicroLensing.IRSCaustics as IRSC
 
-import VBMicrolensing
-import MulensModel as mm
-
 import csv
 
+import argparse
+
 #%% Setting plot parameters
-plt.rcParams['font.family'] = 'Times New Roman'
-plt.rcParams['figure.titlesize'] = 20
-plt.rcParams['figure.titleweight'] = 'bold'
-plt.rcParams['figure.figsize'] = (10, 8)
-plt.rcParams['axes.titlesize'] = 16
-plt.rcParams['axes.labelsize'] = 14
-plt.rcParams['figure.labelsize'] = 14
-plt.rcParams['xtick.labelsize'] = 12
-plt.rcParams['ytick.labelsize'] = 12
-plt.rcParams['legend.fontsize'] = 12
-plt.rcParams['mathtext.fontset'] = 'cm'
+# plt.rcParams['font.family'] = 'Times New Roman'
+# plt.rcParams['figure.titlesize'] = 20
+# plt.rcParams['figure.titleweight'] = 'bold'
+# plt.rcParams['figure.figsize'] = (10, 8)
+# plt.rcParams['axes.titlesize'] = 16
+# plt.rcParams['axes.labelsize'] = 14
+# plt.rcParams['figure.labelsize'] = 14
+# plt.rcParams['xtick.labelsize'] = 12
+# plt.rcParams['ytick.labelsize'] = 12
+# plt.rcParams['legend.fontsize'] = 12
+# plt.rcParams['mathtext.fontset'] = 'cm'
 
 #%% Defining some useful functions
 def log_array(min_pow, max_pow):
@@ -52,6 +48,12 @@ def colors_by_log(arr):
             colors.append('red')
     return colors
 
+#%% Defining arguments
+parser = argparse.ArgumentParser(description='Analyze microlensing simulations for fractional area above thresholds.')
+parser.add_argument('--multiplier', type=float, default=1.0, help='Multiplier for output filename.')
+args = parser.parse_args()
+multiplier = args.multiplier
+
 #%% Defining parameter space
 ss_str = ['0.2', '0.3', '0.4', '0.5', '0.6', '0.7', '0.8', '0.9', '1.0', '1/0.9', '1/0.8', '1/0.7', '1/0.6', '1/0.5', '1/0.4', '1/0.3', '1/0.2']
 ss = [numexpr.evaluate(s) for s in ss_str]
@@ -70,7 +72,7 @@ headers = ['s', 'q', 'source_radius', 'LD_coeff'] + [f'{thresh:.1e}' for thresh 
 output = []
 
 #%% Looping through parameter space
-with open('./Unity Analysis/Spring 2026/analysis_output.csv', 'w', newline='') as csvfile:
+with open(f'./Unity Analysis/Spring 2026/Data Files/analysis_output_{multiplier:.0e}.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(headers)
 
@@ -111,7 +113,7 @@ with open('./Unity Analysis/Spring 2026/analysis_output.csv', 'w', newline='') a
 
             #%% Defining source profile
             print('  Defining source profile...')
-            radius = min_source_radius
+            radius = max_source_radius / 10 * multiplier
             LD_coeff = 0.5
             print('-' * 50)
             source_profile = IRSF.IRSFunctions.source_profile(ang_res=single_sim.ang_res, profile_type='LD', rad=radius, LD=LD_coeff)
