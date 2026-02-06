@@ -133,7 +133,7 @@ if __name__ == '__main__':
                 frac_diff_map = (binary_conv_mags - single_conv_mags) / single_conv_mags
 
                 print('  Saving fractional difference map...')
-                np.save(f'./Unity Analysis/Spring 2026/Data Files/Frac_Maps_{multiplier:.0e}/frac_diff_map_q{q:.0e}_s{s:.2e}.npy', frac_diff_map)
+                np.save(f'./Unity/Simulations/Frac_Maps/Frac_Maps_{multiplier:.0e}/frac_diff_map_q{q:.0e}_s{s:.2e}.npy', frac_diff_map)
 
                 #%% Plotting fractional difference map
                 # print('  Plotting fractional difference map...')
