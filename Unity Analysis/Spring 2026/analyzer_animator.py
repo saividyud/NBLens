@@ -117,46 +117,46 @@ print(qs_unique_1)
 # plt.show()
 # %% Animating q and s with fractional area as color scale for different thresholds
 fig = plt.figure(figsize=(14, 4))
-# fig.set_tight_layout(True)
-axes = fig.subplots(2, 5)
+fig.set_tight_layout(True)
+axes = fig.subplots(1, 5)
 
 fig.suptitle('Detectibility as a Function of q and s', y=0.97)
 
 # Adding colorbar
-bar = plt.colorbar(
-    plt.cm.ScalarMappable(cmap='viridis', norm=plt.Normalize(vmin=0, vmax=1)),
-    ax=axes[1, 2], orientation='horizontal',
-    fraction=0.05, pad=0.1,
-    label='Fractional Area Above Threshold'
-)
+# bar = plt.colorbar(
+#     plt.cm.ScalarMappable(cmap='viridis', norm=plt.Normalize(vmin=0, vmax=1)),
+#     ax=axes[1, 2], orientation='horizontal',
+#     fraction=0.05, pad=0.1,
+#     label='Fractional Area Above Threshold'
+# )
 
 def update(frame):
     fig.suptitle('Detectibility as a Function of q and s\nThreshold: {:.1e}'.format(frame), y=0.97)
 
-    for ax in axes[0, :]:
+    for ax in axes:
         ax.cla()
 
     threshold = frame
 
     for j, multiplier in enumerate(multipliers):
-        ax = axes[0, j]
+        ax = axes[j]
 
         ax.set_title(f'$\\rho/\\xi={multiplier}$')
 
         df_subset = df_list[j]
 
         # Fixing holes in data
-        empty_arr = ['1/0.2', 3e-4] + [np.nan] * 102
-        df_subset = pd.concat([df_subset, pd.DataFrame([empty_arr], columns=df_subset.columns, index=[116.5])], ignore_index=False)
+        # empty_arr = ['1/0.2', 3e-4] + [np.nan] * 102
+        # df_subset = pd.concat([df_subset, pd.DataFrame([empty_arr], columns=df_subset.columns, index=[116.5])], ignore_index=False)
 
-        empty_arr = ['1/0.2', 1e-3] + [np.nan] * 102
-        df_subset = pd.concat([df_subset, pd.DataFrame([empty_arr], columns=df_subset.columns, index=[117.5])], ignore_index=False)
-        df_subset = df_subset.sort_index().reset_index(drop=True)
+        # empty_arr = ['1/0.2', 1e-3] + [np.nan] * 102
+        # df_subset = pd.concat([df_subset, pd.DataFrame([empty_arr], columns=df_subset.columns, index=[117.5])], ignore_index=False)
+        # df_subset = df_subset.sort_index().reset_index(drop=True)
 
-        empty_arr = ['1/0.4', 1e-3] + [np.nan] * 102
-        df_subset = pd.concat([df_subset, pd.DataFrame([empty_arr], columns=df_subset.columns, index=[103.5])], ignore_index=False)
+        # empty_arr = ['1/0.4', 1e-3] + [np.nan] * 102
+        # df_subset = pd.concat([df_subset, pd.DataFrame([empty_arr], columns=df_subset.columns, index=[103.5])], ignore_index=False)
 
-        df_subset = df_subset.sort_index().reset_index(drop=True)
+        # df_subset = df_subset.sort_index().reset_index(drop=True)
 
         ax.contourf(
             np.linspace(0, 1, 17),

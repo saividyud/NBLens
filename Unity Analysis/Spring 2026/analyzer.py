@@ -155,7 +155,7 @@ if __name__ == '__main__':
                 fractional_areas_above_threshold = []
 
                 for threshold in thresholds:
-                    above_threshold = np.abs(frac_diff_map) < threshold
+                    above_threshold = np.abs(frac_diff_map) > threshold
                     total_area_above_threshold = np.sum(above_threshold)
                     fractional_area_above_threshold = total_area_above_threshold / (pixels**2)
                     fractional_areas_above_threshold.append(fractional_area_above_threshold)
