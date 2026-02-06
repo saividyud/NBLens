@@ -13,21 +13,6 @@ if __name__ == '__main__':
 
     import csv
 
-    import argparse
-
-    #%% Setting plot parameters
-    # plt.rcParams['font.family'] = 'Times New Roman'
-    # plt.rcParams['figure.titlesize'] = 20
-    # plt.rcParams['figure.titleweight'] = 'bold'
-    # plt.rcParams['figure.figsize'] = (10, 8)
-    # plt.rcParams['axes.titlesize'] = 16
-    # plt.rcParams['axes.labelsize'] = 14
-    # plt.rcParams['figure.labelsize'] = 14
-    # plt.rcParams['xtick.labelsize'] = 12
-    # plt.rcParams['ytick.labelsize'] = 12
-    # plt.rcParams['legend.fontsize'] = 12
-    # plt.rcParams['mathtext.fontset'] = 'cm'
-
     #%% Defining some useful functions
     def log_array(min_pow, max_pow):
         powers = np.arange(min_pow, max_pow + 1)
@@ -50,17 +35,12 @@ if __name__ == '__main__':
             elif val > 0:
                 colors.append('red')
         return colors
-
-    #%% Defining arguments
-    parser = argparse.ArgumentParser(description='Analyze microlensing simulations for fractional area above thresholds.')
-    parser.add_argument('--multiplier', type=float, default=1.0, help='Multiplier for output filename.')
-    args = parser.parse_args()
-    multiplier = args.multiplier
-
+    
     #%% Defining parameter space
     ss_str = ['0.2', '0.3', '0.4', '0.5', '0.6', '0.7', '0.8', '0.9', '1.0', '1/0.9', '1/0.8', '1/0.7', '1/0.6', '1/0.5', '1/0.4', '1/0.3', '1/0.2']
     ss = [numexpr.evaluate(s) for s in ss_str]
     qs = [1e-6, 3e-6, 1e-5, 3e-5, 1e-4, 3e-4, 1e-3]
+    multipliers = [1e-1, 3e-1, 1e0, 3e0, 1e1]
 
     binary_directory = './Unity/Simulations/Binary_Collection'
     single_directory = './Unity/Simulations/Single_Collection'
@@ -69,20 +49,12 @@ if __name__ == '__main__':
     single_attributes = pd.read_csv('./Unity Analysis/Spring 2026/single_attributes.csv')
     binary_attributes = pd.read_csv('./Unity Analysis/Spring 2026/binary_attributes.csv')
 
-    #%% Defining variables to be stored
-    thresholds = np.logspace(-8, 0, num=100)
-    headers = ['s', 'q', 'source_radius', 'LD_coeff'] + [f'{thresh:.1e}' for thresh in thresholds]
-    output = []
-
     #%% Looping through parameter space
-    with open(f'./Unity Analysis/Spring 2026/Data Files/analysis_output_{multiplier:.0e}.csv', 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(headers)
-
-        for i, s in enumerate(ss):
-            for j, q in enumerate(qs):
+    for i, s in enumerate(ss):
+        for j, q in enumerate(qs):
+            for k, multiplier in enumerate(multipliers):
                 print('=' * 50)
-                print(f'Processing s={ss_str[i]}, q={q:.0e}...')
+                print(f'Processing s={ss_str[i]}, q={q:.0e}, multiplier={multiplier}...')
 
                 #%% Reading in both single and binary lens simulations
                 if s < 1.0:
@@ -132,39 +104,5 @@ if __name__ == '__main__':
                 print('  Calculating fractional difference map...')
                 frac_diff_map = (binary_conv_mags - single_conv_mags) / single_conv_mags
 
-                print('  Saving fractional difference map...')
-                np.save(f'./Unity Analysis/Spring 2026/Data Files/Frac_Maps_{multiplier:.0e}/frac_diff_map_q{q:.0e}_s{s:.2e}.npy', frac_diff_map)
-
-                #%% Plotting fractional difference map
-                # print('  Plotting fractional difference map...')
-                # fig = plt.figure()
-                # ax = fig.add_subplot()
-                # img = ax.contour(
-                #     X_pix, Y_pix, np.flip(frac_diff_map, axis=0),
-                #     levels=log_array(-3, -1).tolist(),
-                #     colors=colors_by_log(log_array(-3, -1)),
-                #     linewidths=0.5
-                # )
                 
-                # fig.colorbar(img, label='Fractional Difference')
-                # ax.set_title(f'Fractional Difference Map ($s={ss_str[i]}, q={q:.0e}, r={radius:.2e} \\theta_E$)')
-                # ax.set_xlabel('X [$\\theta_E$]')
-                # ax.set_ylabel('Y [$\\theta_E$]')
 
-                # plt.savefig(f'./Unity Analysis/Spring 2026/Figures/frac_diff_map_q{q:.0e}_s{s:.2e}_r{radius:.2e}.png', dpi=100)
-
-                #%% Calculating fractional area of fractional map above threshold
-                # print('  Calculating area above threshold...')
-                # fractional_areas_above_threshold = []
-
-                # for threshold in thresholds:
-                #     above_threshold = np.abs(frac_diff_map) > threshold
-                #     total_area_above_threshold = np.sum(above_threshold)
-                #     fractional_area_above_threshold = total_area_above_threshold / (pixels**2)
-                #     fractional_areas_above_threshold.append(fractional_area_above_threshold)
-
-                # fractional_areas_above_threshold = np.array(fractional_areas_above_threshold)
-                
-                # #%% Saving fractional deviations to csv
-                # output.append([ss_str[i], q, radius, LD_coeff] + fractional_areas_above_threshold.tolist())
-                # writer.writerow(output[-1])
