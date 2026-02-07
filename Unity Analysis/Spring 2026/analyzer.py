@@ -12,6 +12,7 @@ if __name__ == '__main__':
     import IRSMicroLensing.IRSCaustics as IRSC
 
     import csv
+    import os
 
     import argparse
 
@@ -74,15 +75,23 @@ if __name__ == '__main__':
     headers = ['s', 'q', 'source_radius', 'LD_coeff'] + [f'{thresh:.1e}' for thresh in thresholds]
     output = []
 
+    #%% Ensuring folders are created for output
+    if not os.path.exists(f'./Unity/Simulations/Frac_Maps/Frac_Maps_{multiplier:.0e}/'):
+        os.makedirs(f'./Unity/Simulations/Frac_Maps/Frac_Maps_{multiplier:.0e}/')
+    
+    for q in qs:
+        if not os.path.exists(f'./Unity/Simulations/Frac_Maps/Frac_Maps_{multiplier:.0e}/Frac_Maps_{q:.0e}/'):
+            os.makedirs(f'./Unity/Simulations/Frac_Maps/Frac_Maps_{multiplier:.0e}/Frac_Maps_{q:.0e}/')
+
     #%% Looping through parameter space
     with open(f'./Unity Analysis/Spring 2026/Data Files/analysis_output_{multiplier:.0e}.csv', 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(headers)
 
-        for i, s in enumerate(ss):
-            for j, q in enumerate(qs):
+        for i, q in enumerate(qs):
+            for j, s in enumerate(ss):
                 print('=' * 50)
-                print(f'Processing s={ss_str[i]}, q={q:.0e}...')
+                print(f'Processing s={ss_str[j]}, q={q:.0e}...')
 
                 #%% Reading in both single and binary lens simulations
                 if s < 1.0:
@@ -109,8 +118,8 @@ if __name__ == '__main__':
                 single_magnifications = single_sim.magnifications
                 binary_magnifications = binary_sim.magnifications
 
-                min_source_radius = binary_attributes.loc[(binary_attributes['s'] == ss_str[i]) & (binary_attributes['q'] == q), 'min_source_radius'].values[0]
-                max_source_radius = binary_attributes.loc[(binary_attributes['s'] == ss_str[i]) & (binary_attributes['q'] == q), 'max_source_radius'].values[0]
+                min_source_radius = binary_attributes.loc[(binary_attributes['s'] == ss_str[j]) & (binary_attributes['q'] == q), 'min_source_radius'].values[0]
+                max_source_radius = binary_attributes.loc[(binary_attributes['s'] == ss_str[j]) & (binary_attributes['q'] == q), 'max_source_radius'].values[0]
 
                 X_pix, Y_pix = np.meshgrid(np.linspace(-ang_width/2, ang_width/2, pixels), np.linspace(-ang_width/2, ang_width/2, pixels))
 
@@ -133,7 +142,7 @@ if __name__ == '__main__':
                 frac_diff_map = (binary_conv_mags - single_conv_mags) / single_conv_mags
 
                 print('  Saving fractional difference map...')
-                np.save(f'./Unity/Simulations/Frac_Maps/Frac_Maps_{multiplier:.0e}/frac_diff_map_q{q:.0e}_s{s:.2e}.npy', frac_diff_map)
+                np.save(f'./Unity/Simulations/Frac_Maps/Frac_Maps_{multiplier:.0e}/Frac_Maps_{q:.0e}/frac_diff_map_q{q:.0e}_s{s:.2e}.npy', frac_diff_map)
 
                 #%% Plotting fractional difference map
                 # print('  Plotting fractional difference map...')
