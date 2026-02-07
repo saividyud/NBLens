@@ -13,6 +13,19 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import matplotlib.animation as animation
 
+    plt.rcParams['font.family'] = 'Times New Roman'
+    plt.rcParams['figure.titlesize'] = 20
+    plt.rcParams['figure.titleweight'] = 'bold'
+    plt.rcParams['figure.figsize'] = (14, 8)
+    plt.rcParams['axes.titlesize'] = 20
+    plt.rcParams['axes.labelsize'] = 20
+    plt.rcParams['figure.labelsize'] = 20
+    plt.rcParams['xtick.labelsize'] = 10
+    plt.rcParams['ytick.labelsize'] = 10
+    plt.rcParams['legend.title_fontsize'] = 16
+    plt.rcParams['legend.fontsize'] = 16
+    plt.rcParams['mathtext.fontset'] = 'cm'
+
     #%% Defining some useful functions
     def log_array(min_pow, max_pow):
         powers = np.arange(min_pow, max_pow + 1)
@@ -53,18 +66,17 @@ if __name__ == '__main__':
     #%% Looping through parameter space
     def update(frame):
         multiplier = multipliers[frame]
+        print(f'Processing multiplier: {multiplier:.0e}')
 
         for i, s in enumerate(ss[ss <= 1]):
             for j, q in enumerate(qs):
                 ax = axes[i, j]
-                ax.set_title(f'$s={s}$, $q={q:.0e}$')
-
-                # binary_sim = IRSC.caustic_reader(f'./Unity/Simulations/Binary_Collection/Binary_Collection_{q:.0e}/binary_{q:.0e}_{s:.2e}.pkl')
+                ax.set_title(f'$s={ss_str[i]}$, $q={q:.0e}$')
 
                 frac_map = np.load(f'./Unity/Simulations/Frac_Maps/Frac_Maps_{multiplier:.0e}/frac_diff_map_q{q:.0e}_s{s:.2e}.npy')
 
-                ang_width = binary_attributes.loc[(binary_attributes['q'] == q) & (binary_attributes['s'] == s), 'ang_width'].values[0]
-                pixels = binary_attributes.loc[(binary_attributes['q'] == q) & (binary_attributes['s'] == s), 'pixels'].values[0]
+                ang_width = binary_attributes.loc[(binary_attributes['q'] == q) & (binary_attributes['s'] == ss_str[i]), 'ang_width'].values[0]
+                pixels = binary_attributes.loc[(binary_attributes['q'] == q) & (binary_attributes['s'] == ss_str[i]), 'pixels'].values[0]
 
                 X_pix, Y_pix = np.meshgrid(np.linspace(-ang_width/2, ang_width/2, pixels), np.linspace(-ang_width/2, ang_width/2, pixels))
 
