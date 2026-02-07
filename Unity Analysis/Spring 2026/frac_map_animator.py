@@ -37,8 +37,8 @@ if __name__ == '__main__':
     
     #%% Defining parameter space
     ss_str = ['0.2', '0.3', '0.4', '0.5', '0.6', '0.7', '0.8', '0.9', '1.0', '1/0.9', '1/0.8', '1/0.7', '1/0.6', '1/0.5', '1/0.4', '1/0.3', '1/0.2']
-    ss = [numexpr.evaluate(s) for s in ss_str]
-    qs = [1e-6, 3e-6, 1e-5, 3e-5, 1e-4, 3e-4, 1e-3]
+    ss = np.array([numexpr.evaluate(s) for s in ss_str])
+    qs = np.array([1e-6, 3e-6, 1e-5, 3e-5, 1e-4, 3e-4, 1e-3])
     multipliers = [1e-1, 3e-1, 1e0, 3e0, 1e1]
 
     #%% Plotting
