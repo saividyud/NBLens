@@ -6,6 +6,7 @@ if __name__ == '__main__':
 
     import numpy as np
     import numexpr
+    import pandas as pd
 
     import IRSMicroLensing.IRSCaustics as IRSC
 
@@ -40,6 +41,7 @@ if __name__ == '__main__':
     ss = np.array([numexpr.evaluate(s) for s in ss_str])
     qs = np.array([1e-6, 3e-6, 1e-5, 3e-5, 1e-4, 3e-4, 1e-3])
     multipliers = [1e-1, 3e-1, 1e0, 3e0, 1e1]
+    binary_attributes = pd.read_csv('./Unity Analysis/Spring 2026/binary_attributes.csv')
 
     #%% Plotting
     fig = plt.figure(figsize=(22, 26))
@@ -57,11 +59,12 @@ if __name__ == '__main__':
                 ax = axes[i, j]
                 ax.set_title(f'$s={s}$, $q={q:.0e}$')
 
-                binary_sim = IRSC.caustic_reader(f'./Unity/Simulations/Binary_Collection/Binary_Collection_{q:.0e}/binary_{q:.0e}_{s:.2e}.pkl')
-                ang_width = binary_sim.ang_width
-                pixels = binary_sim.pixels
+                # binary_sim = IRSC.caustic_reader(f'./Unity/Simulations/Binary_Collection/Binary_Collection_{q:.0e}/binary_{q:.0e}_{s:.2e}.pkl')
 
                 frac_map = np.load(f'./Unity/Simulations/Frac_Maps/Frac_Maps_{multiplier:.0e}/frac_diff_map_q{q:.0e}_s{s:.2e}.npy')
+
+                ang_width = binary_attributes.loc[(binary_attributes['q'] == q) & (binary_attributes['s'] == s), 'ang_width'].values[0]
+                pixels = binary_attributes.loc[(binary_attributes['q'] == q) & (binary_attributes['s'] == s), 'pixels'].values[0]
 
                 X_pix, Y_pix = np.meshgrid(np.linspace(-ang_width/2, ang_width/2, pixels), np.linspace(-ang_width/2, ang_width/2, pixels))
 
