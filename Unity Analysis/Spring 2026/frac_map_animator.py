@@ -5,13 +5,12 @@ if __name__ == '__main__':
     sys.path.append('.')
 
     import numpy as np
-    import pandas as pd
     import numexpr
 
-    import IRSMicroLensing.IRSFunctions as IRSF
     import IRSMicroLensing.IRSCaustics as IRSC
 
-    import csv
+    import matplotlib.pyplot as plt
+    import matplotlib.animation as animation
 
     #%% Defining some useful functions
     def log_array(min_pow, max_pow):
@@ -42,67 +41,39 @@ if __name__ == '__main__':
     qs = [1e-6, 3e-6, 1e-5, 3e-5, 1e-4, 3e-4, 1e-3]
     multipliers = [1e-1, 3e-1, 1e0, 3e0, 1e1]
 
-    binary_directory = './Unity/Simulations/Binary_Collection'
-    single_directory = './Unity/Simulations/Single_Collection'
+    #%% Plotting
+    fig = plt.figure(figsize=(22, 26))
+    fig.set_tight_layout(True)
+    axes = fig.subplots(9, 7)
 
-    #%% Reading in attributes from csv file
-    single_attributes = pd.read_csv('./Unity Analysis/Spring 2026/single_attributes.csv')
-    binary_attributes = pd.read_csv('./Unity Analysis/Spring 2026/binary_attributes.csv')
+    fig.suptitle('Fractional Area v Source Star Radius ($s \leq 1$)', y=1.0)
 
     #%% Looping through parameter space
-    for i, s in enumerate(ss):
-        for j, q in enumerate(qs):
-            for k, multiplier in enumerate(multipliers):
-                print('=' * 50)
-                print(f'Processing s={ss_str[i]}, q={q:.0e}, multiplier={multiplier}...')
+    def update(frame):
+        multiplier = multipliers[frame]
 
-                #%% Reading in both single and binary lens simulations
-                if s < 1.0:
-                    single_file = f'{single_directory}/Single_Collection_{q:.0e}/single_{q:.0e}_{s:.2e}.pkl'
-                elif s == 1.0:
-                    single_file = f'{single_directory}/Single_Collection_{q:.0e}/single_{q:.0e}_9.00e-01.pkl'
-                else:
-                    single_file = f'{single_directory}/Single_Collection_{q:.0e}/single_{q:.0e}_{1/(s):.2e}.pkl'
-                
-                single_sim = IRSC.caustic_reader(single_file)
+        for i, s in enumerate(ss[ss <= 1]):
+            for j, q in enumerate(qs):
+                ax = axes[i, j]
+                ax.set_title(f'$s={s}$, $q={q:.0e}$')
 
-                binary_file = f'{binary_directory}/Binary_Collection_{q:.0e}/binary_{q:.0e}_{s:.2e}.pkl'
-                binary_sim = IRSC.caustic_reader(binary_file)
+                binary_sim = IRSC.caustic_reader(f'./Unity/Simulations/Binary_Collection/Binary_Collection_{q:.0e}/binary_{q:.0e}_{s:.2e}.pkl')
+                ang_width = binary_sim.ang_width
+                pixels = binary_sim.pixels
 
-                if binary_sim.pixels != single_sim.pixels:
-                    print('  Pixel mismatch between single and binary simulations. Skipping...')
-                    continue
-
-                #%% Extracting important parameters from simulations
-                pixels = single_sim.pixels
-                ang_width = single_sim.ang_width
-                ang_res = single_sim.ang_res
-
-                single_magnifications = single_sim.magnifications
-                binary_magnifications = binary_sim.magnifications
-
-                min_source_radius = binary_attributes.loc[(binary_attributes['s'] == ss_str[i]) & (binary_attributes['q'] == q), 'min_source_radius'].values[0]
-                max_source_radius = binary_attributes.loc[(binary_attributes['s'] == ss_str[i]) & (binary_attributes['q'] == q), 'max_source_radius'].values[0]
+                frac_map = np.load(f'./Unity/Simulations/Frac_Maps/Frac_Maps_{multiplier:.0e}/frac_diff_map_q{q:.0e}_s{s:.2e}.npy')
 
                 X_pix, Y_pix = np.meshgrid(np.linspace(-ang_width/2, ang_width/2, pixels), np.linspace(-ang_width/2, ang_width/2, pixels))
 
-                #%% Defining source profile
-                print('  Defining source profile...')
-                radius = max_source_radius / 10 * multiplier
-                LD_coeff = 0.5
-                print('-' * 50)
-                source_profile = IRSF.IRSFunctions.source_profile(ang_res=single_sim.ang_res, profile_type='LD', rad=radius, LD=LD_coeff)
-                print('-' * 50)
+                img = ax.contour(
+                    X_pix, Y_pix, np.flip(frac_map, axis=0),
+                    levels=log_array(-3, -1).tolist(),
+                    colors=colors_by_log(log_array(-3, -1)),
+                    linewidths=0.5
+                )
 
-                #%% Convolving magnification maps with source profile
-                print('  Convolving single lens magnification map...')
-                single_conv_mags = single_sim.convolve(source_profile=source_profile)
-                print('  Convolving binary lens magnification map...')
-                binary_conv_mags = binary_sim.convolve(source_profile=source_profile)
+    ani = animation.FuncAnimation(fig, update, frames=len(multipliers), repeat=False)
+    ani.save('./Unity Analysis/Spring 2026/Figures/frac_map_animation.gif', writer='pillow', fps=1)
 
-                #%% Taking fractional difference between maps
-                print('  Calculating fractional difference map...')
-                frac_diff_map = (binary_conv_mags - single_conv_mags) / single_conv_mags
 
-                
 
