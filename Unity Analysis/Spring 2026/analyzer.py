@@ -167,5 +167,5 @@ if __name__ == '__main__':
                 fractional_areas_above_threshold = np.array(fractional_areas_above_threshold)
                 
                 #%% Saving fractional deviations to csv
-                output.append([ss_str[i], q, radius, LD_coeff] + fractional_areas_above_threshold.tolist())
+                output.append([ss_str[j], q, radius, LD_coeff] + fractional_areas_above_threshold.tolist())
                 writer.writerow(output[-1])
