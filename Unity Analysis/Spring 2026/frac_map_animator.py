@@ -14,6 +14,7 @@ if __name__ == '__main__':
     import matplotlib.animation as animation
 
     import argparse
+    import sys
 
     plt.rcParams['font.family'] = 'Times New Roman'
     plt.rcParams['figure.titlesize'] = 20
@@ -56,7 +57,7 @@ if __name__ == '__main__':
     parser.add_argument('--multiplier', type=float, default=1.0, help='Multiplier for output filename.')
     args = parser.parse_args()
     multiplier = args.multiplier
-
+    
     print(f'Arguments parsed successfully. Starting analysis with multiplier = {multiplier}...')
     
     #%% Defining parameter space
@@ -89,7 +90,7 @@ if __name__ == '__main__':
             ax = axes[i, j]
             ax.set_title(f'$s={ss_str[i]}$, $q={q:.0e}$')
 
-            # frac_map = np.load(f'./Unity/Simulations/Frac_Maps/Frac_Maps_{multiplier:.0e}/Frac_Maps_{q:.0e}/frac_diff_map_q{q:.0e}_s{s:.2e}.npy')
+            frac_map = np.load(f'./Unity/Simulations/Frac_Maps/Frac_Maps_{multiplier:.0e}/Frac_Maps_{q:.0e}/frac_diff_map_q{q:.0e}_s{s:.2e}.npy')
             print(f'Fractional area map loaded successfully for s={s:.2f}, q={q:.0e}, multiplier={multiplier:.0e}.')
 
             ang_width = binary_attributes.loc[(binary_attributes['q'] == q) & (binary_attributes['s'] == ss_str[i]), 'ang_width'].values[0]
@@ -101,15 +102,22 @@ if __name__ == '__main__':
             Y_pix = np.linspace(-ang_width/2, ang_width/2, pixels)
             print(f'Pixel grid created successfully for s={s:.2f}, q={q:.0e}.')
 
-            # img = ax.contour(
-            #     X_pix, Y_pix, np.flip(frac_map, axis=0),
-            #     levels=log_array(-3, -1).tolist(),
-            #     colors=colors_by_log(log_array(-3, -1)),
-            #     linewidths=0.5
-            # )
+            img = ax.contour(
+                X_pix, Y_pix, np.flip(frac_map, axis=0),
+                levels=log_array(-3, -1).tolist(),
+                colors=colors_by_log(log_array(-3, -1)),
+                linewidths=0.5
+            )
+
+            ax.set_aspect('equal')
+
+            # Deleting variables to free up memory
+            del img
+            del frac_map
+
             print(f'Contour plot created successfully for s={s:.2f}, q={q:.0e}.')
     # ani = animation.FuncAnimation(fig, update, frames=len(multipliers), repeat=False)
-    # fig.savefig(f'./Unity Analysis/Spring 2026/Figures/frac_map_plot_{multiplier:.0e}_s<1.png', dpi=300)
+    fig.savefig(f'./Unity Analysis/Spring 2026/Figures/frac_map_plot_{multiplier:.0e}_s<1.png', dpi=300)
 
 
 
