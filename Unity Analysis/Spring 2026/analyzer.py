@@ -75,14 +75,6 @@ if __name__ == '__main__':
     headers = ['s', 'q', 'source_radius', 'LD_coeff'] + [f'{thresh:.1e}' for thresh in thresholds]
     output = []
 
-    #%% Ensuring folders are created for output
-    if not os.path.exists(f'./Unity/Simulations/Frac_Maps/Frac_Maps_{multiplier:.0e}/'):
-        os.makedirs(f'./Unity/Simulations/Frac_Maps/Frac_Maps_{multiplier:.0e}/')
-    
-    for q in qs:
-        if not os.path.exists(f'./Unity/Simulations/Frac_Maps/Frac_Maps_{multiplier:.0e}/Frac_Maps_{q:.0e}/'):
-            os.makedirs(f'./Unity/Simulations/Frac_Maps/Frac_Maps_{multiplier:.0e}/Frac_Maps_{q:.0e}/')
-
     #%% Looping through parameter space
     with open(f'./Unity Analysis/Spring 2026/Data Files/analysis_output_{multiplier:.0e}.csv', 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
@@ -141,8 +133,8 @@ if __name__ == '__main__':
                 print('  Calculating fractional difference map...')
                 frac_diff_map = (binary_conv_mags - single_conv_mags) / single_conv_mags
 
-                print('  Saving fractional difference map...')
-                np.save(f'./Unity/Simulations/Frac_Maps/Frac_Maps_{multiplier:.0e}/Frac_Maps_{q:.0e}/frac_diff_map_q{q:.0e}_s{s:.2e}.npy', frac_diff_map)
+                # print('  Saving fractional difference map...')
+                # np.save(f'./Unity/Simulations/Frac_Maps/Frac_Maps_{multiplier:.0e}/Frac_Maps_{q:.0e}/frac_diff_map_q{q:.0e}_s{s:.2e}.npy', frac_diff_map)
 
                 #%% Plotting fractional difference map
                 # print('  Plotting fractional difference map...')
@@ -163,17 +155,17 @@ if __name__ == '__main__':
                 # plt.savefig(f'./Unity Analysis/Spring 2026/Figures/frac_diff_map_q{q:.0e}_s{s:.2e}_r{radius:.2e}.png', dpi=100)
 
                 #%% Calculating fractional area of fractional map above threshold
-                # print('  Calculating area above threshold...')
-                # fractional_areas_above_threshold = []
+                print('  Calculating area above threshold...')
+                fractional_areas_above_threshold = []
 
-                # for threshold in thresholds:
-                #     above_threshold = np.abs(frac_diff_map) > threshold
-                #     total_area_above_threshold = np.sum(above_threshold)
-                #     fractional_area_above_threshold = total_area_above_threshold / (pixels**2)
-                #     fractional_areas_above_threshold.append(fractional_area_above_threshold)
+                for threshold in thresholds:
+                    above_threshold = np.abs(frac_diff_map) > threshold
+                    total_area_above_threshold = np.sum(above_threshold)
+                    fractional_area_above_threshold = total_area_above_threshold / (pixels**2)
+                    fractional_areas_above_threshold.append(fractional_area_above_threshold)
 
-                # fractional_areas_above_threshold = np.array(fractional_areas_above_threshold)
+                fractional_areas_above_threshold = np.array(fractional_areas_above_threshold)
                 
-                # #%% Saving fractional deviations to csv
-                # output.append([ss_str[i], q, radius, LD_coeff] + fractional_areas_above_threshold.tolist())
-                # writer.writerow(output[-1])
+                #%% Saving fractional deviations to csv
+                output.append([ss_str[i], q, radius, LD_coeff] + fractional_areas_above_threshold.tolist())
+                writer.writerow(output[-1])
