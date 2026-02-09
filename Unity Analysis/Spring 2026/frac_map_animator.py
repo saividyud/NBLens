@@ -9,6 +9,7 @@ if __name__ == '__main__':
     import pandas as pd
 
     import IRSMicroLensing.IRSCaustics as IRSC
+    import IRSMicroLensing.IRSFunctions as IRSF
 
     import matplotlib.pyplot as plt
     import matplotlib.animation as animation
@@ -55,8 +56,8 @@ if __name__ == '__main__':
     
     #%% Defining arguments
     parser = argparse.ArgumentParser(description='Plot fractional area maps for microlensing simulations.')
-    parser.add_argument('--mass_ratio', type=float, default=1.0, help='Mass ratio for output filename.')
-    parser.add_argument('--separation', type=float, default=1.0, help='Separation value for filtering parameter space.')
+    parser.add_argument('--mass_ratio', type=str, help='Mass ratio for output filename.')
+    parser.add_argument('--separation', type=str, help='Separation value for filtering parameter space.')
     args = parser.parse_args()
     mass_ratio = args.mass_ratio
     separation = args.separation
@@ -70,27 +71,62 @@ if __name__ == '__main__':
     ss = np.array([numexpr.evaluate(s) for s in ss_str])
     qs = np.array([1e-6, 3e-6, 1e-5, 3e-5, 1e-4, 3e-4, 1e-3])
     multipliers = [1e-1, 3e-1, 1e0, 3e0, 1e1]
+    
+    binary_directory = './Unity/Simulations/Binary_Collection'
+    single_directory = './Unity/Simulations/Single_Collection'
+
+    #%% Reading in attributes from csv file
+    single_attributes = pd.read_csv('./Unity Analysis/Spring 2026/single_attributes.csv')
     binary_attributes = pd.read_csv('./Unity Analysis/Spring 2026/binary_attributes.csv')
 
     print('Parameter space defined successfully. Starting to read fractional area maps...')
 
     #%% Ensuring folders are created for output
-    if not os.path.exists(f'./Unity Analysis/Figures/Frac_Maps/'):
-        os.makedirs(f'./Unity Analysis/Figures/Frac_Maps/')
+    # if not os.path.exists(f'./Unity Analysis/Spring 2026/Figures/Frac_Maps/'):
+    #     os.makedirs(f'./Unity Analysis/Spring 2026/Figures/Frac_Maps/')
 
-    if not os.path.exists(f'./Unity Analysis/Figures/Frac_Maps/Frac_Maps_{q:.0e}/'):
-        os.makedirs(f'./Unity Analysis/Figures/Frac_Maps/Frac_Maps_{q:.0e}/')
+    if not os.path.exists(f'./Unity Analysis/Spring 2026/Figures/Frac_Maps/Frac_Maps_{q:.0e}/'):
+        os.makedirs(f'./Unity Analysis/Spring 2026/Figures/Frac_Maps/Frac_Maps_{q:.0e}/')
 
-    for s in ss:
-        if not os.path.exists(f'./Unity Analysis/Figures/Frac_Maps/Frac_Maps_{q:.0e}/Frac_Maps_{s:.2e}/'):
-            os.makedirs(f'./Unity Analysis/Figures/Frac_Maps/Frac_Maps_{q:.0e}/Frac_Maps_{s:.2e}/')
+    # for s_iter in ss:
+    #     if not os.path.exists(f'./Unity Analysis/Spring 2026/Figures/Frac_Maps/Frac_Maps_{q:.0e}/Frac_Maps_{s_iter:.2e}/'):
+    #         os.makedirs(f'./Unity Analysis/Spring 2026/Figures/Frac_Maps/Frac_Maps_{q:.0e}/Frac_Maps_{s_iter:.2e}/')
+
+    print('=' * 50)
+    print(f'Processing s={s:.2e}, q={q:.0e}...')
+
+    #%% Reading in both single and binary lens simulations
+    if s < 1.0:
+        single_file = f'{single_directory}/Single_Collection_{q:.0e}/single_{q:.0e}_{s:.2e}.pkl'
+    elif s == 1.0:
+        single_file = f'{single_directory}/Single_Collection_{q:.0e}/single_{q:.0e}_9.00e-01.pkl'
+    else:
+        single_file = f'{single_directory}/Single_Collection_{q:.0e}/single_{q:.0e}_{1/(s):.2e}.pkl'
+    
+    single_sim = IRSC.caustic_reader(single_file)
+
+    binary_file = f'{binary_directory}/Binary_Collection_{q:.0e}/binary_{q:.0e}_{s:.2e}.pkl'
+    binary_sim = IRSC.caustic_reader(binary_file)
+
+    #%% Extracting important parameters from simulations
+    pixels = single_sim.pixels
+    ang_width = single_sim.ang_width
+    ang_res = single_sim.ang_res
+
+    single_magnifications = single_sim.magnifications
+    binary_magnifications = binary_sim.magnifications
+
+    min_source_radius = binary_attributes.loc[(binary_attributes['s'] == f'{separation}') & (binary_attributes['q'] == q), 'min_source_radius'].values[0]
+    max_source_radius = binary_attributes.loc[(binary_attributes['s'] == f'{separation}') & (binary_attributes['q'] == q), 'max_source_radius'].values[0]
+
+    X_pix, Y_pix = np.meshgrid(np.linspace(-ang_width/2, ang_width/2, pixels), np.linspace(-ang_width/2, ang_width/2, pixels))
 
     #%% Plotting
     fig = plt.figure(figsize=(14, 4))
     fig.set_tight_layout(True)
     axes = fig.subplots(1, 5)
 
-    fig.suptitle(f'Fractional Area v Source Star Radius ($s={separation}$)', y=1.0)
+    fig.suptitle(f'Fractional Area v Source Star Radius ($s={separation}$, $q={q}$)', y=0.97)
 
     print('Starting to loop through parameter space and plot fractional area maps...')
 
@@ -100,25 +136,28 @@ if __name__ == '__main__':
     #     print(f'Processing multiplier: {multiplier:.0e}')
 
     for i, multiplier in enumerate(multipliers):
-        print(f'Processing s={s:.2f}, q={q:.0e} with mass_ratio={mass_ratio:.0e}...')
+        print(f'Processing s={separation}, q={q} with multiplier={multiplier}...')
+        print('  Defining source profile...')
+        radius = max_source_radius / 10 * multiplier
+        LD_coeff = 0.5
+        print('-' * 50)
+        source_profile = IRSF.IRSFunctions.source_profile(ang_res=single_sim.ang_res, profile_type='LD', rad=radius, LD=LD_coeff)
+        print('-' * 50)
+
+        #%% Convolving magnification maps with source profile
+        print('  Convolving single lens magnification map...')
+        single_conv_mags = single_sim.convolve(source_profile=source_profile)
+        print('  Convolving binary lens magnification map...')
+        binary_conv_mags = binary_sim.convolve(source_profile=source_profile)
+
+        print('  Calculating fractional difference map...')
+        frac_diff_map = (binary_conv_mags - single_conv_mags) / single_conv_mags
 
         ax = axes[i]
         ax.set_title(f'$\\rho/\\xi={multiplier:.0e}$')
 
-        frac_map = np.load(f'./Unity/Simulations/Frac_Maps/Frac_Maps_{multiplier:.0e}/Frac_Maps_{q:.0e}/frac_diff_map_q{q:.0e}_s{s:.2e}.npy')
-        print(f'Fractional area map loaded successfully for s={s:.2f}, q={q:.0e}, multiplier={multiplier:.0e}.')
-
-        ang_width = binary_attributes.loc[(binary_attributes['q'] == q) & (binary_attributes['s'] == ss_str[i]), 'ang_width'].values[0]
-        pixels = binary_attributes.loc[(binary_attributes['q'] == q) & (binary_attributes['s'] == ss_str[i]), 'pixels'].values[0]
-        print(f'Attributes retrieved successfully for s={s:.2f}, q={q:.0e}: ang_width={ang_width}, pixels={pixels}.')
-
-        # X_pix, Y_pix = np.meshgrid(np.linspace(-ang_width/2, ang_width/2, pixels), np.linspace(-ang_width/2, ang_width/2, pixels))
-        X_pix = np.linspace(-ang_width/2, ang_width/2, pixels)
-        Y_pix = np.linspace(-ang_width/2, ang_width/2, pixels)
-        print(f'Pixel grid created successfully for s={s:.2f}, q={q:.0e}.')
-
         img = ax.contour(
-            X_pix, Y_pix, np.flip(frac_map, axis=0),
+            X_pix, Y_pix, np.flip(frac_diff_map, axis=0),
             levels=log_array(-3, -1).tolist(),
             colors=colors_by_log(log_array(-3, -1)),
             linewidths=0.5
@@ -128,11 +167,14 @@ if __name__ == '__main__':
 
         # Deleting variables to free up memory
         del img
-        del frac_map
+        del frac_diff_map
 
         print(f'Contour plot created successfully for s={s:.2f}, q={q:.0e}.')
+
+    axes[2].set_xlabel('X [$\\theta_E$]')
+    axes[0].set_ylabel('Y [$\\theta_E$]')
     # ani = animation.FuncAnimation(fig, update, frames=len(multipliers), repeat=False)
-    fig.savefig(f'./Unity Analysis/Figures/Frac_Maps/Frac_Maps_{q:.0e}/frac_map_plot_{s:.2e}.png', dpi=300)
+    fig.savefig(f'./Unity Analysis/Spring 2026/Figures/Frac_Maps/Frac_Maps_{q:.0e}/frac_map_plot_{s:.2e}.png', dpi=300)
 
 
 
