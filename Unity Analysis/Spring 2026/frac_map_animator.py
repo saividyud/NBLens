@@ -164,6 +164,10 @@ if __name__ == '__main__':
         )
 
         ax.set_aspect('equal')
+        
+        # Ensuring x ticks are written in scientific notation
+        ax.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
+        ax.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 
         # Deleting variables to free up memory
         del img
