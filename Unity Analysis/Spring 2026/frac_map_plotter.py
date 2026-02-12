@@ -55,13 +55,13 @@ if __name__ == '__main__':
         return colors
     
     #%% Defining arguments
-    parser = argparse.ArgumentParser(description='Plot fractional area maps for microlensing simulations.')
+    # parser = argparse.ArgumentParser(description='Plot fractional area maps for microlensing simulations.')
     # parser.add_argument('--mass_ratio', type=str, help='Mass ratio for output filename.')
-    parser.add_argument('--separation', type=str, help='Separation value for filtering parameter space.')
-    args = parser.parse_args()
+    # parser.add_argument('--separation', type=str, help='Separation value for filtering parameter space.')
+    # args = parser.parse_args()
     # mass_ratio = args.mass_ratio
-    separation = args.separation
-    s = numexpr.evaluate(str(separation))
+    # separation = args.separation
+    # s = numexpr.evaluate(str(separation))
     # q = numexpr.evaluate(str(mass_ratio))
 
     # print(f'Arguments parsed successfully. Starting analysis with mass_ratio = {mass_ratio} and separation = {separation}...')
@@ -95,7 +95,7 @@ if __name__ == '__main__':
     #%% Plotting
     fig = plt.figure(figsize=(16, 14))
     fig.set_tight_layout(True)
-    axes = fig.subplots(3, 9)
+    axes = fig.subplots(2, 9)
 
     print('Starting to loop through parameter space and plot fractional area maps...')
 
@@ -108,8 +108,15 @@ if __name__ == '__main__':
         # s = ss[frame]
         # separation = ss_str[frame]
 
+    ss_str = ['0.2', '0.4', '0.6', '0.8', '1.0', '1/0.8', '1/0.6', '1/0.4', '1/0.2']
+    ss = np.array([numexpr.evaluate(s) for s in ss_str])
+    multiplier = [1e-1, 1e1]
+    q = 1e-4
+
     for i, multiplier in enumerate(multipliers):
-        for j, q in enumerate(qs):
+        for j, s in enumerate(ss):
+            separation = ss_str[j]
+            
             print('=' * 50)
             print(f'Processing s={s:.2e}, q={q:.0e}, multiplier={multiplier:.0e}...')
 
@@ -193,7 +200,7 @@ if __name__ == '__main__':
     # ani = animation.FuncAnimation(fig, update, frames=len(ss), repeat=False)
     # ani.save(f'./Unity Analysis/Spring 2026/Figures/mag_map_animation.mp4', writer='ffmpeg', dpi=300)
 
-    # fig.savefig(f'./Unity Analysis/Spring 2026/Figures/mag_map_{s:.2e}.png', dpi=300)
+    fig.savefig(f'./Unity Analysis/Spring 2026/Figures/to_scott.png', dpi=300)
     # fig.savefig(f'./Unity Analysis/Spring 2026/Figures/Mag_Maps/Mag_Maps_{q:.0e}/mag_map_plot_{s:.2e}.png', dpi=300)
 
 
