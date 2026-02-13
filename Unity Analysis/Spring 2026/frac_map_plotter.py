@@ -93,7 +93,7 @@ if __name__ == '__main__':
     #         os.makedirs(f'./Unity Analysis/Spring 2026/Figures/Frac_Maps/Frac_Maps_{q:.0e}/Frac_Maps_{s_iter:.2e}/')
 
     #%% Plotting
-    fig = plt.figure(figsize=(16, 14))
+    fig = plt.figure(figsize=(20, 8))
     fig.set_tight_layout(True)
     axes = fig.subplots(2, 9)
 
@@ -110,7 +110,7 @@ if __name__ == '__main__':
 
     ss_str = ['0.2', '0.4', '0.6', '0.8', '1.0', '1/0.8', '1/0.6', '1/0.4', '1/0.2']
     ss = np.array([numexpr.evaluate(s) for s in ss_str])
-    multiplier = [1e-1, 1e1]
+    multipliers = [1e-1, 1e1]
     q = 1e-4
 
     for i, multiplier in enumerate(multipliers):
@@ -120,7 +120,7 @@ if __name__ == '__main__':
             print('=' * 50)
             print(f'Processing s={s:.2e}, q={q:.0e}, multiplier={multiplier:.0e}...')
 
-            fig.suptitle(f'Fractional Deviation Maps {separation}', y=1.0)
+            fig.suptitle(f'Fractional Deviation Maps: $q = {q:.0e}$', y=1.0)
 
             #%% Reading in both single and binary lens simulations
             if s < 1.0:
@@ -166,14 +166,14 @@ if __name__ == '__main__':
 
             ax = axes[i, j]
             ax.clear()
-            ax.set_title(f'$\\rho/\\xi={multiplier:.0e}$, $q={q:.0e}$')
+            ax.set_title(f'$\\rho/\\xi={multiplier:.0e}$\n$s={separation}$')
 
-            img = ax.imshow(frac_diff_map, extent=(-ang_width/2, ang_width/2, -ang_width/2, ang_width/2), cmap='Greys')
+            img = ax.imshow(frac_diff_map, extent=(-ang_width/2, ang_width/2, -ang_width/2, ang_width/2), cmap='Greys', vmin=np.min(frac_diff_map), vmax=np.max(frac_diff_map))
 
             img = ax.contour(
                 X_pix, Y_pix, np.flip(frac_diff_map, axis=0),
-                levels=log_array(-3, -1).tolist(),
-                colors=colors_by_log(log_array(-3, -1)),
+                levels=[-1e-2, 1e-2],
+                colors=['blue', 'red'],
                 linewidths=0.5
             )
 
@@ -194,13 +194,14 @@ if __name__ == '__main__':
 
             print(f'Contour plot created successfully for s={s:.2f}, q={q:.0e}, multiplier={multiplier:.0e}.')
 
-    axes[4, 3].set_xlabel('X [$\\theta_E$]')
-    axes[2, 0].set_ylabel('Y [$\\theta_E$]')
+    axes[1, 4].set_xlabel('X [$\\theta_E$]')
+    axes[0, 0].set_ylabel('Y [$\\theta_E$]')
+    axes[1, 0].set_ylabel('Y [$\\theta_E$]')
     
     # ani = animation.FuncAnimation(fig, update, frames=len(ss), repeat=False)
     # ani.save(f'./Unity Analysis/Spring 2026/Figures/mag_map_animation.mp4', writer='ffmpeg', dpi=300)
 
-    fig.savefig(f'./Unity Analysis/Spring 2026/Figures/to_scott.png', dpi=300)
+    fig.savefig(f'./Unity Analysis/Spring 2026/Figures/contours.png', dpi=300)
     # fig.savefig(f'./Unity Analysis/Spring 2026/Figures/Mag_Maps/Mag_Maps_{q:.0e}/mag_map_plot_{s:.2e}.png', dpi=300)
 
 
