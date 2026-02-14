@@ -47,7 +47,7 @@ one_e_2_list = []
 multipliers = [1e-1, 3e-1, 1e0, 3e0, 1e1]
 
 for multiplier in multipliers:
-    df = pd.read_csv(f'./Unity Analysis/Spring 2026/Data Files/analysis_output_{multiplier:.0e}.csv')
+    df = pd.read_csv(f'./Unity Analysis/Spring 2026/Data Files/analysis_output_{multiplier:.0e}_2.csv')
     df_list.append(df)
 
 #%% Defining s and q values
@@ -161,7 +161,7 @@ def update(frame):
         ax.contourf(
             np.linspace(0, 1, 17),
             qs_unique_1,
-            np.array(df_subset[f'{threshold:.1e}']).reshape((17, 7)).T,
+            np.array(df_subset[f'{threshold:.1e}']).reshape((7, 17)),
             levels=np.linspace(0, 1, 11),
             cmap='viridis',
             vmin=0, vmax=1
@@ -182,5 +182,5 @@ ani = animation.FuncAnimation(
     interval=50
 )
 
-# ani.save('./Unity Analysis/Spring 2026/Figures/detectibility_animation.mp4', writer='ffmpeg', dpi=300)
+ani.save('./Unity Analysis/Spring 2026/Figures/detectibility_animation_2.mp4', writer='ffmpeg', dpi=300)
 plt.show()
