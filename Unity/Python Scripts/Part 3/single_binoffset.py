@@ -64,7 +64,7 @@ if __name__ == '__main__':
     # Reading in pre-calculated values
     file = pd.read_csv('./Unity Analysis/Part 3/Data Files/part_3_single_attributes.csv')
 
-    row = file[(file['s'] == s_str) & (file['q'] == q)].iloc[0]
+    row = file[(file['s'] == s) & (file['q'] == q)].iloc[0]
     row = np.array(row)
 
     print(row)
