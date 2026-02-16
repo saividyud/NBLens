@@ -20,11 +20,11 @@ mamba activate .venv
 qs=(3e-4 1e-3)
 
 # Compute indices
-q_index=$(SLURM_ARRAY_TASK_ID)
+q_index=$((SLURM_ARRAY_TASK_ID))
 
 # Extract parameters
 q=${qs[$q_index]}
 
-echo "Running $s separation with $q mass ratio with origin of (0, 0)"
+echo "Running 0.9 separation with $q mass ratio with origin of (0, 0)"
 
 python "./Unity/Python Scripts/Part 3/single_binoffset.py" -s 0.9 -q $q
