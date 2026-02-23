@@ -115,7 +115,6 @@ if __name__ == '__main__':
                 LD_coeff = 0.5
                 print('-' * 50)
                 source_profile = IRSF.IRSFunctions.source_profile(ang_res=single_sim.ang_res, profile_type='LD', rad=radius, LD=LD_coeff)
-                print(np.shape(source_profile))
                 print('-' * 50)
 
                 #%% Convolving magnification maps with source profile
