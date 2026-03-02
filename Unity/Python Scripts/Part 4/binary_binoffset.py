@@ -120,6 +120,11 @@ if __name__ == '__main__':
     if not os.path.exists(file_directory):
         os.mkdir(file_directory)
 
+    # If simulation already exists, skipping
+    if os.path.exists(file_path):
+        print('Simulation already exists. Skipping...')
+        exit()
+
     print(f'Shooting binary lens:\n')
 
     calculator = IRSC.IRSCaustics(annulus_param_dict=param_dict)
