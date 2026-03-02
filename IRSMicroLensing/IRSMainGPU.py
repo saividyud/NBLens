@@ -1,4 +1,5 @@
 from .imports import *
+import cupy as cu
 
 class IRSMain(object):
     '''

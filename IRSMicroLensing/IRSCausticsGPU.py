@@ -1,6 +1,7 @@
 from concurrent.futures import as_completed
 from .imports import *
 from .IRSMainGPU import IRSMain
+import cupy as cu
 
 class IRSCaustics(IRSMain):
     '''
