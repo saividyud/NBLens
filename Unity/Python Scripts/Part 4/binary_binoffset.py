@@ -124,7 +124,7 @@ if __name__ == '__main__':
 
     calculator = IRSC.IRSCaustics(annulus_param_dict=param_dict)
     magnifications = calculator.series_calculate(cm_offset='auto', annulus_offset=center_of_magnification, rows=1)
-    # magnifications = calculator.parallel_calculate(cm_offset='auto', annulus_offset=center_of_magnification)
+    # magnifications = calculator.parallel_calculate(cm_offset='auto', annulus_offset=center_of_magnification, rows=1)
 
     print('=========================================================')
 
