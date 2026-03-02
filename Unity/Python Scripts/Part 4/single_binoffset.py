@@ -115,7 +115,7 @@ if __name__ == '__main__':
     print(f'Shooting single lens:\n')
 
     calculator = IRSC.IRSCaustics(annulus_param_dict=param_dict)
-    magnifications = calculator.series_calculate(cm_offset='auto', rows=5)
+    magnifications = calculator.series_calculate(cm_offset='auto', rows=1)
     # magnifications = calculator.parallel_calculate(cm_offset='auto', rows=5)
 
     print('=========================================================')
