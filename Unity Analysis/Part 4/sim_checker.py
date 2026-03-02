@@ -1,7 +1,5 @@
 # Checking what simulations did not get run
 import os
-import numpy as np
-import pandas as pd
 import numexpr
 
 ss = ['0.2', '0.3', '0.4', '0.5', '0.6', '0.7', '0.8', '0.9', '1.0', '1/0.9', '1/0.8', '1/0.7', '1/0.6', '1/0.5', '1/0.4', '1/0.3', '1/0.2']
