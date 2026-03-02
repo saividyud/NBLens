@@ -8,7 +8,7 @@
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
 
-#SBATCH --array=0-10
+#SBATCH --array=0-13
 
 #SBATCH --output="./Unity/Output Logs/Part_4/binary_%a_2_output.txt"
 
