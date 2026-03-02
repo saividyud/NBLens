@@ -25,8 +25,8 @@ if __name__ == '__main__':
     import numpy as np
     import pandas as pd
 
-    # import multiprocessing as mp
-    # mp.set_start_method('spawn')
+    import multiprocessing as mp
+    mp.set_start_method('spawn')
 
     init_time = t.time()
     from IRSMicroLensing import IRSCaustics2 as IRSC
@@ -128,8 +128,8 @@ if __name__ == '__main__':
     print(f'Shooting binary lens:\n')
 
     calculator = IRSC.IRSCaustics(annulus_param_dict=param_dict)
-    magnifications = calculator.series_calculate(cm_offset='auto', annulus_offset=center_of_magnification, rows=1)
-    # magnifications = calculator.parallel_calculate(cm_offset='auto', annulus_offset=center_of_magnification, rows=1)
+    # magnifications = calculator.series_calculate(cm_offset='auto', annulus_offset=center_of_magnification, rows=1)
+    magnifications = calculator.parallel_calculate(cm_offset='auto', annulus_offset=center_of_magnification, rows=1)
 
     print('=========================================================')
 

@@ -1,5 +1,5 @@
 from .imports import *
-from .IRSCaustics import IRSCaustics
+from .IRSCaustics2 import IRSCaustics
 from .IRSFunctions import IRSFunctions
 
 class IRSOrbiting(OrbitPropagator):
