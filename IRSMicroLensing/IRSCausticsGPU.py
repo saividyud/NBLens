@@ -1,7 +1,7 @@
 from concurrent.futures import as_completed
 from .imports import *
 from .IRSMainGPU import IRSMain
-import cupy as cu
+import cupy as cp
 
 class IRSCaustics(IRSMain):
     '''
@@ -579,6 +579,8 @@ class IRSCaustics(IRSMain):
         magnifications : NxN NDArray
             Matrix of magnification values for each pixel
         '''
+        print('GPU Processing!')
+        
         self.cm_offset = cm_offset
         self.print_stats = print_stats
         self.file_save = file_save
@@ -600,7 +602,7 @@ class IRSCaustics(IRSMain):
         self.lens_att[:, :2] = self.lens_att[:, :2] - self.lens_CM + self.cm_offset
 
         # Calculating area of annulus
-        A_ann = np.pi * (self.y_plus**2 - self.y_minus**2)
+        A_ann = cp.pi * (self.y_plus**2 - self.y_minus**2)
         
         # Calculating ray density within annulus
         sigma_ann = self.num_rays / A_ann
@@ -609,35 +611,36 @@ class IRSCaustics(IRSMain):
         A_pix = (self.ang_res * 1.0)**2
 
         # Initializing array of magnifications
-        magnifications = np.zeros(shape=(self.pixels, self.pixels), dtype=np.int64)
+        magnifications = np.zeros(shape=(self.pixels, self.pixels), dtype=cp.int64)
 
         # Initializing array of points in r and points in theta
-        rs = np.linspace(np.abs(self.y_minus), np.abs(self.y_plus), self.num_r).reshape(-1, 1)
-        thetas = np.linspace(0, 2*np.pi, self.num_theta, endpoint=False).reshape(1, -1)
+        rs = cp.linspace(cp.abs(self.y_minus), cp.abs(self.y_plus), self.num_r).reshape(-1, 1)
+        thetas = cp.linspace(0, 2*cp.pi, self.num_theta, endpoint=False).reshape(1, -1)
 
         # Iterating through each set of theta values
         for i in tqdm(range(0, len(thetas[0]), self.rows)):
             theta = thetas[0, i:i+self.rows].reshape(1, -1)
 
             # Calculating meshgrid of X and Y coordinates of rays
-            X = np.dot(rs, np.cos(theta)) - annulus_offset[0]
-            Y = np.dot(rs, np.sin(theta)) - annulus_offset[1]
+            X = cp.dot(rs, cp.cos(theta)) - annulus_offset[0]
+            Y = cp.dot(rs, cp.sin(theta)) - annulus_offset[1]
 
             # Calculating source pixels
-            xs, ys = self.calc_source_pixels(X, Y)
+            xs_gpu, ys_gpu = IRSMain.calc_source_pixels_gpu(X, Y, self.lens_att, self.mass_index)
             del X # Deleting large arrays
             del Y
         
-            # NEW LOOP (Replace with this)
-            magnifications = IRSCaustics.fast_binning(
-                xs, ys, 
-                self.ang_width, 
-                self.ang_res, 
-                self.pixels, 
-                magnifications
-            )
-            del xs
-            del ys
+            # 2. Bin rays into magnification counts on the GPU
+            chunk_mags_gpu = IRSCaustics.bin_rays_gpu(xs_gpu, ys_gpu, self.ang_width, self.pixels)
+            
+            # 3. Pull the calculated chunk back to the CPU and add to the total map
+            magnifications += cp.asnumpy(chunk_mags_gpu)
+            
+            # Free up VRAM for the next loop iteration
+            del xs_gpu
+            del ys_gpu
+            del chunk_mags_gpu
+            cp.get_default_memory_pool().free_all_blocks()
 
         # Calculating magnifications
         self.magnifications = (magnifications / A_pix) / sigma_ann
@@ -973,6 +976,25 @@ class IRSCaustics(IRSMain):
                     magnifications[iy, ix] += 1
                     
         return magnifications
+
+    @staticmethod
+    def bin_rays_gpu(xs_gpu, ys_gpu, ang_width, pixels):
+      '''
+      Takes deflected GPU ray coordinates and bins them into a magnification map.
+      '''
+      # Flatten the arrays into 1D lists of coordinates
+      xs_flat = xs_gpu.ravel()
+      ys_flat = ys_gpu.ravel()
+      
+      # Define the physical boundaries of your pixels (bin edges)
+      half_width = ang_width / 2.0
+      bins = cp.linspace(-half_width, half_width, pixels + 1)
+      
+      # CuPy's histogram2d computes the counts perfectly!
+      # Note: we pass ys_flat first, then xs_flat to match row/col indexing
+      magnifications_gpu, _, _ = cp.histogram2d(ys_flat, xs_flat, bins=[bins, bins])
+      
+      return magnifications_gpu.astype(cp.int64)
 
     @staticmethod
     @nb.jit(nb.int64[:, :](nb.int32, nb.int64[:, :], nb.int64[:, :], nb.int64[:]), nopython=True, fastmath=True, cache=True)
