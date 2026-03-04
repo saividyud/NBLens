@@ -605,7 +605,7 @@ class IRSCaustics(IRSMain):
         self.lens_att[:, :2] = self.lens_att[:, :2] - self.lens_CM + self.cm_offset
 
         # Calculating area of annulus
-        A_ann = cp.pi * (self.y_plus**2 - self.y_minus**2)
+        A_ann = np.pi * (self.y_plus**2 - self.y_minus**2)
         
         # Calculating ray density within annulus
         sigma_ann = self.num_rays / A_ann
@@ -616,33 +616,39 @@ class IRSCaustics(IRSMain):
         # Initializing array of magnifications
         magnifications = np.zeros(shape=(self.pixels, self.pixels), dtype=np.int64)
 
-        # Initializing array of points in r and points in theta
+        # Pre-compute lens parameters on GPU once (tiny O(L) arrays)
+        lens_att_gpu = cp.asarray(self.lens_att)
+        total_M_gpu = cp.sum(lens_att_gpu[:, self.mass_index])
+        zmbar_gpu = cp.conj(lens_att_gpu[:, 0] + lens_att_gpu[:, 1] * 1j)
+        epsilon_gpu = lens_att_gpu[:, self.mass_index] / total_M_gpu
+        del lens_att_gpu, total_M_gpu
+
+        # rs on GPU (used every iteration); thetas on CPU (only sliced)
         rs = cp.linspace(cp.abs(self.y_minus), cp.abs(self.y_plus), self.num_r).reshape(-1, 1)
-        thetas = cp.linspace(0, 2*cp.pi, self.num_theta, endpoint=False).reshape(1, -1)
+        thetas = np.linspace(0, 2 * np.pi, self.num_theta, endpoint=False).reshape(1, -1)
 
-        # Iterating through each set of theta values
         for i in tqdm(range(0, len(thetas[0]), self.rows)):
-            theta = thetas[0, i:i+self.rows].reshape(1, -1)
+            theta_gpu = cp.asarray(thetas[0, i:i+self.rows]).reshape(1, -1)
 
-            # Calculating meshgrid of X and Y coordinates of rays
-            X = cp.dot(rs, cp.cos(theta)) - annulus_offset[0]
-            Y = cp.dot(rs, cp.sin(theta)) - annulus_offset[1]
+            X = cp.dot(rs, cp.cos(theta_gpu)) - annulus_offset[0]
+            Y = cp.dot(rs, cp.sin(theta_gpu)) - annulus_offset[1]
+            del theta_gpu
 
-            # Calculating source pixels
-            xs_gpu, ys_gpu = IRSMain.calc_source_pixels_gpu(X, Y, self.lens_att, self.mass_index)
-            del X # Deleting large arrays
-            del Y
-        
-            # 2. Bin rays into magnification counts on the GPU
+            # Build complex coordinates, then free the real arrays
+            z_gpu = X + 1j * Y
+            del X, Y
+
+            # Keep only conjugate; z is reconstructed later as conj(zbar)
+            zbar_gpu = cp.conj(z_gpu)
+            del z_gpu
+
+            xs_gpu, ys_gpu = IRSMain.calc_source_pixels_gpu(zbar_gpu, zmbar_gpu, epsilon_gpu)
+            del zbar_gpu
+
             chunk_mags_gpu = IRSCaustics.bin_rays_gpu(xs_gpu, ys_gpu, self.ang_width, self.pixels)
-            
-            # 3. Pull the calculated chunk back to the CPU and add to the total map
             magnifications += cp.asnumpy(chunk_mags_gpu)
-            
-            # Free up VRAM for the next loop iteration
-            del xs_gpu
-            del ys_gpu
-            del chunk_mags_gpu
+
+            del xs_gpu, ys_gpu, chunk_mags_gpu
             cp.get_default_memory_pool().free_all_blocks()
 
         # Calculating magnifications
@@ -779,56 +785,36 @@ class IRSCaustics(IRSMain):
 
     def optimize_batch_size(self, safety_margin=0.85):
         '''
-        Accurately calculates the maximum safe number of rows per chunk by explicitly 
-        counting all instances of CuPy arrays generated in the series_calculate loop.
+        Calculates the maximum safe number of rows per chunk based on peak
+        VRAM during the deflection loop in series_calculate.
+
+        Peak occurs when 3 complex128 arrays coexist simultaneously:
+        zbar_gpu, deflection_gpu, and one temporary from the lens equation.
         '''
-        # 1. Dynamically fetch total VRAM from the current hardware node
-        # device.mem_info returns (free_memory, total_memory) in bytes
         total_vram_bytes = cp.cuda.Device(0).mem_info[1]
         target_vram_bytes = total_vram_bytes * safety_margin
-        
-        # 2. Memory footprint per ray (1 ray = 1 index of the arrays)
-        # Using 8 bytes for float64 and 16 bytes for complex128
-        bytes_per_ray = 0
-        
-        # --- A. Arrays inside series_calculate loop ---
-        bytes_per_ray += 8  # X_gpu (float64)
-        bytes_per_ray += 8  # Y_gpu (float64)
-        
-        # --- B. Arrays inside calc_source_pixels_gpu ---
-        bytes_per_ray += 16 # 1j * Y_gpu (complex128 intermediate during z_gpu creation)
-        bytes_per_ray += 16 # z_gpu (complex128)
-        bytes_per_ray += 16 # zbar_gpu (complex128)
-        bytes_per_ray += 16 # deflection_gpu (complex128)
-        
-        # Inside the deflection loop (calculating the most intensive iteration): 
-        bytes_per_ray += 16 # temp1 = (zbar_gpu - zmbar_gpu[i]) (complex128 temporary)
-        bytes_per_ray += 16 # temp2 = epsilon_gpu[i] / temp1 (complex128 temporary)
-        
-        bytes_per_ray += 16 # zeta_gpu (complex128)
-        
-        # Note: xs_gpu and ys_gpu are views of zeta_gpu, so they take 0 extra bytes.
-        
-        # --- C. Arrays inside bin_rays_gpu ---
-        # .ravel() on xs_gpu and ys_gpu forces contiguous copies of the non-contiguous 
-        # views of zeta_gpu (because real/imag are interleaved in memory)
-        bytes_per_ray += 8  # xs_flat (float64 copy)
-        bytes_per_ray += 8  # ys_flat (float64 copy)
-        
-        # 3. Calculate max allowable rows
-        # We use the absolute sum of all arrays generated in the cycle as a perfectly
-        # safe conservative upper limit for the memory pool peak footprint.
-        max_rays_per_chunk = int(target_vram_bytes // bytes_per_ray)
-        
-        # Convert total rays back to the number of rows
+
+        # Peak per-ray memory: 3 simultaneous complex128 arrays during deflection
+        #   zbar_gpu (passed in):         16 bytes/ray
+        #   deflection_gpu:               16 bytes/ray
+        #   temp (zbar - zmbar[i]):       16 bytes/ray
+        #   (in-place cp.divide reuses temp, so no 4th array)
+        bytes_per_ray = 48
+
+        # Persistent VRAM not scaling with rows
+        persistent_bytes = self.num_r * 8  # rs array (float64, stays on GPU)
+
+        available_bytes = target_vram_bytes - persistent_bytes
+        max_rays_per_chunk = int(available_bytes // bytes_per_ray)
         max_rows = int(max_rays_per_chunk // self.num_r)
-        
+
         print(f"Hardware VRAM detected: {total_vram_bytes / 1e9:.2f} GB")
         print(f"Hardware VRAM target (with margin): {target_vram_bytes / 1e9:.2f} GB")
-        print(f"Calculated peak memory per ray: {bytes_per_ray} bytes")
+        print(f"Persistent VRAM (rs array): {persistent_bytes / 1e6:.2f} MB")
+        print(f"Peak memory per ray: {bytes_per_ray} bytes")
         print(f"Optimized rows per chunk: {max_rows}")
         print("---------------------------------------------------------")
-        
+
         return max_rows
 
     def calc_mm_caustics(self):

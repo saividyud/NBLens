@@ -355,37 +355,45 @@ class IRSMain(object):
         return sums
 
     @staticmethod
-    def calc_source_pixels_gpu(X_cpu, Y_cpu, lens_att_cpu, mass_index):
+    def calc_source_pixels_gpu(zbar_gpu, zmbar_gpu, epsilon_gpu):
         '''
-        Takes CPU ray coordinates and lens attributes, moves them to the GPU, 
-        applies the lens equation, and returns deflected CPU coordinates.
+        Applies the vectorized lens equation on the GPU using pre-computed
+        conjugate ray coordinates and lens parameters.
+
+        Uses in-place operations to keep peak VRAM at 3 simultaneous
+        complex128 arrays (48 bytes/ray).
+
+        Parameters
+        ----------
+        zbar_gpu : CuPy NDArray (complex128)
+            Conjugate of complex ray positions on GPU
+        zmbar_gpu : CuPy 1D array (complex128)
+            Conjugate of complex lens positions on GPU
+        epsilon_gpu : CuPy 1D array (float64)
+            Mass fractions of each lens on GPU
+
+        Returns
+        -------
+        xs_gpu : CuPy NDArray (float64)
+            Deflected x-coordinates on GPU
+        ys_gpu : CuPy NDArray (float64)
+            Deflected y-coordinates on GPU
         '''
-        # 1. Move data to GPU VRAM
-        X_gpu = cp.asarray(X_cpu)
-        Y_gpu = cp.asarray(Y_cpu)
-        lens_att_gpu = cp.asarray(lens_att_cpu)
-        
-        # 2. Setup complex arrays on GPU
-        z_gpu = X_gpu + 1j * Y_gpu
-        zbar_gpu = cp.conj(z_gpu)
-        
-        # Extract lens parameters on GPU
-        total_M = cp.sum(lens_att_gpu[:, mass_index])
-        zm_gpu = lens_att_gpu[:, 0] + lens_att_gpu[:, 1]*1j
-        zmbar_gpu = cp.conj(zm_gpu)
-        epsilon_gpu = lens_att_gpu[:, mass_index] / total_M
-        
-        # 3. Vectorized Lens Equation (No Numba needed!)
-        deflection_gpu = cp.zeros_like(z_gpu)
+        deflection_gpu = cp.zeros_like(zbar_gpu)
         for i in range(len(epsilon_gpu)):
-            deflection_gpu += epsilon_gpu[i] / (zbar_gpu - zmbar_gpu[i])
-            
-        zeta_gpu = z_gpu - deflection_gpu
-        
-        # 4. Extract real and imaginary parts
+            temp = zbar_gpu - zmbar_gpu[i]
+            cp.divide(epsilon_gpu[i], temp, out=temp)
+            deflection_gpu += temp
+            del temp
+
+        # zeta = z - deflection = conj(zbar) - deflection, computed in-place
+        deflection_gpu *= -1
+        deflection_gpu += cp.conj(zbar_gpu)
+        zeta_gpu = deflection_gpu
+
         xs_gpu = cp.real(zeta_gpu)
         ys_gpu = cp.imag(zeta_gpu)
-        
+
         return xs_gpu, ys_gpu
 
     def trans_ind(self, xs=None, ys=None):
