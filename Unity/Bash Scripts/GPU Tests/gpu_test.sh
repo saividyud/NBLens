@@ -19,7 +19,7 @@
 
 # Commands to run
 module load mamba
-mamba load cuda/12.9.0-vvrwkrx
+module load cuda/12.9.0-vvrwkrx
 mamba activate .venv
 
 # Ensure output directory exists
