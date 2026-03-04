@@ -634,21 +634,25 @@ class IRSCaustics(IRSMain):
             Y = cp.dot(rs, cp.sin(theta_gpu)) - annulus_offset[1]
             del theta_gpu
 
-            # Build complex coordinates, then free the real arrays
             z_gpu = X + 1j * Y
             del X, Y
 
-            # Keep only conjugate; z is reconstructed later as conj(zbar)
             zbar_gpu = cp.conj(z_gpu)
             del z_gpu
+            cp.get_default_memory_pool().free_all_blocks()
 
             xs_gpu, ys_gpu = IRSMain.calc_source_pixels_gpu(zbar_gpu, zmbar_gpu, epsilon_gpu)
             del zbar_gpu
 
-            chunk_mags_gpu = IRSCaustics.bin_rays_gpu(xs_gpu, ys_gpu, self.ang_width, self.pixels)
+            xs_flat = xs_gpu.ravel()
+            ys_flat = ys_gpu.ravel()
+            del xs_gpu, ys_gpu
+            cp.get_default_memory_pool().free_all_blocks()
+
+            chunk_mags_gpu = IRSCaustics.bin_rays_gpu(xs_flat, ys_flat, self.ang_width, self.pixels)
             magnifications += cp.asnumpy(chunk_mags_gpu)
 
-            del xs_gpu, ys_gpu, chunk_mags_gpu
+            del xs_flat, ys_flat, chunk_mags_gpu
             cp.get_default_memory_pool().free_all_blocks()
 
         # Calculating magnifications
@@ -765,41 +769,47 @@ class IRSCaustics(IRSMain):
         return self.convolved_brightnesses
 
     @staticmethod
-    def bin_rays_gpu(xs_gpu, ys_gpu, ang_width, pixels):
+    def bin_rays_gpu(xs_flat, ys_flat, ang_width, pixels):
       '''
-      Takes deflected GPU ray coordinates and bins them into a magnification map.
+      Takes pre-flattened deflected GPU ray coordinates and bins them
+      into a magnification map. Caller is responsible for ravel() and
+      freeing the source arrays before calling this to minimize VRAM.
       '''
-      # Flatten the arrays into 1D lists of coordinates
-      xs_flat = xs_gpu.ravel()
-      ys_flat = ys_gpu.ravel()
-      
-      # Define the physical boundaries of your pixels (bin edges)
       half_width = ang_width / 2.0
       bins = cp.linspace(-half_width, half_width, pixels + 1)
-      
-      # CuPy's histogram2d computes the counts perfectly!
-      # Note: we pass ys_flat first, then xs_flat to match row/col indexing
+
       magnifications_gpu, _, _ = cp.histogram2d(ys_flat, xs_flat, bins=[bins, bins])
-      
+
       return magnifications_gpu.astype(cp.int64)
 
     def optimize_batch_size(self, safety_margin=0.85):
         '''
-        Calculates the maximum safe number of rows per chunk based on peak
-        VRAM during the deflection loop in series_calculate.
+        Calculates the maximum safe number of rows per chunk based on
+        the CUDA high-water mark across two pool-flushed phases:
 
-        Peak occurs when 3 complex128 arrays coexist simultaneously:
-        zbar_gpu, deflection_gpu, and one temporary from the lens equation.
+        Phase 1 (z construction): Pool bloat from intermediates (1j*Y,
+        dot products, X, Y) pushes the CUDA high-water mark to ~56 bytes/ray
+        before the first free_all_blocks() call.
+
+        Phase 2 (binning): After the pool is flushed, histogram2d internally
+        allocates a stacked sample (16), searchsorted indices (16), and a
+        flat index (8) on top of xs_flat (8) + ys_flat (8) = 56 bytes/ray.
+
+        The binding constraint is max(56, 56) = 56 bytes/ray.
         '''
         total_vram_bytes = cp.cuda.Device(0).mem_info[1]
         target_vram_bytes = total_vram_bytes * safety_margin
 
-        # Peak per-ray memory: 3 simultaneous complex128 arrays during deflection
-        #   zbar_gpu (passed in):         16 bytes/ray
-        #   deflection_gpu:               16 bytes/ray
-        #   temp (zbar - zmbar[i]):       16 bytes/ray
-        #   (in-place cp.divide reuses temp, so no 4th array)
-        bytes_per_ray = 48
+        # CUDA high-water mark per ray across both phases:
+        #
+        # Phase 1 peak (z_gpu construction, 4 active + 1 pool block):
+        #   X (f64)  +  Y (f64)  +  1j*Y temp (c128)  +  z_gpu (c128)  +  pool[dot] (f64)
+        #     8      +    8      +       16            +      16        +       8      = 56
+        #
+        # Phase 2 peak (histogram2d internals after pool flush):
+        #   xs_flat (f64) + ys_flat (f64) + stack (f64) + Ncount (i64) + flat_idx (i64)
+        #       8         +      8        +     16      +     16       +      8        = 56
+        bytes_per_ray = 56
 
         # Persistent VRAM not scaling with rows
         persistent_bytes = self.num_r * 8  # rs array (float64, stays on GPU)
