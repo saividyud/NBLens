@@ -85,12 +85,12 @@ if __name__ == '__main__':
 
     print(row)
 
-    pixels = int(row[2])
-    ang_width = row[3]
-    num_r = int(row[4])
-    num_theta = int(row[5])
-    y_plus = row[6]
-    y_minus = row[7]
+    pixels = int(row[3])
+    ang_width = row[4]
+    num_r = int(row[5])
+    num_theta = int(row[6])
+    y_plus = row[7]
+    y_minus = row[8]
 
     print(f'Pixels: {pixels}')
     print(f'Angular width: {ang_width}')
