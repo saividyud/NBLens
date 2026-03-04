@@ -37,8 +37,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Compute binary lens magnification map offsetted by binary lens effective center of magnification.')
 
     # Adding arguments
-    parser.add_argument('-s', '--sep', help='Seperation of big planet')
-    parser.add_argument('-q', '--star_mass_ratio', help='Big planet / star mass ratio')
+    parser.add_argument('-s1', '--sep1', help='Separation of big planet')
+    parser.add_argument('-s2', '--sep2', help='Separation of small planet')
+    parser.add_argument('-alpha', '--alpha', help='Angle of small planet')
 
     args = vars(parser.parse_args())
     print(args)
@@ -49,30 +50,38 @@ if __name__ == '__main__':
 
     ''' Preparing lens parameters '''
     # Big planet parameters
-    s_str = args['sep']
-    s = np.float64(numexpr.evaluate(s_str).item())
-    q = np.float64(numexpr.evaluate(args['star_mass_ratio']).item())
+    s1_str = args['sep1']
+    s1 = np.float64(numexpr.evaluate(s1_str).item())
+    s2_str = args['sep2']
+    s2 = np.float64(numexpr.evaluate(s2_str).item())
+    alpha = np.float64(numexpr.evaluate(args['alpha']).item())
+    q1 = 1e-3
+    q2 = 3e-4
 
-    print(f'q1 = {q}')
-    print(f's1 = {s}')    
+    print(f'q1 = {q1}')
+    print(f'q2 = {q2}')
+    print(f's1 = {s1}')
+    print(f's2 = {s2}')
+    print(f'alpha = {alpha}')
 
-    # Defining binary lens attributes
-    binary_lens_attributes = np.array([
+    # Defining triple lens attributes
+    triple_lens_attributes = np.array([
         [0, 0, 1],
-        [s, 0, q],
+        [s1, 0, q1],
+        [s2*np.cos(np.deg2rad(alpha)), s2*np.sin(np.deg2rad(alpha)), q2],
     ])
 
     # Binary offset
-    center_of_magnification = np.array([q / ((1 + q) * (s + 1/s)), 0])
+    center_of_magnification = np.array([q1 / ((1 + q1) * (s1 + 1/s1)), 0])
     print(f'Binary offset: {center_of_magnification}')
 
     # Correcting binary lens attributes
-    binary_lens_attributes[:, :2] -= center_of_magnification
+    triple_lens_attributes[:, :2] -= center_of_magnification
 
     # Reading in pre-calculated values
-    file = pd.read_csv('./Unity Analysis/Part 4/Data Files/part_4_binary_attributes.csv')
+    file = pd.read_csv('./Unity Analysis/Part 5/Data Files/part_5_triple_attributes.csv')
 
-    row = file[(file['s'] == s_str) & (file['q'] == q)].iloc[0]
+    row = file[(file['s1'] == s1_str) & (file['s2'] == s2_str) & (file['alpha'] == alpha)].iloc[0]
     row = np.array(row)
 
     print(row)
@@ -92,13 +101,13 @@ if __name__ == '__main__':
     print(f'Number of rays in theta: {num_theta}')
     print(f'Number of rays in r: {num_r}')
 
-    binary_lens_parameters = {
+    triple_lens_parameters = {
         'pixels': pixels,
         'ang_width': ang_width,
         'thickness': y_plus - y_minus,
         'y_plus': y_plus,
         'y_minus': y_minus,
-        'lens_att': binary_lens_attributes.tolist(),
+        'lens_att': triple_lens_attributes.tolist(),
         'num_theta': num_theta,
         'num_r': num_r
     }
@@ -107,10 +116,10 @@ if __name__ == '__main__':
     print('=========================================================')
 
     ''' Simulating L lens magnification map '''
-    file_directory = f'./Unity/Simulations/Part_4_Binary_Collection/'
+    file_directory = f'./Unity/Simulations/Part_5_Triple_Collection/'
 
-    param_dict = binary_lens_parameters
-    file_name = f'binary_{q:.0e}_{s:.2e}.pkl'
+    param_dict = triple_lens_parameters
+    file_name = f'triple_{s1:.2e}_{s2:.2e}_{alpha:.0f}.pkl'
 
     file_path = file_directory + file_name
 
@@ -125,11 +134,11 @@ if __name__ == '__main__':
         print('Simulation already exists. Skipping...')
         exit()
 
-    print(f'Shooting binary lens:\n')
+    print(f'Shooting triple lens:\n')
 
     calculator = IRSC.IRSCaustics(annulus_param_dict=param_dict)
-    # magnifications = calculator.series_calculate(cm_offset='auto', annulus_offset=center_of_magnification, rows=1)
-    magnifications = calculator.parallel_calculate(cm_offset='auto', annulus_offset=center_of_magnification, rows=1)
+    magnifications = calculator.series_calculate(cm_offset='auto', annulus_offset=center_of_magnification, rows=1)
+    # magnifications = calculator.parallel_calculate(cm_offset='auto', annulus_offset=center_of_magnification, rows=1)
 
     print('=========================================================')
 
