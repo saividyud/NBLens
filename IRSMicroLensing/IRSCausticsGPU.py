@@ -557,7 +557,7 @@ class IRSCaustics(IRSMain):
 
         return self.magnifications
 
-    def series_calculate(self, cm_offset: str | tuple | list = [0, 0], annulus_offset: str | tuple | list = [0, 0], print_stats=True, file_save=False, rows: int = 10):
+    def series_calculate(self, cm_offset: str | tuple | list = [0, 0], annulus_offset: str | tuple | list = [0, 0], print_stats=True, file_save=False, rows: int=None, safety_margin=0.85):
         '''
         Calculates magnification map for lens system by breaking annulus in image plane into chunks.
 
@@ -586,6 +586,9 @@ class IRSCaustics(IRSMain):
         self.file_save = file_save
         self.rows = rows
 
+        if self.rows is None:
+            self.rows = self.optimize_batch_size(safety_margin=safety_margin)
+
         self.show_mm = False
         self.show_dev = False
 
@@ -611,7 +614,7 @@ class IRSCaustics(IRSMain):
         A_pix = (self.ang_res * 1.0)**2
 
         # Initializing array of magnifications
-        magnifications = np.zeros(shape=(self.pixels, self.pixels), dtype=cp.int64)
+        magnifications = np.zeros(shape=(self.pixels, self.pixels), dtype=np.int64)
 
         # Initializing array of points in r and points in theta
         rs = cp.linspace(cp.abs(self.y_minus), cp.abs(self.y_plus), self.num_r).reshape(-1, 1)
@@ -657,203 +660,10 @@ class IRSCaustics(IRSMain):
 
         end_time = t.time() - begin_time
         if self.print_stats:
-            print('---------------------')
+            print('\n---------------------')
             print(f'Total time: {round(end_time, 3)} seconds')
 
         return self.magnifications
-
-    def parallel_calculate(self, cm_offset: str | tuple | list = [0, 0], annulus_offset: str | tuple | list = [0, 0], print_stats=True, file_save=False, cpus: int = 6, rows: int = 10, legacy=False):
-        '''
-        Calculates magnification map for lens system by breaking annulus in image plane into chunks.
-
-        Parameters
-        ----------
-        cm_offset : str, tuple, or list
-            Origin offset from center of mass
-        annulus_offset : str, tuple, or list
-            Offset of annulus center from origin
-        print_stats : bool, optional
-            If the program outputs computation time and steps
-        file_save : bool, optional
-            Saves magnification map data in CSV file in ../datafiles/{filename}.csv
-        cpus : int, optional
-            Number of cpus to spread the computation across
-        rows : int, optional
-            How many rows of theta to calculate at once per CPU; creates `rows` steps
-
-        Returns
-        -------
-        magnifications : NxN NDArray
-            Matrix of magnification values for each pixel
-        '''
-        self.cm_offset = cm_offset
-        self.print_stats = print_stats
-        self.file_save = file_save
-        self.cpus = cpus
-        self.rows = rows
-        self.legacy = legacy
-        self.annulus_offset = annulus_offset
-
-        self.show_mm = False
-        self.show_dev = False
-
-        # Beginning computation
-        begin_time = t.time()
-
-        # Creating meshgrid of pixel centers
-        X_pix, Y_pix = np.meshgrid(np.linspace(-self.ang_width/2, self.ang_width/2, self.pixels), np.linspace(-self.ang_width/2, self.ang_width/2, self.pixels))
-
-        # Calculating lens center of mass
-        self.lens_CM = self.calc_CM()
-        # self.lens_CM = 0
-        if self.cm_offset == 'auto':
-            self.cm_offset = self.lens_CM
-
-        # Translating lens positions so the center of mass is at offsetted center of mass
-        self.lens_att[:, :2] = self.lens_att[:, :2] - self.lens_CM + self.cm_offset
-
-        # Calculating area of annulus
-        A_ann = np.pi * (self.y_plus**2 - self.y_minus**2)
-        
-        # Calculating ray density within annulus
-        sigma_ann = self.num_rays / A_ann
-
-        # Calculating area of pixel
-        A_pix = (self.ang_res * 1.0)**2
-
-        # Initializing array of magnifications
-        magnifications = np.zeros(shape=(self.pixels, self.pixels), dtype=np.int64)
-
-        # Initializing array of points in r and points in theta
-        self.rs = np.linspace(np.abs(self.y_minus), np.abs(self.y_plus), self.num_r).reshape(-1, 1)
-        thetas = np.linspace(0, 2*np.pi, self.num_theta, endpoint=False).reshape(1, -1)
-
-        theta_group = np.array_split(thetas[0], self.cpus)
-
-        # Disabling tqdm for Unity compatibility
-        self.disable_tqdm = not sys.stdout.isatty()
-
-        # Using multiprocessing to calculate magnifications in parallel
-        import concurrent.futures as cf
-
-        with cf.ProcessPoolExecutor(max_workers=self.cpus) as executor:
-            if self.legacy:
-                magnifications_groups = list(executor.map(self._worker_calc_magnification_parallel_legacy, theta_group))
-            
-            else:
-                # magnifications_groups = list(tqdm(executor.map(self._worker_calc_magnification_parallel, theta_group), total=len(theta_group)))
-                futures = [executor.submit(self._worker_calc_magnification_parallel, theta, worker_id) for worker_id, theta in enumerate(theta_group)]
-
-                magnifications_groups = []
-                cpu_times = []
-                for f in cf.as_completed(futures):
-                    magnifications_groups.append(f.result()[0])
-                    cpu_times.append(f.result()[1])
-
-                if self.print_stats:
-                    for i, cpu_time in enumerate(cpu_times):
-                        print(f'CPU {i+1} time: {cpu_time:.4} seconds')
-
-        # Combining the results from all processes
-        magnifications = np.sum(magnifications_groups, axis=0)
-
-        # Calculating magnifications
-        self.magnifications = (magnifications / A_pix) / sigma_ann
-
-        # Flipping array to be in real coordinates
-        self.magnifications = np.flip(self.magnifications, axis=0)
-
-        # Saving the magnification map data to a file
-        if self.file_save:
-            init_time = t.time()
-            self.write_to_file()
-            final_time = t.time() - init_time
-            if self.print_stats: print(f'Saving magnification data in file ./Mag Map Data/{self.import_file}.txt: {round(final_time, 3)} seconds')
-
-        end_time = t.time() - begin_time
-        if self.print_stats:
-            print('\n\n---------------------')
-            print(f'Total time: {round(end_time, 3)} seconds')
-
-        return self.magnifications
-
-    def _worker_calc_magnification_parallel(self, theta_group: np.ndarray, worker_id: int):
-        # Initializing array of magnifications
-        magnifications_group = np.zeros(shape=(self.pixels, self.pixels), dtype=np.int64)
-        
-        thetas = theta_group.reshape(1, -1)
-        pbar = tqdm(range(0, len(thetas[0]), self.rows), desc=f'CPU {worker_id+1}', position=worker_id+1, disable=self.disable_tqdm, leave=False, dynamic_ncols=True)
-
-        init_time = t.time()
-
-        # Iterating through each set of theta values
-        for i in range(0, len(thetas[0]), self.rows):
-            theta = thetas[0, i:i+self.rows].reshape(1, -1)
-
-            # Calculating meshgrid of X and Y coordinates of rays
-            X = np.dot(self.rs, np.cos(theta)) - self.annulus_offset[0]
-            Y = np.dot(self.rs, np.sin(theta)) - self.annulus_offset[1]
-
-            # Calculating source pixels
-            xs, ys = self.calc_source_pixels(X, Y)
-            del X # Deleting large arrays
-            del Y
-        
-            # NEW LOOP (Replace with this)
-            magnifications_group = IRSCaustics.fast_binning(
-                xs, ys, 
-                self.ang_width, 
-                self.ang_res, 
-                self.pixels, 
-                magnifications_group
-            )
-            del xs
-            del ys
-
-            pbar.update(1)
-
-        pbar.close()
-
-        return magnifications_group, t.time() - init_time
-
-    def _worker_calc_magnification_parallel_legacy(self, theta_group: np.ndarray):
-        theta = theta_group.reshape(1, -1)
-
-        # Calculating meshgrid of X and Y coordinates of rays
-        X = np.dot(self.rs, np.cos(theta)) - self.annulus_offset[0]
-        Y = np.dot(self.rs, np.sin(theta)) - self.annulus_offset[1]
-
-        # Calculating source pixels
-        xs, ys = self.calc_source_pixels(X, Y)
-        del X # Deleting large arrays
-        del Y
-    
-        # Calculating indices of translated pixel after deflection
-        indx, indy = self.trans_ind(xs, ys)
-        del xs # Deleting large arrays
-        del ys
-
-        # Finding wherever indx or indy is nan
-        indx = np.nan_to_num(indx, nan=self.pixels*1000).astype(int)
-        indy = np.nan_to_num(indy, nan=self.pixels*1000).astype(int)
-
-        # Combining indx and indy into matrix of 2-element arrays (x and y coordinates)
-        comb_mat = np.stack((indx, indy), axis=2)
-        del indx # Deleting large arrays
-        del indy
-
-        # Calculating repeated coordinates and their counts in comb_mat
-        stacked_mat = comb_mat.reshape(-1, 2)
-        del comb_mat # Deleting large arrays
-
-        repetitions, counts = IRSCaustics.calc_uniques(stacked_mat)
-        del stacked_mat # Deleting large arrays
-
-        # Iterating through the array of counts to find the number of times each coordinate was repeated and increment that coordinate magnification by 1
-        magnifications_group = np.zeros(shape=(self.pixels, self.pixels), dtype=np.int64)
-        magnifications_group = IRSCaustics.calc_mags(self.pixels, magnifications_group, repetitions, counts)
-
-        return magnifications_group
 
     def analyze(self, show_mm: True, show_dev: True, X_pix, Y_pix):
         '''
@@ -949,35 +759,6 @@ class IRSCaustics(IRSMain):
         return self.convolved_brightnesses
 
     @staticmethod
-    @nb.jit(nopython=True, fastmath=True, cache=True)
-    def fast_binning(xs, ys, ang_width, ang_res, pixels, magnifications):
-        '''
-        Directly bins deflected rays into the magnification map, bypassing intermediate array allocations.
-        '''
-        # Flatten the arrays for easy 1D iteration
-        xs_flat = xs.ravel()
-        ys_flat = ys.ravel()
-        
-        half_width = ang_width / 2.0
-        
-        for i in range(xs_flat.size):
-            x = xs_flat[i]
-            y = ys_flat[i]
-            
-            # Check if the ray lands within the bounds of the source plane map
-            if (x >= -half_width) and (x <= half_width) and (y >= -half_width) and (y <= half_width):
-                
-                # Translate scientific coordinates directly to array indices
-                ix = int(x / ang_res + pixels / 2.0)
-                iy = int(y / ang_res + pixels / 2.0)
-                
-                # Final safety check before incrementing to avoid IndexError
-                if 0 <= ix < pixels and 0 <= iy < pixels:
-                    magnifications[iy, ix] += 1
-                    
-        return magnifications
-
-    @staticmethod
     def bin_rays_gpu(xs_gpu, ys_gpu, ang_width, pixels):
       '''
       Takes deflected GPU ray coordinates and bins them into a magnification map.
@@ -996,165 +777,59 @@ class IRSCaustics(IRSMain):
       
       return magnifications_gpu.astype(cp.int64)
 
-    @staticmethod
-    @nb.jit(nb.int64[:, :](nb.int32, nb.int64[:, :], nb.int64[:, :], nb.int64[:]), nopython=True, fastmath=True, cache=True)
-    def calc_mags(pixels, magnifications, repetitions, counts):
+    def optimize_batch_size(self, safety_margin=0.85):
         '''
-        Calculates magnifications for the whole plane of rays using Numba's jit method with C-like compiling for faster computing.
-
-        Parameters
-        ----------
-        pixels : int32
-        magnifications : 2D int64 Numpy array
-        repetitions : 2D int64 Numpy array
-            Repeating coordinates
-        counts : 1D int64 Numpy array
-            Number of repetitions for each corresponding coordinate
-
-        Returns
-        -------
-        magnifications : 2D int64 Numpy array
+        Accurately calculates the maximum safe number of rows per chunk by explicitly 
+        counting all instances of CuPy arrays generated in the series_calculate loop.
         '''
-        for i, count in enumerate(counts):
-            if pixels*1000 not in repetitions[i]:
-                magnifications[repetitions[i, 1], repetitions[i, 0]] += count
-
-        return magnifications
-    
-    """
-    @staticmethod
-    @nb.jit(nb.int64[:, :](nb.int32, nb.int64[:, :], nb.int64[:, :], nb.int64[:], nb.float64, nb.float64), nopython=True, fastmath=True, cache=True)
-    def calc_mags_annulus(pixels, magnifications, repetitions, counts, sigma_ann, A_pix):
-        '''
-        Calculates magnifications for an annulus of rays using Numba's jit method with C-like compiling for faster computing.
-
-        Parameters
-        ----------
-        pixels : int32
-        magnifications : 2D float64 Numpy array
-        repetitions : 2D int64 Numpy array
-            Repeating coordinates
-        counts : 1D int64 Numpy array
-            Number of repetitions for each corresponding coordinate
-        sigma_ann : float64
-            Ray density within annulus [rays / theta_e^2]
-        A_pix : float64
-            Area of each pixel in source plane [theta_e^2]
-
-        Returns
-        -------
-        magnifications : 2D float64 Numpy array
-        '''
-        # Iterating through all the repitions of pixel coordinates and counts
-        for i, count in enumerate(counts):
-            if pixels*1000 not in repetitions[i]:
-                # Calculating local ray density of pixel
-                sigma_pix = count / A_pix
-
-                # Incrementing magnification of that pixel as the ratio of ray densities in source and image planes
-                magnifications[repetitions[i, 1], repetitions[i, 0]] += sigma_pix / sigma_ann
-
-                # if (repetitions[i] == [0, 0]).all():
-                #     print(count, sigma_pix, sigma_pix / sigma_ann, magnifications[repetitions[i, 1], repetitions[i, 0]], repetitions[i])
-
-        return magnifications
-    """
-
-    @staticmethod
-    @nb.jit(nb.types.Tuple((nb.int64[:, :], nb.int64[:]))(nb.int64[:, :]), parallel=True, nopython=True, fastmath=True, cache=True)
-    def calc_uniques(sorted_mat):
-        n, m = sorted_mat.shape
-        assert m >= 0
+        # 1. Dynamically fetch total VRAM from the current hardware node
+        # device.mem_info returns (free_memory, total_memory) in bytes
+        total_vram_bytes = cp.cuda.Device(0).mem_info[1]
+        target_vram_bytes = total_vram_bytes * safety_margin
         
-        isUnique = np.zeros(n, np.bool_)
-        uniqueCount = 1
-        if n > 0:
-            isUnique[0] = True
+        # 2. Memory footprint per ray (1 ray = 1 index of the arrays)
+        # Using 8 bytes for float64 and 16 bytes for complex128
+        bytes_per_ray = 0
         
-        for i in nb.prange(1, n):
-            isUniqueVal = False
-            for j in range(m):
-                isUniqueVal |= sorted_mat[i, j] != sorted_mat[i-1, j]
-            isUnique[i] = isUniqueVal
-            uniqueCount += isUniqueVal
-
-        uniqueValues = np.empty((uniqueCount, m), np.int64)
-        duplicateCounts = np.zeros(len(uniqueValues), np.int64)
-
-        cursor = 0
-        for i in range(n):
-            cursor += isUnique[i]
-            for j in range(m):
-                uniqueValues[cursor-1, j] = sorted_mat[i, j]
-            duplicateCounts[cursor-1] += 1
-
-        return uniqueValues, duplicateCounts
-
-    @staticmethod
-    def sort_mat(mat):
-        n, m = mat.shape
-
-        for i in range(m):
-            kind = 'stable' if i > 0 else None
-            mat = mat[np.argsort(mat[:,m-1-i], kind=kind)]
-
-        return mat
-
-    @staticmethod
-    @nb.jit(nb.int64[:, :](nb.int64[:, :]), parallel=False, nopython=True, fastmath=True, cache=True)
-    def sort_coordinates(coords):
-        n = coords.shape[0]
-        # Create a copy to avoid modifying the input
-        sorted_coords = coords.copy()
-
-        for i in range(n):
-            min_index = i
-            for j in range(i + 1, n):
-                xj, yj = sorted_coords[j][0], sorted_coords[j][1]
-                xi, yi = sorted_coords[min_index][0], sorted_coords[min_index][1]
-
-                if (xj < xi) or (xj == xi and yj < yi):
-                    min_index = j
-
-            # Swap rows using temp variable
-            if min_index != i:
-                temp_x, temp_y = sorted_coords[i][0], sorted_coords[i][1]
-                sorted_coords[i][0], sorted_coords[i][1] = sorted_coords[min_index][0], sorted_coords[min_index][1]
-                sorted_coords[min_index][0], sorted_coords[min_index][1] = temp_x, temp_y
-
-        return sorted_coords
-    
-    @staticmethod
-    @nb.jit(nb.bool_[:, :](nb.float64, nb.float64[:, :], nb.float64[:, :]), parallel=True, nopython=True, fastmath=True, cache=True)
-    def create_annulus(annulus, X_R, Y_R):
-        '''
-        Calculates the coordinates of the rays within the annulus.
-
-        Parameters
-        ----------
-        annulus : float
-            Angular width of annulus in theta_E
-        X_R : NxN NDArray
-            X meshgrid of all the rays in the image plane
-        Y_R : NxN NDArray
-            Y meshgrid of all the rays in the image plane
-
-        Returns
-        -------
-        ray_valid_coords : NxN NDArray
-            Boolean array of all the coordinates within the annulus
-        '''
-        # Defining inner and outer radii of the annulus
-        lower_bound = 1.0-annulus/2
-        upper_bound = 1.0+annulus/2
-
-        # Calculating the distance from the origin squared of each ray
-        ray_distance_squared = X_R**2 + Y_R**2
-
-        # Finding which ray indices are within the upper and lower bound of the annulus
-        ray_valid_coords = np.logical_and(ray_distance_squared >= lower_bound**2, ray_distance_squared <= upper_bound**2)
-
-        return ray_valid_coords
+        # --- A. Arrays inside series_calculate loop ---
+        bytes_per_ray += 8  # X_gpu (float64)
+        bytes_per_ray += 8  # Y_gpu (float64)
+        
+        # --- B. Arrays inside calc_source_pixels_gpu ---
+        bytes_per_ray += 16 # 1j * Y_gpu (complex128 intermediate during z_gpu creation)
+        bytes_per_ray += 16 # z_gpu (complex128)
+        bytes_per_ray += 16 # zbar_gpu (complex128)
+        bytes_per_ray += 16 # deflection_gpu (complex128)
+        
+        # Inside the deflection loop (calculating the most intensive iteration): 
+        bytes_per_ray += 16 # temp1 = (zbar_gpu - zmbar_gpu[i]) (complex128 temporary)
+        bytes_per_ray += 16 # temp2 = epsilon_gpu[i] / temp1 (complex128 temporary)
+        
+        bytes_per_ray += 16 # zeta_gpu (complex128)
+        
+        # Note: xs_gpu and ys_gpu are views of zeta_gpu, so they take 0 extra bytes.
+        
+        # --- C. Arrays inside bin_rays_gpu ---
+        # .ravel() on xs_gpu and ys_gpu forces contiguous copies of the non-contiguous 
+        # views of zeta_gpu (because real/imag are interleaved in memory)
+        bytes_per_ray += 8  # xs_flat (float64 copy)
+        bytes_per_ray += 8  # ys_flat (float64 copy)
+        
+        # 3. Calculate max allowable rows
+        # We use the absolute sum of all arrays generated in the cycle as a perfectly
+        # safe conservative upper limit for the memory pool peak footprint.
+        max_rays_per_chunk = int(target_vram_bytes // bytes_per_ray)
+        
+        # Convert total rays back to the number of rows
+        max_rows = int(max_rays_per_chunk // self.num_r)
+        
+        print(f"Hardware VRAM detected: {total_vram_bytes / 1e9:.2f} GB")
+        print(f"Hardware VRAM target (with margin): {target_vram_bytes / 1e9:.2f} GB")
+        print(f"Calculated peak memory per ray: {bytes_per_ray} bytes")
+        print(f"Optimized rows per chunk: {max_rows}")
+        print("---------------------------------------------------------")
+        
+        return max_rows
 
     def calc_mm_caustics(self):
         '''
