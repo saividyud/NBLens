@@ -17,6 +17,7 @@
 # Commands to run
 module load mamba
 module load cuda/12.9.0-vvrwkrx
+export LD_LIBRARY_PATH=$CUDA_HOME/targets/x86_64-linux/lib:$LD_LIBRARY_PATH
 mamba activate .venv
 
 # Single simulation parameters (edit these to run different configurations)
