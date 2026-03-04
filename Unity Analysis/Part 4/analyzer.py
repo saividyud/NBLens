@@ -104,8 +104,8 @@ if __name__ == '__main__':
                 single_magnifications = single_sim.magnifications
                 binary_magnifications = binary_sim.magnifications
 
-                min_source_radius = binary_attributes.loc[(binary_attributes['s'] == '0.9') & (binary_attributes['q'] == q), 'min_source_radius'].values[0]
-                max_source_radius = binary_attributes.loc[(binary_attributes['s'] == '0.9') & (binary_attributes['q'] == q), 'max_source_radius'].values[0]
+                min_source_radius = 0.001/2
+                max_source_radius = 0.1/2
 
                 X_pix, Y_pix = np.meshgrid(np.linspace(-ang_width/2, ang_width/2, pixels), np.linspace(-ang_width/2, ang_width/2, pixels))
 
