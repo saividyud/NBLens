@@ -9,11 +9,13 @@
 #SBATCH --mail-user=senthilnathan.11@osu.edu
 
 #SBATCH --array=0-124
+#SBATCH --gres=gpu:1
 
 #SBATCH --output="./Unity/Output Logs/Part_5/triple_%a_output.txt"
 
 # Commands to run
 module load mamba
+module load cuda/12.9.0-vvrwkrx
 mamba activate .venv
 
 # Defining parameters

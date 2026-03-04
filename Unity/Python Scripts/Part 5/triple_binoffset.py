@@ -29,9 +29,8 @@ if __name__ == '__main__':
     mp.set_start_method('spawn')
 
     init_time = t.time()
-    from IRSMicroLensing import IRSCaustics2 as IRSC
-    from IRSMicroLensing import IRSFunctions as IRSF
-    print(f'Custom library import time: {(t.time() - init_time):.3} seconds')
+    from IRSMicroLensing import IRSCausticsGPU as IRSC
+    print(f'Custom library import time (GPU): {(t.time() - init_time):.3} seconds')
 
     # Initialize parser
     parser = argparse.ArgumentParser(description='Compute binary lens magnification map offsetted by binary lens effective center of magnification.')
@@ -137,7 +136,7 @@ if __name__ == '__main__':
     print(f'Shooting triple lens:\n')
 
     calculator = IRSC.IRSCaustics(annulus_param_dict=param_dict)
-    magnifications = calculator.series_calculate(cm_offset='auto', annulus_offset=center_of_magnification, rows=1)
+    magnifications = calculator.series_calculate(cm_offset='auto', annulus_offset=center_of_magnification)
     # magnifications = calculator.parallel_calculate(cm_offset='auto', annulus_offset=center_of_magnification, rows=1)
 
     print('=========================================================')
