@@ -12,7 +12,7 @@
 
 #SBATCH --gres=gpu:1
 
-#SBATCH --output="./Unity/Output Logs/Part_5/triple_single_output.txt"
+#SBATCH --output="./Unity/Output Logs/Part_5/triple_single_output_2.txt"
 
 # Commands to run
 module load mamba
