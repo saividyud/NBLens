@@ -809,7 +809,7 @@ class IRSCaustics(IRSMain):
         # Phase 2 peak (histogram2d internals after pool flush):
         #   xs_flat (f64) + ys_flat (f64) + stack (f64) + Ncount (i64) + flat_idx (i64)
         #       8         +      8        +     16      +     16       +      8        = 56
-        bytes_per_ray = 56
+        bytes_per_ray = 82
 
         # Persistent VRAM not scaling with rows
         persistent_bytes = self.num_r * 8  # rs array (float64, stays on GPU)
