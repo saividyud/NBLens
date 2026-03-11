@@ -23,6 +23,9 @@ mamba activate .venv
 # Clear stale CuPy kernel cache (guards against corrupt .cubin from prior crashes)
 rm -rf ~/.cupy/kernel_cache/
 
+# Force synchronous CUDA execution so errors report at the exact offending line
+export CUPY_CUDA_LAUNCH_BLOCKING=1
+
 echo "Running CPU and GPU checker"
 
 python "./Unity Analysis/Part 5/CPU_GPU_checker.py"
