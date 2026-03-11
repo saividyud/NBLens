@@ -3,6 +3,13 @@ from .imports import *
 from .IRSMainGPU import IRSMain
 import cupy as cp
 
+_pack_conjugate = cp.ElementwiseKernel(
+    'float64 re, float64 im',
+    'complex128 z',
+    'z = complex<double>(re, -im)',
+    'pack_conjugate'
+)
+
 class IRSCaustics(IRSMain):
     '''
     Plots the magnification map for L number of lenses.
@@ -649,12 +656,8 @@ class IRSCaustics(IRSMain):
             Y = rs * cp.sin(theta_gpu) - annulus_offset[1]
             del theta_gpu
 
-            zbar_gpu = cp.empty(X.shape, dtype=cp.complex128)
-            zbar_gpu.real = X
-            del X
-            cp.negative(Y, out=Y)
-            zbar_gpu.imag = Y
-            del Y
+            zbar_gpu = _pack_conjugate(X, Y)
+            del X, Y
             cp.cuda.Device().synchronize()
             cp.get_default_memory_pool().free_all_blocks()
 
