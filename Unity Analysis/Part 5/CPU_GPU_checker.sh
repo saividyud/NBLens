@@ -20,6 +20,9 @@ module load cuda/12.9.0-vvrwkrx
 export LD_LIBRARY_PATH=$CUDA_HOME/targets/x86_64-linux/lib:$LD_LIBRARY_PATH
 mamba activate .venv
 
+# Clear stale CuPy kernel cache (guards against corrupt .cubin from prior crashes)
+rm -rf ~/.cupy/kernel_cache/
+
 echo "Running CPU and GPU checker"
 
 python "./Unity Analysis/Part 5/CPU_GPU_checker.py"

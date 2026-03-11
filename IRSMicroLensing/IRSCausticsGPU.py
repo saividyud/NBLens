@@ -580,6 +580,21 @@ class IRSCaustics(IRSMain):
             Matrix of magnification values for each pixel
         '''
         print('GPU Processing!')
+
+        # Verify GPU context is healthy before starting
+        try:
+            _probe = cp.array([1.0, 2.0, 3.0])
+            cp.negative(_probe, out=_probe)
+            cp.cuda.Device().synchronize()
+            del _probe
+            cp.get_default_memory_pool().free_all_blocks()
+            print('GPU health check passed.')
+        except Exception as e:
+            raise RuntimeError(
+                f'GPU context is corrupt before computation started: {e}\n'
+                'Try: 1) clear CuPy cache (rm -rf ~/.cupy/kernel_cache/)\n'
+                '     2) reset GPU (nvidia-smi --gpu-reset) or get a fresh SLURM allocation'
+            ) from e
         
         self.cm_offset = cm_offset
         self.print_stats = print_stats
@@ -826,7 +841,7 @@ class IRSCaustics(IRSMain):
         target_vram_bytes = total_vram_bytes * safety_margin
 
         # Binding constraint: Phase 1b active (48) + Phase 1a pool residue (24)
-        bytes_per_ray = 82
+        bytes_per_ray = 72
 
         # Persistent VRAM not scaling with rows
         persistent_bytes = self.num_r * 8  # rs array (float64, stays on GPU)
