@@ -640,22 +640,20 @@ class IRSCaustics(IRSMain):
             cp.negative(Y, out=Y)
             zbar_gpu.imag = Y
             del Y
-            cp.get_default_memory_pool().free_all_blocks()
 
             xs_gpu, ys_gpu = IRSMain.calc_source_pixels_gpu(zbar_gpu, zmbar_gpu, epsilon_gpu)
             del zbar_gpu
-            cp.get_default_memory_pool().free_all_blocks()
 
             xs_flat = xs_gpu.ravel()
             ys_flat = ys_gpu.ravel()
             del xs_gpu, ys_gpu
-            cp.get_default_memory_pool().free_all_blocks()
 
             chunk_mags_gpu = IRSCaustics.bin_rays_gpu(xs_flat, ys_flat, self.ang_width, self.pixels)
             magnifications += cp.asnumpy(chunk_mags_gpu)
 
             del xs_flat, ys_flat, chunk_mags_gpu
             cp.get_default_memory_pool().free_all_blocks()
+            cp.cuda.Device().synchronize()
 
         # Calculating magnifications
         self.magnifications = (magnifications / A_pix) / sigma_ann
@@ -804,42 +802,31 @@ class IRSCaustics(IRSMain):
     def optimize_batch_size(self, safety_margin=0.85):
         '''
         Calculates the maximum safe number of rows per chunk based on
-        the CUDA high-water mark across four pool-flushed phases:
+        CUDA-held memory (allocated + pool-cached) across all phases
+        within one loop iteration. Only one free_all_blocks() per
+        iteration (at the end), so pool-cached blocks from earlier
+        phases persist and count against the VRAM budget.
 
-        Phase 1a (zbar construction): X, Y, zbar, plus one pool[dot]
-        block = 40 bytes/ray.
+        Phase 1a (zbar construction):
+          Active: X (f64) + Y (f64) + zbar (c128) = 32 bytes/ray
+          Pool:   dot_tmp (f64)                    =  8 bytes/ray
+          CUDA-held                                = 40 bytes/ray
 
-        Phase 1b (deflection): zbar + deflection + temp = 3 complex128
-        arrays = 48 bytes/ray. This is the irreducible minimum.
+        Phase 1b (deflection, BINDING):
+          Active: zbar (c128) + deflection (c128) + temp (c128)
+                    = 48 bytes/ray
+          Pool:   3 × f64 from Phase 1a (can't reuse for c128)
+                    = 24 bytes/ray
+          CUDA-held = 72 bytes/ray  [BINDING]
 
-        Phase 1c (ravel): zeta + xs_flat + ys_flat = 32 bytes/ray.
-
-        Phase 2 (manual binning): xs_flat + ys_flat + ix + iy = 32
-        bytes/ray (searchsorted + bincount avoids histogram2d overhead).
-
-        The binding constraint is max(40, 48, 32, 32) = 48 bytes/ray.
+        Phases 1c/2 stay ≤ 72 bytes/ray (pool reuses freed blocks
+        for same-size or smaller allocations via best-fit).
         '''
         total_vram_bytes = cp.cuda.Device(0).mem_info[1]
         target_vram_bytes = total_vram_bytes * safety_margin
 
-        # CUDA high-water mark per ray across all phases:
-        #
-        # Phase 1a peak (in-place zbar, 3 active + 1 pool block):
-        #   X (f64)  +  Y (f64)  +  zbar (c128)  +  pool[dot] (f64)
-        #     8      +    8      +      16        +       8          = 40
-        #
-        # Phase 1b peak (deflection loop, 3 active complex128):
-        #   zbar (c128) + deflection (c128) + temp (c128)
-        #      16       +       16          +     16       = 48  [BINDING]
-        #
-        # Phase 1c peak (ravel, after flush clears deflection pool):
-        #   zeta (c128) + xs_flat (f64) + ys_flat (f64)
-        #      16       +      8        +      8         = 32
-        #
-        # Phase 2 peak (manual binning, after flush):
-        #   xs_flat (f64) + ys_flat (f64) + ix (i64) + iy (i64)
-        #       8         +      8        +    8     +    8     = 32
-        bytes_per_ray = 48
+        # Binding constraint: Phase 1b active (48) + Phase 1a pool residue (24)
+        bytes_per_ray = 72
 
         # Persistent VRAM not scaling with rows
         persistent_bytes = self.num_r * 8  # rs array (float64, stays on GPU)
