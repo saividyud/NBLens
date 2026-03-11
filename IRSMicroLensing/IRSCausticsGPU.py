@@ -647,7 +647,17 @@ class IRSCaustics(IRSMain):
 
         # rs on GPU (used every iteration); thetas on CPU (only sliced)
         rs = cp.linspace(cp.abs(self.y_minus), cp.abs(self.y_plus), self.num_r).reshape(-1, 1)
-        thetas = np.linspace(0, 2 * np.pi, self.num_theta, endpoint=False).reshape(1, -1)
+        thetas = np.linspace(0, 2 * np.pi, self.num_theta, endpoint=False)
+
+        # Pad thetas so every chunk has exactly self.rows elements,
+        # avoiding a smaller final chunk that can trigger CuPy 32-bit indexing bugs.
+        remainder = len(thetas) % self.rows
+        if remainder:
+            pad_count = self.rows - remainder
+            thetas = np.pad(thetas, (0, pad_count), mode='edge')
+            sigma_ann = (self.num_r * len(thetas)) / A_ann
+
+        thetas = thetas.reshape(1, -1)
 
         for i in tqdm(range(0, len(thetas[0]), self.rows)):
             theta_gpu = cp.asarray(thetas[0, i:i+self.rows]).reshape(1, -1)
