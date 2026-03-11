@@ -826,7 +826,7 @@ class IRSCaustics(IRSMain):
         target_vram_bytes = total_vram_bytes * safety_margin
 
         # Binding constraint: Phase 1b active (48) + Phase 1a pool residue (24)
-        bytes_per_ray = 72
+        bytes_per_ray = 82
 
         # Persistent VRAM not scaling with rows
         persistent_bytes = self.num_r * 8  # rs array (float64, stays on GPU)
