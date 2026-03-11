@@ -24,7 +24,7 @@ mamba activate .venv
 rm -rf ~/.cupy/kernel_cache/
 
 # Force synchronous CUDA execution so errors report at the exact offending line
-export CUPY_CUDA_LAUNCH_BLOCKING=1
+export CUDA_LAUNCH_BLOCKING=1
 
 echo "Running CPU and GPU checker"
 

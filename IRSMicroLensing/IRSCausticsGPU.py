@@ -655,23 +655,26 @@ class IRSCaustics(IRSMain):
             cp.negative(Y, out=Y)
             zbar_gpu.imag = Y
             del Y
+            cp.cuda.Device().synchronize()
             cp.get_default_memory_pool().free_all_blocks()
 
             xs_gpu, ys_gpu = IRSMain.calc_source_pixels_gpu(zbar_gpu, zmbar_gpu, epsilon_gpu)
             del zbar_gpu
+            cp.cuda.Device().synchronize()
             cp.get_default_memory_pool().free_all_blocks()
 
             xs_flat = xs_gpu.ravel()
             ys_flat = ys_gpu.ravel()
             del xs_gpu, ys_gpu
+            cp.cuda.Device().synchronize()
             cp.get_default_memory_pool().free_all_blocks()
 
             chunk_mags_gpu = IRSCaustics.bin_rays_gpu(xs_flat, ys_flat, self.ang_width, self.pixels)
             magnifications += cp.asnumpy(chunk_mags_gpu)
 
             del xs_flat, ys_flat, chunk_mags_gpu
-            cp.get_default_memory_pool().free_all_blocks()
             cp.cuda.Device().synchronize()
+            cp.get_default_memory_pool().free_all_blocks()
 
         # Calculating magnifications
         self.magnifications = (magnifications / A_pix) / sigma_ann
