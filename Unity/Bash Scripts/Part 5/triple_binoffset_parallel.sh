@@ -36,4 +36,4 @@ alpha=${alphas[$alpha_index]}
 
 echo "Running $s1 separation and $s2 separation and $alpha angle"
 
-python "./Unity/Python Scripts/Part 5/triple_binoffset.py" -s1 $s1 -s2 $s2 -alpha $alpha
+python "./Unity/Python Scripts/Part 5/triple_binoffset_parallel.py" -s1 $s1 -s2 $s2 -alpha $alpha
