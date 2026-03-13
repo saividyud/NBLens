@@ -10,7 +10,7 @@ import matplotlib.patches as patches
 
 import IRSMicroLensing.IRSFunctions as IRSF
 import IRSMicroLensing.IRSCaustics2 as IRSC
-import IRSMicroLensing.IRSCausticsGPU as IRSCGPU
+# import IRSMicroLensing.IRSCausticsGPU as IRSCGPU
 
 import numexpr
 
@@ -81,21 +81,21 @@ triple_lens_parameters_1 = {
     'thickness': y_plus - y_minus
 }
 
-print('Shooting GPU simulation...')
-triple_sim_gpu = IRSCGPU.IRSCaustics(annulus_param_dict=triple_lens_parameters_1)
-triple_sim_gpu.series_calculate(cm_offset='auto', annulus_offset=center_of_magnification)
+# print('Shooting GPU simulation...')
+# triple_sim_gpu = IRSCGPU.IRSCaustics(annulus_param_dict=triple_lens_parameters_1)
+# triple_sim_gpu.series_calculate(cm_offset='auto', annulus_offset=center_of_magnification)
 
-file_path = './Unity Analysis/Part 5/Data Files/triple_sim_gpu.pkl'
-with open(file_path, 'wb') as triple_sim_gpu_file:
-    pickle.dump(triple_sim_gpu, triple_sim_gpu_file)
+# file_path = './Unity Analysis/Part 5/Data Files/triple_sim_gpu.pkl'
+# with open(file_path, 'wb') as triple_sim_gpu_file:
+#     pickle.dump(triple_sim_gpu, triple_sim_gpu_file)
 
-print('Done GPU simulation')
+# print('Done GPU simulation')
 
 print('Shooting CPU simulation...')
 triple_sim_cpu = IRSC.IRSCaustics(annulus_param_dict=triple_lens_parameters_1)
 triple_sim_cpu.series_calculate(cm_offset='auto', annulus_offset=center_of_magnification)
 
-file_path = './Unity Analysis/Part 5/Data Files/triple_sim_cpu.pkl'
+file_path = './Unity Analysis/Part 5/Data Files/triple_sim_cpu2.pkl'
 with open(file_path, 'wb') as triple_sim_cpu_file:
     pickle.dump(triple_sim_cpu, triple_sim_cpu_file)
 

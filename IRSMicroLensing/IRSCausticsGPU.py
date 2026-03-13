@@ -651,11 +651,11 @@ class IRSCaustics(IRSMain):
 
         # Pad thetas so every chunk has exactly self.rows elements,
         # avoiding a smaller final chunk that can trigger CuPy 32-bit indexing bugs.
+        # Padding rays are trimmed before binning so they never affect the map.
         remainder = len(thetas) % self.rows
         if remainder:
             pad_count = self.rows - remainder
             thetas = np.pad(thetas, (0, pad_count), mode='edge')
-            sigma_ann = (self.num_r * len(thetas)) / A_ann
 
         thetas = thetas.reshape(1, -1)
 
@@ -675,6 +675,12 @@ class IRSCaustics(IRSMain):
             del zbar_gpu
             cp.cuda.Device().synchronize()
             cp.get_default_memory_pool().free_all_blocks()
+
+            # Trim padding columns from the last chunk so they don't enter the map
+            real_cols = min(self.rows, self.num_theta - i)
+            if real_cols < self.rows:
+                xs_gpu = xs_gpu[:, :real_cols]
+                ys_gpu = ys_gpu[:, :real_cols]
 
             xs_flat = xs_gpu.ravel()
             ys_flat = ys_gpu.ravel()

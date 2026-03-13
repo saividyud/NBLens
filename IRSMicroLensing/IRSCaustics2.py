@@ -1502,6 +1502,20 @@ class IRSCaustics(IRSMain):
         else:
             raise TypeError(f'Attribute "zoom" must be an tuple or list. Got {type(val)}.')
         
+class _GPUCompatUnpickler(pickle.Unpickler):
+    """Unpickler that remaps GPU classes to their CPU equivalents,
+    allowing GPU-pickled files to load without CuPy installed."""
+
+    _MODULE_MAP = {
+        'IRSMicroLensing.IRSCausticsGPU': 'IRSMicroLensing.IRSCaustics2',
+        'IRSMicroLensing.IRSMainGPU': 'IRSMicroLensing.IRSMain',
+    }
+
+    def find_class(self, module, name):
+        mapped = self._MODULE_MAP.get(module, module)
+        return super().find_class(mapped, name)
+
+
 def caustic_reader(file_path: str) -> IRSCaustics:
     with open(file_path, 'rb') as f:
-        return pickle.load(f)
+        return _GPUCompatUnpickler(f).load()
