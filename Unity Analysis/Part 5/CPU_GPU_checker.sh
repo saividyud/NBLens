@@ -2,7 +2,7 @@
 # Single triple lens simulation on GPU (no array)
 # Submit from project root: sbatch "Unity Analysis/Part 5/CPU_GPU_checker.sh"
 
-#SBATCH --time=00:10:00
+#SBATCH --time=00:05:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=2G
