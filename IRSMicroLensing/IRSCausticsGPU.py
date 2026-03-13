@@ -816,26 +816,27 @@ class IRSCaustics(IRSMain):
         internal stack/searchsorted/ravel_multi_index local variables all
         coexist in memory (~50 extra bytes/ray).
 
-        Out-of-range rays are clipped to edge bins (negligible count for
-        a properly sized annulus).
+        Out-of-range rays are discarded to match CPU behavior.
         '''
         half_width = ang_width / 2.0
         bins = cp.linspace(-half_width, half_width, pixels + 1)
 
         ix = cp.searchsorted(bins, xs_flat, side='right')
         ix -= 1
-        cp.clip(ix, 0, pixels - 1, out=ix)
 
         iy = cp.searchsorted(bins, ys_flat, side='right')
         iy -= 1
-        cp.clip(iy, 0, pixels - 1, out=iy)
 
-        iy *= pixels
-        iy += ix
-        del ix
+        in_bounds = (ix >= 0) & (ix < pixels) & (iy >= 0) & (iy < pixels)
+        ix = ix[in_bounds]
+        iy = iy[in_bounds]
+        del in_bounds
 
-        magnifications_gpu = cp.bincount(iy, minlength=pixels * pixels).reshape(pixels, pixels)
-        del iy
+        flat_idx = iy * pixels + ix
+        del ix, iy
+
+        magnifications_gpu = cp.bincount(flat_idx, minlength=pixels * pixels).reshape(pixels, pixels)
+        del flat_idx
 
         return magnifications_gpu.astype(cp.int64)
 

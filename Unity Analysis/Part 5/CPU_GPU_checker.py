@@ -85,7 +85,7 @@ print('Shooting GPU simulation...')
 triple_sim_gpu = IRSCGPU.IRSCaustics(annulus_param_dict=triple_lens_parameters_1)
 triple_sim_gpu.series_calculate(cm_offset='auto', annulus_offset=center_of_magnification)
 
-file_path = './Unity Analysis/Part 5/Data Files/triple_sim_gpu2.pkl'
+file_path = './Unity Analysis/Part 5/Data Files/triple_sim_gpu3.pkl'
 with open(file_path, 'wb') as triple_sim_gpu_file:
     pickle.dump(triple_sim_gpu, triple_sim_gpu_file)
 
