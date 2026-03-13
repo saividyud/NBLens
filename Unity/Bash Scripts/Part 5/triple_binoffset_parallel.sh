@@ -4,14 +4,14 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=2G
-#SBATCH --job-name=triple_lens_array_5
+#SBATCH --job-name=triple_lens_parallel
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
 
 #SBATCH --array=0-124
 #SBATCH --gres=gpu:1
 
-#SBATCH --output="./Unity/Output Logs/Part_5/triple_%a_output.txt"
+#SBATCH --output="./Unity/Output Logs/Part_5/triple_parallel_%a_output.txt"
 
 # Commands to run
 module load mamba

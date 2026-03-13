@@ -10,7 +10,7 @@ SIMS_PER_JOB=5
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=2G
-#SBATCH --job-name=triple_lens_batch_5
+#SBATCH --job-name=triple_lens_series
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
 
@@ -18,7 +18,7 @@ SIMS_PER_JOB=5
 #SBATCH --array=0-24
 #SBATCH --gres=gpu:1
 
-#SBATCH --output="./Unity/Output Logs/Part_5/triple_batch_%a_output_%j.txt"
+#SBATCH --output="./Unity/Output Logs/Part_5/triple_series_%a.txt"
 
 # Commands to run
 module load mamba
