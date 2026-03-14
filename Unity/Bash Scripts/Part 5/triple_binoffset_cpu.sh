@@ -13,7 +13,7 @@
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
 
-#SBATCH --array=0-124%40
+#SBATCH --array=0-124
 
 #SBATCH --output="./Unity/Output Logs/Part_5/triple_cpu_%a.txt"
 

@@ -83,8 +83,6 @@ if __name__ == '__main__':
         from IRSMicroLensing import IRSCausticsGPU as IRSC
         print(f'Custom library import time (GPU): {(t.time() - init_time):.3} seconds')
     else:
-        import multiprocessing as mp
-        mp.set_start_method('spawn')
         init_time = t.time()
         from IRSMicroLensing import IRSCaustics2 as IRSC
         print(f'Custom library import time (CPU): {(t.time() - init_time):.3} seconds')
