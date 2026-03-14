@@ -5,7 +5,7 @@
 #
 # Submit from project root: sbatch "Unity/Bash Scripts/Part 5/triple_binoffset_cpu.sh"
 
-#SBATCH --time=15:00:00
+#SBATCH --time=25:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=2G
