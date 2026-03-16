@@ -15,7 +15,7 @@
 
 #SBATCH --array=0-124
 
-#SBATCH --output="./Unity/Output Logs/Part_5/triple_cpu_%a.txt"
+#SBATCH --output="./Unity/Output Logs/Part_5/triple_cpu_%a_2.txt"
 
 # Commands to run
 module load mamba
