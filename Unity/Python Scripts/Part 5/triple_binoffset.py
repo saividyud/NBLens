@@ -112,7 +112,7 @@ if __name__ == '__main__':
     file_directory = './Unity/Simulations/Part_5_Triple_Collection/'
     os.makedirs(file_directory, exist_ok=True)
 
-    STALE_LOCK_HOURS = 15
+    STALE_LOCK_HOURS = 25
 
     # ── Run simulations ──
     batch_start_time = t.time()
