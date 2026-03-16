@@ -13,8 +13,12 @@ for s1 in SS1:
     for s2 in SS2:
         for alpha in ALPHAS:
             file_name = f'triple_{numexpr.evaluate(s1).item():.2e}_{numexpr.evaluate(s2).item():.2e}_{alpha:.0f}.pkl'
+            running_file_name = file_name + '.running'
             file_path = sim_dir + file_name
+            running_file_path = sim_dir + running_file_name
             if os.path.exists(file_path):
                 print(f'File {file_name} exists.')
+            elif os.path.exists(running_file_path):
+                print(f'File {file_name} is running.')
             else:
                 print(f'File {file_name} does NOT exist.')
