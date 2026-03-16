@@ -12,7 +12,7 @@ sim_dir = './Unity/Simulations/Part_5_Triple_Collection/'
 for s1 in SS1:
     for s2 in SS2:
         for alpha in ALPHAS:
-            file_name = f'triple_{s1:.2e}_{s2:.2e}_{alpha:.0f}.pkl'
+            file_name = f'triple_{numexpr.evaluate(s1).item():.2e}_{numexpr.evaluate(s2).item():.2e}_{alpha:.0f}.pkl'
             file_path = sim_dir + file_name
             if os.path.exists(file_path):
                 print(f'File {file_name} exists.')
