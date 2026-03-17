@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-#SBATCH --time=1:00:00
+#SBATCH --time=2:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=16G
-#SBATCH --job-name=binary_analyzer_4
+#SBATCH --job-name=triple_analyzer_5
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
 
@@ -23,4 +23,4 @@ r=${rs[$SLURM_ARRAY_TASK_ID]}
 
 echo "Running analysis with radius multiplier of $r"
 
-python "./Unity Analysis/Part 4/analyzer.py" --multiplier $r
+python "./Unity Analysis/Part 5/analyzer.py" --multiplier $r
