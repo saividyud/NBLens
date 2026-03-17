@@ -1,0 +1,71 @@
+Job : running simulations 0 to 4
+x86_64
+#1 SMP Sat Nov 29 00:49:18 EST 2025
+Linux
+x86_64
+u176.asc.ohio-state.edu
+502.8628349304199
+60.010520935058594
+439.55785369873047
+Custom library import time (GPU): 8.72 seconds
+
+Batch mode: task IDs 0 to 4 (5 simulations)
+
+=========================================================
+Simulation 1/5
+=========================================================
+q1 = 0.001
+q2 = 0.0003
+s1 = 0.2 (0.2)
+s2 = 0.2 (0.2)
+alpha = 0.0
+Binary offset: [0.00019212 0.        ]
+['0.2' '0.2' np.int64(0) np.int64(5000) np.float64(0.2) np.int64(1857080)
+ np.int64(464270) np.float64(1.0769986657270052)
+ np.float64(0.9285062613208712) np.float64(8.680555555555556e-06)
+ np.float64(0.0008680555555555)]
+Pixels: 5000
+Angular width: 0.2
+Annulus lower bound: 0.9285062613208712
+Annulus upper bound: 1.0769986657270052
+Thickness: 0.14849240440613398
+Number of rays in theta: 464270
+Number of rays in r: 1857080
+Number of rays: 8.6219e+11
+=========================================================
+Simulation file path: ./Unity/Simulations/Part_5_Triple_Collection/triple_2.00e-01_2.00e-01_0.pkl
+Shooting triple lens:
+
+GPU Processing!
+Traceback (most recent call last):
+  File "/home/senthilnathan.11/Documents/GitHub/NBLens/IRSMicroLensing/IRSCausticsGPU.py", line 593, in series_calculate
+    _probe = cp.array([1.0, 2.0, 3.0])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/senthilnathan.11/.conda/envs/.venv/lib/python3.11/site-packages/cupy/_creation/from_data.py", line 56, in array
+    return _core.array(obj, dtype, copy, order, subok, ndmin, blocking)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "cupy/_core/core.pyx", line 2684, in cupy._core.core.array
+  File "cupy/_core/core.pyx", line 2704, in cupy._core.core.array
+  File "cupy/_core/core.pyx", line 2920, in cupy._core.core._array_default
+  File "cupy/_core/core.pyx", line 175, in cupy._core.core.ndarray.__new__
+  File "cupy/_core/core.pyx", line 279, in cupy._core.core._ndarray_base._init
+  File "cupy/cuda/memory.pyx", line 877, in cupy.cuda.memory.alloc
+  File "cupy/cuda/memory.pyx", line 1622, in cupy.cuda.memory.MemoryPool.malloc
+  File "cupy/cuda/memory.pyx", line 1642, in cupy.cuda.memory.MemoryPool.malloc
+  File "cupy/cuda/memory.pxd", line 85, in cupy.cuda.memory.MemoryPool.device_pool
+  File "cupy/cuda/memory.pyx", line 1609, in cupy.cuda.memory.MemoryPool._ensure_pools_and_return_device_pool
+  File "cupy_backends/cuda/api/runtime.pyx", line 415, in cupy_backends.cuda.api.runtime.getDeviceCount
+  File "cupy_backends/cuda/api/runtime.pyx", line 146, in cupy_backends.cuda.api.runtime.check_status
+cupy_backends.cuda.api.runtime.CUDARuntimeError: cudaErrorInsufficientDriver: CUDA driver version is insufficient for CUDA runtime version
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/senthilnathan.11/Documents/GitHub/NBLens/./Unity/Python Scripts/Part 5/triple_binoffset_series.py", line 163, in <module>
+    magnifications = calculator.series_calculate(cm_offset='auto', annulus_offset=center_of_magnification)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/senthilnathan.11/Documents/GitHub/NBLens/IRSMicroLensing/IRSCausticsGPU.py", line 600, in series_calculate
+    raise RuntimeError(
+RuntimeError: GPU context is corrupt before computation started: cudaErrorInsufficientDriver: CUDA driver version is insufficient for CUDA runtime version
+Try: 1) clear CuPy cache (rm -rf ~/.cupy/kernel_cache/)
+     2) reset GPU (nvidia-smi --gpu-reset) or get a fresh SLURM allocation
