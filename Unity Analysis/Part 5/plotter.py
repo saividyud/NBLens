@@ -19,7 +19,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     #%% Setting plot parameters
-    plt.rcParams['font.family'] = 'Times New Roman'
+    # plt.rcParams['font.family'] = 'Times New Roman'
     plt.rcParams['figure.titlesize'] = 20
     plt.rcParams['figure.titleweight'] = 'bold'
     plt.rcParams['figure.figsize'] = (10, 8)
