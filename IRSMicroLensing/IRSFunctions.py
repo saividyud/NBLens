@@ -335,35 +335,38 @@ class IRSFunctions:
 
             return (x_proj,y_proj)
 
-    class _MyBinaryLens(mm.BinaryLensPointSourceWM95Magnification):
-        """Custom BinaryLens class potentially for modifications or extensions."""
-        def __init__(self, q, s):
-            # Initialize the parent MulensModel.BinaryLens
-            self.s = s
+    try: 
+        class _MyBinaryLens(mm.BinaryLensPointSourceWM95Magnification):
+            """Custom BinaryLens class potentially for modifications or extensions."""
+            def __init__(self, q, s):
+                # Initialize the parent MulensModel.BinaryLens
+                self.s = s
 
-            parameters = {'q': q, 's': s, 't_0': 0, 't_E': 1, 'u_0': 0.006, 'alpha': 0}
-            model_params = mm.ModelParameters(parameters=parameters)
+                parameters = {'q': q, 's': s, 't_0': 0, 't_E': 1, 'u_0': 0.006, 'alpha': 0}
+                model_params = mm.ModelParameters(parameters=parameters)
 
-            traj = mm.Trajectory(times=0, parameters=model_params)
+                traj = mm.Trajectory(times=0, parameters=model_params)
 
-            super().__init__(trajectory=traj)
+                super().__init__(trajectory=traj)
 
-        def get_n_images(self, x, y):
-            """
-            Calculates the positions of images for a source at position (x, y).
-            Relies on the _verify_polynomial_roots method from the parent class.
-            """
-            # The length of the list of roots corresponds to the number of images
-            magnification = self._get_1_magnification(x, y, separation=self.s)
+            def get_n_images(self, x, y):
+                """
+                Calculates the positions of images for a source at position (x, y).
+                Relies on the _verify_polynomial_roots method from the parent class.
+                """
+                # The length of the list of roots corresponds to the number of images
+                magnification = self._get_1_magnification(x, y, separation=self.s)
 
-            # Getting image positions with the origin at the planet (0, 0)
-            results = np.array(self._verify_polynomial_roots())
+                # Getting image positions with the origin at the planet (0, 0)
+                results = np.array(self._verify_polynomial_roots())
 
-            # Shifting image positions to have origin at star
-            for i in range(len(results)):
-                results[i] += self.s + 0.0j
+                # Shifting image positions to have origin at star
+                for i in range(len(results)):
+                    results[i] += self.s + 0.0j
 
-            return magnification, results
+                return magnification, results
+    except:
+        warnings.warn('Test version of MulensModel not found. Some functions may not work.')
 
     def _separate_circles(points, q, s):
         """
