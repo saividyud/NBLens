@@ -67,8 +67,8 @@ if __name__ == '__main__':
     single_directory = './Unity/Simulations/Single_Collection'
 
     #%% Reading in attributes from csv file
-    single_attributes = pd.read_csv('./Unity Analysis/Spring 2026/single_attributes.csv')
-    binary_attributes = pd.read_csv('./Unity Analysis/Spring 2026/binary_attributes.csv')
+    single_attributes = pd.read_csv('./Unity Analysis/Part 2/single_attributes.csv')
+    binary_attributes = pd.read_csv('./Unity Analysis/Part 2/binary_attributes.csv')
 
     #%% Defining variables to be stored
     thresholds = np.logspace(-8, 0, num=100)
@@ -76,7 +76,7 @@ if __name__ == '__main__':
     output = []
 
     #%% Looping through parameter space
-    with open(f'./Unity Analysis/Spring 2026/Data Files/analysis_output_{multiplier:.0e}_3.csv', 'w', newline='') as csvfile:
+    with open(f'./Unity Analysis/Part 2/Data Files/analysis_output_{multiplier:.0e}_3.csv', 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(headers)
 
@@ -152,7 +152,7 @@ if __name__ == '__main__':
                 # ax.set_xlabel('X [$\\theta_E$]')
                 # ax.set_ylabel('Y [$\\theta_E$]')
 
-                # plt.savefig(f'./Unity Analysis/Spring 2026/Figures/frac_diff_map_q{q:.0e}_s{s:.2e}_r{radius:.2e}.png', dpi=100)
+                # plt.savefig(f'./Unity Analysis/Part 2/Figures/frac_diff_map_q{q:.0e}_s{s:.2e}_r{radius:.2e}.png', dpi=100)
 
                 #%% Calculating fractional area of fractional map above threshold
                 print('  Calculating area above threshold...')
