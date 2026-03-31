@@ -76,7 +76,7 @@ if __name__ == '__main__':
     output = []
 
     #%% Looping through parameter space
-    with open(f'./Unity Analysis/Spring 2026/Data Files/analysis_output_{multiplier:.0e}.csv', 'w', newline='') as csvfile:
+    with open(f'./Unity Analysis/Spring 2026/Data Files/analysis_output_{multiplier:.0e}_3.csv', 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(headers)
 
