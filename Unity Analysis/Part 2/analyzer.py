@@ -76,7 +76,7 @@ if __name__ == '__main__':
     output = []
 
     #%% Looping through parameter space
-    with open(f'./Unity Analysis/Spring 2026/Data Files/analysis_output_{multiplier:.0e}_2.csv', 'w', newline='') as csvfile:
+    with open(f'./Unity Analysis/Spring 2026/Data Files/analysis_output_{multiplier:.0e}.csv', 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(headers)
 
@@ -157,15 +157,18 @@ if __name__ == '__main__':
                 #%% Calculating fractional area of fractional map above threshold
                 print('  Calculating area above threshold...')
                 actual_area_above_threshold = []
+                fractional_area_above_thresholds = []
 
                 for threshold in thresholds:
                     above_threshold = np.abs(frac_diff_map) > threshold
                     total_area_above_threshold = np.sum(above_threshold)
                     fractional_area_above_threshold = total_area_above_threshold / (pixels**2)
                     actual_area_above_threshold.append(fractional_area_above_threshold * (ang_width**2))
-
+                    fractional_area_above_thresholds.append(fractional_area_above_threshold)
+                
                 actual_area_above_threshold = np.array(actual_area_above_threshold)
+                fractional_area_above_thresholds = np.array(fractional_area_above_thresholds)
                 
                 #%% Saving fractional deviations to csv
-                output.append([ss_str[j], q, radius, LD_coeff] + actual_area_above_threshold.tolist())
+                output.append([ss_str[j], q, radius, LD_coeff] + fractional_area_above_thresholds.tolist())
                 writer.writerow(output[-1])
