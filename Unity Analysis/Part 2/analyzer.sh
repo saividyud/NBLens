@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=16G
-#SBATCH --job-name=binary_analyzer_3
+#SBATCH --job-name=binary_analyzer_2
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
 
@@ -23,4 +23,4 @@ r=${rs[$SLURM_ARRAY_TASK_ID]}
 
 echo "Running analysis with radius multiplier of $r"
 
-python "./Unity Analysis/Spring 2026/analyzer.py" --multiplier $r
+python "./Unity Analysis/Part 2/analyzer.py" --multiplier $r
