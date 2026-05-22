@@ -23,7 +23,7 @@ mamba activate .venv
 # Single simulation parameters (edit these to run different configurations)
 s1=0.2
 s2=0.2
-alpha=135
+alpha=90
 
 echo "Running single triple lens: s1=$s1 s2=$s2 alpha=$alpha"
 
