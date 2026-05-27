@@ -86,8 +86,11 @@ if __name__ == '__main__':
     pixels, ang_width, (qs, ss), cusp_points, (max_source_radius, min_source_radius) = IRSF.IRSFunctions._ang_width_calculator(sun_jupiter_lens_att, pixels_in_small_source=10, cm_offset='auto')
     print(f'Pixels = {pixels}, Angular Width = {ang_width}, Max Source Radius = {max_source_radius}, Min Source Radius = {min_source_radius}')
 
-    (y_plus, y_minus), min_mag = IRSF.IRSFunctions._annulus_bounds_calculator(ang_width, qs, ss)
-    print(f'Annulus bounds: y+ = {y_plus}, y- = {y_minus}, Min Magnification in Annulus = {min_mag}')
+    y_plus = 1.2789536475822436
+    y_minus = 0.7812645092009943
+    min_mag = 1.9432064097360755
+    # (y_plus, y_minus), min_mag = IRSF.IRSFunctions._annulus_bounds_calculator(ang_width, qs, ss)
+    # print(f'Annulus bounds: y+ = {y_plus}, y- = {y_minus}, Min Magnification in Annulus = {min_mag}')
 
     num_r, num_theta = IRSF.IRSFunctions._num_ray_calculator(pixels, ang_width, y_plus, y_minus, min_mag, delta=0.01, r_theta_ratio=4)
     print(f'Number of rays: num_r = {num_r}, num_theta = {num_theta}')
@@ -138,8 +141,12 @@ if __name__ == '__main__':
     pixels, ang_width, (qs, ss), cusp_points, (max_source_radius, min_source_radius) = IRSF.IRSFunctions._ang_width_calculator(sun_jupiter_saturn_lens_att, pixels_in_small_source=10, cm_offset='auto')
     print(f'Pixels = {pixels}, Angular Width = {ang_width}, Max Source Radius = {max_source_radius}, Min Source Radius = {min_source_radius}')
 
-    (y_plus, y_minus), min_mag = IRSF.IRSFunctions._annulus_bounds_calculator(ang_width, qs, ss)
-    print(f'Annulus bounds: y+ = {y_plus}, y- = {y_minus}, Min Magnification in Annulus = {min_mag}')
+
+    y_plus = 1.279217900597977
+    y_minus = 0.7812645092009943
+    min_mag = 1.8635913564729933
+    # (y_plus, y_minus), min_mag = IRSF.IRSFunctions._annulus_bounds_calculator(ang_width, qs, ss)
+    # print(f'Annulus bounds: y+ = {y_plus}, y- = {y_minus}, Min Magnification in Annulus = {min_mag}')
 
     num_r, num_theta = IRSF.IRSFunctions._num_ray_calculator(pixels, ang_width, y_plus, y_minus, min_mag, delta=0.01, r_theta_ratio=4)
     print(f'Number of rays: num_r = {num_r}, num_theta = {num_theta}')
@@ -188,10 +195,16 @@ if __name__ == '__main__':
 
     sun_jupiter_saturn_uranus_lens_att[:, :2] -= center_of_magnification
 
-    pixels, ang_width, (qs, ss), cusp_points, (max_source_radius, min_source_radius) = IRSF.IRSFunctions._ang_width_calculator(sun_jupiter_saturn_earth_lens_att, pixels_in_small_source=10, cm_offset='auto')
+    pixels, ang_width, (qs, ss), cusp_points, (max_source_radius, min_source_radius) = IRSF.IRSFunctions._ang_width_calculator(sun_jupiter_saturn_uranus_lens_att, pixels_in_small_source=10, cm_offset='auto')
     print(f'Pixels = {pixels}, Angular Width = {ang_width}, Max Source Radius = {max_source_radius}, Min Source Radius = {min_source_radius}')
 
-    (y_plus, y_minus), min_mag = IRSF.IRSFunctions._annulus_bounds_calculator(ang_width, qs, ss)
+
+    y_plus = 1.279217900597977
+    y_minus = 0.7812645092009943
+    min_mag = 1.8635913564729933
+    # (y_plus, y_minus), min_mag = IRSF.IRSFunctions._annulus_bounds_calculator(ang_width, qs, ss)
+    # print(f'Annulus bounds: y+ = {y_plus}, y- = {y_minus}, Min Magnification in Annulus = {min_mag}')
+
     print(f'Annulus bounds: y+ = {y_plus}, y- = {y_minus}, Min Magnification in Annulus = {min_mag}')
     
     num_r, num_theta = IRSF.IRSFunctions._num_ray_calculator(pixels, ang_width, y_plus, y_minus, min_mag, delta=0.01, r_theta_ratio=4)
@@ -245,9 +258,14 @@ if __name__ == '__main__':
     pixels, ang_width, (qs, ss), cusp_points, (max_source_radius, min_source_radius) = IRSF.IRSFunctions._ang_width_calculator(sun_jupiter_saturn_uranus_earth_lens_att, pixels_in_small_source=10, cm_offset='auto')
     print(f'Pixels = {pixels}, Angular Width = {ang_width}, Max Source Radius = {max_source_radius}, Min Source Radius = {min_source_radius}')
 
-    (y_plus, y_minus), min_mag = IRSF.IRSFunctions._annulus_bounds_calculator(ang_width, qs, ss)
-    print(f'Annulus bounds: y+ = {y_plus}, y- = {y_minus}, Min Magnification in Annulus = {min_mag}')
+    y_plus = 1.2792179543094473
+    y_minus = 0.7812645092009943
+    min_mag = 1.8635913564729933
+    # (y_plus, y_minus), min_mag = IRSF.IRSFunctions._annulus_bounds_calculator(ang_width, qs, ss)
+    # print(f'Annulus bounds: y+ = {y_plus}, y- = {y_minus}, Min Magnification in Annulus = {min_mag}')
 
+    print(f'Annulus bounds: y+ = {y_plus}, y- = {y_minus}, Min Magnification in Annulus = {min_mag}')
+    
     num_r, num_theta = IRSF.IRSFunctions._num_ray_calculator(pixels, ang_width, y_plus, y_minus, min_mag, delta=0.01, r_theta_ratio=4)
     print(f'Number of rays: num_r = {num_r}, num_theta = {num_theta}')
     print(f'Total number of rays: {(num_r * num_theta):.3e}')
