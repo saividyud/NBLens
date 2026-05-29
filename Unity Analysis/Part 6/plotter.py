@@ -144,8 +144,8 @@ if __name__ == '__main__':
                     extent=[-ang_width/2 - ang_res/2, ang_width/2 + ang_res/2, -ang_width/2 - ang_res/2, ang_width/2 + ang_res/2],
     )
     plot = ax.contour(np.flip(frac_diff_jupiter_saturn, axis=0),
-            levels=log_array(-3, -1),
-            colors=colors_by_log(log_array(-3, -1)),
+            levels=[-0.3, -0.1, -0.03, -0.01, 0.01, 0.03, 0.1, 0.3],
+            colors=['blue', 'blue', 'blue', 'blue', 'red', 'red', 'red', 'red'],
             linewidths=0.5,
             extent=[-ang_width/2 - ang_res/2, ang_width/2 + ang_res/2, -ang_width/2 - ang_res/2, ang_width/2 + ang_res/2]
     )
@@ -172,8 +172,8 @@ if __name__ == '__main__':
                     extent=[-ang_width/2 - ang_res/2, ang_width/2 + ang_res/2, -ang_width/2 - ang_res/2, ang_width/2 + ang_res/2],
     )
     plot = ax.contour(np.flip(frac_diff_jupiter_saturn_uranus, axis=0),
-            levels=log_array(-3, -1),
-            colors=colors_by_log(log_array(-3, -1)),
+            levels=[-0.3, -0.1, -0.03, -0.01, 0.01, 0.03, 0.1, 0.3],
+            colors=['blue', 'blue', 'blue', 'blue', 'red', 'red', 'red', 'red'],
             linewidths=0.5,
             extent=[-ang_width/2 - ang_res/2, ang_width/2 + ang_res/2, -ang_width/2 - ang_res/2, ang_width/2 + ang_res/2]
     )
@@ -200,8 +200,8 @@ if __name__ == '__main__':
                     extent=[-ang_width/2 - ang_res/2, ang_width/2 + ang_res/2, -ang_width/2 - ang_res/2, ang_width/2 + ang_res/2],
     )
     plot = ax.contour(np.flip(frac_diff_jupiter_saturn_uranus_earth, axis=0),
-            levels=log_array(-3, -1),
-            colors=colors_by_log(log_array(-3, -1)),
+            levels=[-0.3, -0.1, -0.03, -0.01, 0.01, 0.03, 0.1, 0.3],
+            colors=['blue', 'blue', 'blue', 'blue', 'red', 'red', 'red', 'red'],
             linewidths=0.5,
             extent=[-ang_width/2 - ang_res/2, ang_width/2 + ang_res/2, -ang_width/2 - ang_res/2, ang_width/2 + ang_res/2]
     )
