@@ -115,19 +115,19 @@ if __name__ == '__main__':
     #%% Plotting magnification map
     print('Plotting Sun-Jupiter Magnification Map...')
     sun_jupiter_sim.plot()
-    plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_magnification_map.png', dpi=100)
+    plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_magnification_map.png', dpi=300)
 
     print('Plotting Sun-Jupiter-Saturn Magnification Map...')
     sun_jupiter_saturn_sim.plot()
-    plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_saturn_magnification_map.png', dpi=100)
+    plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_saturn_magnification_map.png', dpi=300)
 
     print('Plotting Sun-Jupiter-Saturn-Uranus Magnification Map...')
     sun_jupiter_saturn_uranus_sim.plot()
-    plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_saturn_uranus_magnification_map.png', dpi=100)
+    plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_saturn_uranus_magnification_map.png', dpi=300)
 
     print('Plotting Sun-Jupiter-Saturn-Uranus-Earth Magnification Map...')
     sun_jupiter_saturn_uranus_earth_sim.plot()
-    plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_saturn_uranus_earth_magnification_map.png', dpi=100)
+    plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_saturn_uranus_earth_magnification_map.png', dpi=300)
 
     #%% Plotting fractional difference maps
     print('Plotting Fractional Difference Between Sun-Jupiter and Sun-Jupiter-Saturn Magnification Maps...')
@@ -156,7 +156,7 @@ if __name__ == '__main__':
     ax.set_xlabel(r'X [$\theta_E$]')
     ax.set_ylabel(r'Y [$\theta_E$]')
 
-    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn.png', dpi=100)
+    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn.png', dpi=300)
 
     print('Plotting Fractional Difference Between Sun-Jupiter-Saturn and Sun-Jupiter-Saturn-Uranus Magnification Maps...')
     frac_diff_jupiter_saturn_uranus = (sun_jupiter_saturn_uranus_magnifications - sun_jupiter_saturn_magnifications) / sun_jupiter_saturn_magnifications
@@ -184,7 +184,7 @@ if __name__ == '__main__':
     ax.set_xlabel(r'X [$\theta_E$]')
     ax.set_ylabel(r'Y [$\theta_E$]')
 
-    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn_uranus.png', dpi=100)
+    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn_uranus.png', dpi=300)
 
     print('Plotting Fractional Difference Between Sun-Jupiter-Saturn-Uranus and Sun-Jupiter-Saturn-Uranus-Earth Magnification Maps...')
     frac_diff_jupiter_saturn_uranus_earth = (sun_jupiter_saturn_uranus_earth_magnifications - sun_jupiter_saturn_uranus_magnifications) / sun_jupiter_saturn_uranus_magnifications
@@ -212,4 +212,4 @@ if __name__ == '__main__':
     ax.set_xlabel(r'X [$\theta_E$]')
     ax.set_ylabel(r'Y [$\theta_E$]')
 
-    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn_uranus_earth.png', dpi=100)
+    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn_uranus_earth.png', dpi=300)
