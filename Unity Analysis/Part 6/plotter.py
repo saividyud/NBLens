@@ -100,8 +100,6 @@ if __name__ == '__main__':
     print(f'Number of rays in theta: {sun_jupiter_saturn_uranus_earth_sim.num_theta}')
     print(f'Number of rays in r: {sun_jupiter_saturn_uranus_earth_sim.num_r}')
 
-    exit()
-
     #%% Extracting important parameters from simulations
     print('Extracting important parameters from simulations...')
     pixels = sun_jupiter_sim.pixels
@@ -146,9 +144,9 @@ if __name__ == '__main__':
                     extent=[-ang_width/2 - ang_res/2, ang_width/2 + ang_res/2, -ang_width/2 - ang_res/2, ang_width/2 + ang_res/2],
     )
     plot = ax.contour(np.flip(frac_diff_jupiter_saturn, axis=0),
-            levels=[-0.30, -0.10, -0.03, -0.01, -0.003, -0.001, 0, 0.001, 0.003, 0.01, 0.03, 0.10, 0.30],
-            colors=['blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'green', 'red', 'red', 'red', 'red', 'red', 'red'],
-            linewidths=[1.3, 1.1, 0.9, 0.7, 0.5, 0.3, 0.5, 0.3, 0.5, 0.7, 0.9, 1.1, 1.3],
+            levels=log_array(-3, -1),
+            colors=colors_by_log(log_array(-3, -1)),
+            linewidths=0.5,
             extent=[-ang_width/2 - ang_res/2, ang_width/2 + ang_res/2, -ang_width/2 - ang_res/2, ang_width/2 + ang_res/2]
     )
 
@@ -174,9 +172,9 @@ if __name__ == '__main__':
                     extent=[-ang_width/2 - ang_res/2, ang_width/2 + ang_res/2, -ang_width/2 - ang_res/2, ang_width/2 + ang_res/2],
     )
     plot = ax.contour(np.flip(frac_diff_jupiter_saturn_uranus, axis=0),
-            levels=[-0.30, -0.10, -0.03, -0.01, -0.003, -0.001, 0, 0.001, 0.003, 0.01, 0.03, 0.10, 0.30],
-            colors=['blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'green', 'red', 'red', 'red', 'red', 'red', 'red'],
-            linewidths=[1.3, 1.1, 0.9, 0.7, 0.5, 0.3, 0.5, 0.3, 0.5, 0.7, 0.9, 1.1, 1.3],
+            levels=log_array(-3, -1),
+            colors=colors_by_log(log_array(-3, -1)),
+            linewidths=0.5,
             extent=[-ang_width/2 - ang_res/2, ang_width/2 + ang_res/2, -ang_width/2 - ang_res/2, ang_width/2 + ang_res/2]
     )
 
@@ -202,9 +200,9 @@ if __name__ == '__main__':
                     extent=[-ang_width/2 - ang_res/2, ang_width/2 + ang_res/2, -ang_width/2 - ang_res/2, ang_width/2 + ang_res/2],
     )
     plot = ax.contour(np.flip(frac_diff_jupiter_saturn_uranus_earth, axis=0),
-            levels=[-0.30, -0.10, -0.03, -0.01, -0.003, -0.001, 0, 0.001, 0.003, 0.01, 0.03, 0.10, 0.30],
-            colors=['blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'green', 'red', 'red', 'red', 'red', 'red', 'red'],
-            linewidths=[1.3, 1.1, 0.9, 0.7, 0.5, 0.3, 0.5, 0.3, 0.5, 0.7, 0.9, 1.1, 1.3],
+            levels=log_array(-3, -1),
+            colors=colors_by_log(log_array(-3, -1)),
+            linewidths=0.5,
             extent=[-ang_width/2 - ang_res/2, ang_width/2 + ang_res/2, -ang_width/2 - ang_res/2, ang_width/2 + ang_res/2]
     )
 
