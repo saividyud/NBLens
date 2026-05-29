@@ -55,16 +55,52 @@ if __name__ == '__main__':
         return colors
 
     #%% Importing simulation data
-    print('Importing simulation data...')
+    print('Importing Sun-Jupiter simulation data...')
     multiplanet_directory = './Unity/Simulations/Part_6_Multiplanet_Collection'
     sun_jupiter_file = f'{multiplanet_directory}/sun_jupiter.pkl'
     sun_jupiter_sim = IRSC.caustic_reader(sun_jupiter_file)
+    print(f'Pixels: {sun_jupiter_sim.pixels}')
+    print(f'Angular width: {sun_jupiter_sim.ang_width}')
+    print(f'Annulus lower bound: {sun_jupiter_sim.y_minus}')
+    print(f'Annulus upper bound: {sun_jupiter_sim.y_plus}')
+    print(f'Thickness: {sun_jupiter_sim.y_plus - sun_jupiter_sim.y_minus}')
+    print(f'Number of rays in theta: {sun_jupiter_sim.num_theta}')
+    print(f'Number of rays in r: {sun_jupiter_sim.num_r}')
+
+    print('Importing Sun-Jupiter-Saturn simulation data...')
     sun_jupiter_saturn_file = f'{multiplanet_directory}/sun_jupiter_saturn.pkl'
     sun_jupiter_saturn_sim = IRSC.caustic_reader(sun_jupiter_saturn_file)
+    print(f'Pixels: {sun_jupiter_saturn_sim.pixels}')
+    print(f'Angular width: {sun_jupiter_saturn_sim.ang_width}')
+    print(f'Annulus lower bound: {sun_jupiter_saturn_sim.y_minus}')
+    print(f'Annulus upper bound: {sun_jupiter_saturn_sim.y_plus}')
+    print(f'Thickness: {sun_jupiter_saturn_sim.y_plus - sun_jupiter_saturn_sim.y_minus}')
+    print(f'Number of rays in theta: {sun_jupiter_saturn_sim.num_theta}')
+    print(f'Number of rays in r: {sun_jupiter_saturn_sim.num_r}')
+
+    print('Importing Sun-Jupiter-Saturn-Uranus simulation data...')
     sun_jupiter_saturn_uranus_file = f'{multiplanet_directory}/sun_jupiter_saturn_uranus.pkl'
     sun_jupiter_saturn_uranus_sim = IRSC.caustic_reader(sun_jupiter_saturn_uranus_file)
+    print(f'Pixels: {sun_jupiter_saturn_uranus_sim.pixels}')
+    print(f'Angular width: {sun_jupiter_saturn_uranus_sim.ang_width}')
+    print(f'Annulus lower bound: {sun_jupiter_saturn_uranus_sim.y_minus}')
+    print(f'Annulus upper bound: {sun_jupiter_saturn_uranus_sim.y_plus}')
+    print(f'Thickness: {sun_jupiter_saturn_uranus_sim.y_plus - sun_jupiter_saturn_uranus_sim.y_minus}')
+    print(f'Number of rays in theta: {sun_jupiter_saturn_uranus_sim.num_theta}')
+    print(f'Number of rays in r: {sun_jupiter_saturn_uranus_sim.num_r}')
+
+    print('Importing Sun-Jupiter-Saturn-Uranus-Earth simulation data...')
     sun_jupiter_saturn_uranus_earth_file = f'{multiplanet_directory}/sun_jupiter_saturn_uranus_earth.pkl'
     sun_jupiter_saturn_uranus_earth_sim = IRSC.caustic_reader(sun_jupiter_saturn_uranus_earth_file)
+    print(f'Pixels: {sun_jupiter_saturn_uranus_earth_sim.pixels}')
+    print(f'Angular width: {sun_jupiter_saturn_uranus_earth_sim.ang_width}')
+    print(f'Annulus lower bound: {sun_jupiter_saturn_uranus_earth_sim.y_minus}')
+    print(f'Annulus upper bound: {sun_jupiter_saturn_uranus_earth_sim.y_plus}')
+    print(f'Thickness: {sun_jupiter_saturn_uranus_earth_sim.y_plus - sun_jupiter_saturn_uranus_earth_sim.y_minus}')
+    print(f'Number of rays in theta: {sun_jupiter_saturn_uranus_earth_sim.num_theta}')
+    print(f'Number of rays in r: {sun_jupiter_saturn_uranus_earth_sim.num_r}')
+
+    exit()
 
     #%% Extracting important parameters from simulations
     print('Extracting important parameters from simulations...')
