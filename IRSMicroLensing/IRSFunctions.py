@@ -186,8 +186,7 @@ class IRSFunctions:
         a = a / np.sum(a)
 
         return a
-
-    
+ 
     def find_cusp_points(caustic_points):
         points = caustic_points.T  # Shape: (400, 2)
 
