@@ -245,9 +245,9 @@ if __name__ == '__main__':
                     extent=[-ang_width/2 - ang_res/2, ang_width/2 + ang_res/2, -ang_width/2 - ang_res/2, ang_width/2 + ang_res/2],
     )
     plot = ax.contour(np.flip(frac_diff_jupiter_saturn_uranus_earth, axis=0),
-            levels=[-0.30, -0.10, -0.03, -0.01, -0.003, -0.001, 0, 0.001, 0.003, 0.01, 0.03, 0.10, 0.30],
-            colors=['blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'green', 'red', 'red', 'red', 'red', 'red', 'red'],
-            linewidths=[1.3, 1.1, 0.9, 0.7, 0.5, 0.3, 0.5, 0.3, 0.5, 0.7, 0.9, 1.1, 1.3],
+            levels=[-0.30, -0.10, -0.03, -0.01, -0.003, -0.001, -0.0003, -0.0001, 0, 0.0001, 0.0003, 0.001, 0.003, 0.01, 0.03, 0.10, 0.30],
+            colors=['blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'green', 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'red'],
+            linewidths=[1.3, 1.1, 0.9, 0.7, 0.6, 0.5, 0.4, 0.3, 0.5, 0.3, 0.4, 0.5, 0.6, 0.7, 0.9, 1.1, 1.3],
             extent=[-ang_width/2 - ang_res/2, ang_width/2 + ang_res/2, -ang_width/2 - ang_res/2, ang_width/2 + ang_res/2]
     )
 
