@@ -489,7 +489,7 @@ class IRSFunctions:
 
         return y_plus, y_minus, np.min(ring_magnifications)
 
-    def _ang_width_calculator(lens_att: list | np.ndarray, pixels_in_small_source: int = 10, cm_offset: str | tuple | list = [0, 0], cm_translation: tuple | list = [0, 0]):
+    def _ang_width_calculator(lens_att: list | np.ndarray, pixels_in_small_source: int = 10, final_multiplier: float = 2, cm_offset: str | tuple | list = [0, 0], cm_translation: tuple | list = [0, 0]):
         '''
         Calculates the angular width of the magnification map using Equations 8-10 in https://arxiv.org/pdf/astro-ph/0505363.
 
@@ -499,6 +499,8 @@ class IRSFunctions:
             Passed through via passed_params dict
         pixels_in_small_source : int, optional
             Number of pixels to cover the diameter of the smallest source. Default is 10
+        final_multiplier : float, optional
+            Multiplier for the angular width. Default is 2
         cm_offset : str or tuple or list, optional
             Center of mass offset to be added to caustic positions. If 'auto', then the center of mass of each star-planet combination is used. Default is [0, 0]
         cm_translation : tuple or list, optional
@@ -650,7 +652,7 @@ class IRSFunctions:
         ang_width = max(ang_width_source, ang_width_nosource)
 
         # Making map twice as wide as the minimum required
-        ang_width *= 2
+        ang_width *= final_multiplier
 
         # Determining the number of pixels such that the source radius is covered by at least a certain number of pixels
         ang_res = min_source_radius*2 / pixels_in_small_source

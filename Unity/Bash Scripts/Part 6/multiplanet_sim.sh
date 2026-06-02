@@ -6,13 +6,13 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=2G
-#SBATCH --job-name=multiplanet_sim
+#SBATCH --job-name=multiplanet_sim_2
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=senthilnathan.11@osu.edu
 
 #SBATCH --gres=gpu:1
 
-#SBATCH --output="./Unity/Output Logs/Part_6/multiplanet_sim.txt"
+#SBATCH --output="./Unity/Output Logs/Part_6/multiplanet_sim_2.txt"
 
 # Commands to run
 module load mamba
