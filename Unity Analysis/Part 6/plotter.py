@@ -23,9 +23,9 @@ if __name__ == '__main__':
 
     #%% Defining arguments
     parser = argparse.ArgumentParser(description='Plot microlensing simulations for triple lens systems.')
-    parser.add_argument('--multiplier', type=float, default=1.0, help='Multiplier for output filename.')
+    parser.add_argument('--radius', type=float, default=1.0, help='Radius of source profile (in Rsun).')
     args = parser.parse_args()
-    multiplier = args.multiplier
+    radius = args.radius
 
     #%% Setting plot parameters
     # plt.rcParams['font.family'] = 'Times New Roman'
@@ -147,13 +147,10 @@ if __name__ == '__main__':
 
     #%% Defining source profile
     print('Defining source profile...')
-    max_source_radius_solar = 60 * c.R_sun.to(u.m).value # meters
-    max_source_radius_angular = max_source_radius_solar / D_l.to(u.m).value * u.rad # radians
-    print(f'Max source radius: {max_source_radius_angular.to(u.mas)}')
-    max_source_radius = max_source_radius_angular.to(u.mas).value / theta_ein.to(u.mas).value # theta_E
-    print(f'Max source radius: {max_source_radius}')
-
-    source_radius = max_source_radius / 10 * multiplier
+    source_radius_solar = radius * c.R_sun.to(u.m).value # meters
+    source_radius_angular = source_radius_solar / D_l.to(u.m).value * u.rad # radians
+    print(f'Source radius: {source_radius_angular.to(u.mas)}')
+    source_radius = source_radius_angular.to(u.mas).value / theta_ein.to(u.mas).value # theta_E
     print(f'Source radius: {source_radius}')
 
     source_profile = IRSF.IRSFunctions.source_profile(ang_res=sun_jupiter_sim.ang_res, profile_type='LD', rad=source_radius, LD=0.5)
@@ -180,7 +177,7 @@ if __name__ == '__main__':
     ax = fig.add_subplot()
 
     fig.suptitle('Fractional Difference Between Sun-Jupiter and Sun-Jupiter-Saturn Magnification Maps')
-    ax.set_title(f'Source Radius: {max_source_radius_solar / 10 * multiplier / c.R_sun.to(u.m).value:.2f} R_sun')
+    ax.set_title(f'Source Radius: {radius:.2e} $R_\odot$')
 
     plot = ax.imshow(frac_diff_jupiter_saturn, 
                     cmap='gray',
@@ -199,7 +196,7 @@ if __name__ == '__main__':
     ax.set_xlabel(r'X [$\theta_E$]')
     ax.set_ylabel(r'Y [$\theta_E$]')
 
-    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn_{multiplier:.0e}.png', dpi=300)
+    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn_{radius:.2e}.png', dpi=300)
 
     print('Plotting Fractional Difference Between Sun-Jupiter-Saturn and Sun-Jupiter-Saturn-Uranus Magnification Maps...')
     frac_diff_jupiter_saturn_uranus = (sun_jupiter_saturn_uranus_convolved_magnifications - sun_jupiter_saturn_convolved_magnifications) / sun_jupiter_saturn_convolved_magnifications
@@ -209,7 +206,7 @@ if __name__ == '__main__':
     ax = fig.add_subplot()
 
     fig.suptitle('Fractional Difference Between Sun-Jupiter-Saturn and Sun-Jupiter-Saturn-Uranus Magnification Maps')
-    ax.set_title(f'Source Radius: {max_source_radius_solar / 10 * multiplier / c.R_sun.to(u.m).value:.2f} R_sun')
+    ax.set_title(f'Source Radius: {radius:.2e} $R_\odot$')
 
     plot = ax.imshow(frac_diff_jupiter_saturn_uranus, 
                     cmap='gray',
@@ -228,7 +225,7 @@ if __name__ == '__main__':
     ax.set_xlabel(r'X [$\theta_E$]')
     ax.set_ylabel(r'Y [$\theta_E$]')
 
-    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn_uranus_{multiplier:.0e}.png', dpi=300)
+    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn_{radius:.2e}.png', dpi=300)
 
     print('Plotting Fractional Difference Between Sun-Jupiter-Saturn-Uranus and Sun-Jupiter-Saturn-Uranus-Earth Magnification Maps...')
     frac_diff_jupiter_saturn_uranus_earth = (sun_jupiter_saturn_uranus_earth_convolved_magnifications - sun_jupiter_saturn_uranus_convolved_magnifications) / sun_jupiter_saturn_uranus_convolved_magnifications
@@ -238,7 +235,7 @@ if __name__ == '__main__':
     ax = fig.add_subplot()
 
     fig.suptitle('Fractional Difference Between Sun-Jupiter-Saturn-Uranus and Sun-Jupiter-Saturn-Uranus-Earth Magnification Maps')
-    ax.set_title(f'Source Radius: {max_source_radius_solar / 10 * multiplier / c.R_sun.to(u.m).value:.2f} R_sun')
+    ax.set_title(f'Source Radius: {radius:.2e} $R_\odot$')
 
     plot = ax.imshow(frac_diff_jupiter_saturn_uranus_earth, 
                     cmap='gray',
@@ -257,4 +254,4 @@ if __name__ == '__main__':
     ax.set_xlabel(r'X [$\theta_E$]')
     ax.set_ylabel(r'Y [$\theta_E$]')
 
-    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn_uranus_earth_{multiplier:.0e}.png', dpi=300)
+    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn_{radius:.2e}.png', dpi=300)
