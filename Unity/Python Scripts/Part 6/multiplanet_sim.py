@@ -86,9 +86,9 @@ if __name__ == '__main__':
     pixels, ang_width, (qs, ss), cusp_points, (max_source_radius, min_source_radius) = IRSF.IRSFunctions._ang_width_calculator(sun_jupiter_lens_att, final_multiplier=1, pixels_in_small_source=20, cm_offset='auto')
     print(f'Pixels = {pixels}, Angular Width = {ang_width}, Max Source Radius = {max_source_radius}, Min Source Radius = {min_source_radius}')
 
-    y_plus = 1.2790793218503667
-    y_minus = 0.7812645092009943
-    min_mag = 1.9432064097360755
+    y_plus = 1.1316152394421348
+    y_minus = 0.8828576046682406
+    min_mag = 4.056895881009251
     # (y_plus, y_minus), min_mag = IRSF.IRSFunctions._annulus_bounds_calculator(ang_width, qs, ss)
     # print(f'Annulus bounds: y+ = {y_plus}, y- = {y_minus}, Min Magnification in Annulus = {min_mag}')
 
