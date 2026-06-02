@@ -11,6 +11,7 @@ import astropy
 import astropy.units as u
 import astropy.constants as const
 import MulensModel as mm
+import VBMicrolensing
 import scipy.ndimage as ndi
 import scipy.signal as sig
 
