@@ -151,7 +151,7 @@ if __name__ == '__main__':
     source_radius_angular = source_radius_solar / D_l.to(u.m).value * u.rad # radians
     print(f'Source radius: {source_radius_angular.to(u.mas)}')
     source_radius = source_radius_angular.to(u.mas).value / theta_ein.to(u.mas).value # theta_E
-    print(f'Source radius: {source_radius}')
+    print(f'Source radius: {source_radius} theta_E')
 
     source_profile = IRSF.IRSFunctions.source_profile(ang_res=sun_jupiter_sim.ang_res, profile_type='LD', rad=source_radius, LD=0.5)
 
@@ -225,7 +225,7 @@ if __name__ == '__main__':
     ax.set_xlabel(r'X [$\theta_E$]')
     ax.set_ylabel(r'Y [$\theta_E$]')
 
-    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn_{radius:.2e}.png', dpi=300)
+    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn_uranus_{radius:.2e}.png', dpi=300)
 
     print('Plotting Fractional Difference Between Sun-Jupiter-Saturn-Uranus and Sun-Jupiter-Saturn-Uranus-Earth Magnification Maps...')
     frac_diff_jupiter_saturn_uranus_earth = (sun_jupiter_saturn_uranus_earth_convolved_magnifications - sun_jupiter_saturn_uranus_convolved_magnifications) / sun_jupiter_saturn_uranus_convolved_magnifications
@@ -254,4 +254,4 @@ if __name__ == '__main__':
     ax.set_xlabel(r'X [$\theta_E$]')
     ax.set_ylabel(r'Y [$\theta_E$]')
 
-    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn_{radius:.2e}.png', dpi=300)
+    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn_uranus_earth_{radius:.2e}.png', dpi=300)
