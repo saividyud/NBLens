@@ -337,31 +337,66 @@ class IRSFunctions:
     # Skowron & Gould 2012 polynomial root solver (via VBMicrolensing), reused across calls.
     _VBM_SOLVER = VBMicrolensing.VBMicrolensing()
 
-    def _complex_fsum(arguments):
-        '''Accurate floating-point sum of an iterable of complex numbers.'''
+    def _complex_fsum(arguments: list | np.ndarray):
+        '''
+        Sums an iterable of complex numbers using accurate floating-point summation.
+
+        Parameters
+        ----------
+        arguments : list or np.ndarray
+            Iterable of complex (or real) numbers to be summed
+
+        Returns
+        -------
+        total : complex
+            Floating-point-accurate sum of the inputs
+        '''
+        # Collecting the real part of every input number
         real = [arg.real for arg in arguments]
+
+        # Collecting the imaginary part of every input number
         imag = [arg.imag for arg in arguments]
+
+        # Summing the real and imaginary parts separately and recombining into one complex number
         return m.fsum(real) + m.fsum(imag) * 1j
 
-    def _binary_lens_polynomial(total_m, m_diff, z1, zeta):
+    def _binary_lens_polynomial(total_m: complex, m_diff: complex, z1: complex, zeta: complex):
         '''
-        Coefficients of the 5th-order complex polynomial whose roots are the
-        (candidate) image positions for a point source at ``zeta`` in the frame
-        where the secondary mass sits at the origin and the primary at ``z1``.
-        Follows Witt & Mao 1995 (ApJL, 447, L105).
+        Builds the coefficients of the fifth-order complex lens polynomial whose roots are the candidate image positions (Witt & Mao 1995).
 
-        Returns the coefficients ordered from the constant term (z^0) up to z^5,
-        matching numpy.polynomial.polynomial.polyroots ordering.
+        Parameters
+        ----------
+        total_m : complex
+            WM95 total-mass term, half the sum of the two fractional masses
+        m_diff : complex
+            WM95 mass-difference term, half the difference of the two fractional masses
+        z1 : complex
+            Position of the primary lens in the secondary-mass frame
+        zeta : complex
+            Source position in the secondary-mass frame
+
+        Returns
+        -------
+        coeffs : np.ndarray
+            Length-6 array of complex coefficients ordered from the constant term (z^0) up to z^5
         '''
+        # Pre-computing the complex conjugate of the source position
         zeta_conj = zeta.conjugate()
+
+        # Aliasing the accurate complex summation helper for brevity
         c_sum = IRSFunctions._complex_fsum
 
+        # Computing the coefficient of the z^5 term
         coeff_5 = c_sum([z1, -zeta_conj]) * zeta_conj
+
+        # Computing the coefficient of the z^4 term
         coeff_4 = c_sum([
             (-m_diff + total_m) * z1,
             -c_sum([2. * total_m, z1 * c_sum([2. * z1, zeta])]) * zeta_conj,
             c_sum([2. * z1 + zeta]) * zeta_conj**2
         ])
+
+        # Computing the coefficient of the z^3 term
         coeff_3 = c_sum([
             z1 * c_sum([m_diff * z1, -total_m * c_sum([z1, 2. * zeta])]),
             zeta_conj * c_sum([
@@ -370,6 +405,8 @@ class IRSFunctions:
             ]),
             -z1 * c_sum([z1, 2. * zeta]) * zeta_conj**2
         ])
+
+        # Computing the coefficient of the z^2 term
         coeff_2 = c_sum([
             m_diff * z1 * c_sum([2. * total_m, z1 * zeta]),
             total_m * c_sum([
@@ -380,110 +417,180 @@ class IRSFunctions:
             ]),
             z1**2 * zeta * zeta_conj**2
         ])
+
+        # Computing the coefficient of the z^1 term
         coeff_1 = -z1 * (m_diff + total_m) * c_sum([
             m_diff * z1, -total_m * z1, 4. * total_m * zeta, z1**2 * zeta,
             -2. * z1 * zeta * zeta_conj
         ])
+
+        # Computing the coefficient of the z^0 (constant) term
         coeff_0 = (m_diff + total_m)**2 * z1**2 * zeta
 
+        # Returning the coefficients as a length-6 array ordered from the constant term up to z^5
         return np.array([coeff_0, coeff_1, coeff_2, coeff_3, coeff_4, coeff_5]).reshape(6)
 
-    def _solve_binary_lens_polynomial(polynomial, solver='Skowron_and_Gould_12'):
+    def _solve_binary_lens_polynomial(polynomial: np.ndarray, solver: str = 'Skowron_and_Gould_12'):
         '''
-        Roots of the binary-lens polynomial.
+        Finds the complex roots of the binary-lens polynomial with the chosen root solver.
 
-        ``solver='Skowron_and_Gould_12'`` uses VBMicrolensing's cmplx_roots_gen
-        (the Skowron & Gould 2012 algorithm), matching the previous MulensModel
-        behaviour. ``solver='numpy'`` uses numpy.polynomial.polynomial.polyroots.
+        Parameters
+        ----------
+        polynomial : np.ndarray
+            Length-6 array of complex polynomial coefficients ordered from z^0 up to z^5
+        solver : str, optional
+            Root solver to use, either 'Skowron_and_Gould_12' (default, via VBMicrolensing) or 'numpy'
+
+        Returns
+        -------
+        roots : np.ndarray
+            Array of the five complex roots of the polynomial
         '''
+        # Using NumPy's companion-matrix eigenvalue solver when requested
         if solver == 'numpy':
+            # Returning the roots directly from NumPy's polynomial root finder
             return np.polynomial.polynomial.polyroots(polynomial)
+
+        # Using the Skowron & Gould 2012 solver provided by VBMicrolensing
         elif solver == 'Skowron_and_Gould_12':
+            # Repackaging the coefficients as (real, imaginary) tuples expected by VBMicrolensing
             coefficients = [(polynomial.real[i], polynomial.imag[i]) for i in range(6)]
+
+            # Solving for the roots with VBMicrolensing's complex root generator
             roots = IRSFunctions._VBM_SOLVER.cmplx_roots_gen(coefficients)
+
+            # Recombining the real and imaginary parts of each root into a complex array
             return np.array([roots[i][0] + roots[i][1] * 1.j for i in range(5)])
+
+        # Rejecting any unrecognized solver name
         else:
             raise ValueError('Unknown solver: {:}'.format(solver))
 
-    def _verify_binary_lens_roots(roots, zeta, m1, m2, z1, z2):
+    def _verify_binary_lens_roots(roots: np.ndarray, zeta: complex, m1: float, m2: float, z1: complex, z2: complex):
         '''
-        Keep only the polynomial roots that actually solve the lens equation.
-        A binary point lens admits either 3 or 5 real images; spurious roots are
-        discarded by checking which root each back-substituted solution maps to.
+        Filters the candidate polynomial roots down to the physical images that actually solve the lens equation.
+
+        Parameters
+        ----------
+        roots : np.ndarray
+            Candidate complex roots returned by the polynomial solver
+        zeta : complex
+            Source position in the secondary-mass frame
+        m1 : float
+            Fractional mass of the primary lens
+        m2 : float
+            Fractional mass of the secondary lens
+        z1 : complex
+            Position of the primary lens in the secondary-mass frame
+        z2 : complex
+            Position of the secondary lens (origin) in the secondary-mass frame
+
+        Returns
+        -------
+        verified : np.ndarray
+            Array of the 3 or 5 complex roots that satisfy the lens equation
         '''
+        # Pre-computing the complex conjugate of every candidate root
         roots_conj = np.conjugate(roots)
+
+        # Back-substituting each root into the lens equation to recover its implied source position
         solutions = zeta + m1 / (roots_conj - z1) + m2 / (roots_conj - z2)
 
+        # Initializing the list that will hold the verified image positions
         out = []
+
+        # Looping over each candidate root together with its index
         for (i, root) in enumerate(roots):
+            # Measuring how far each back-substituted solution lands from this root
             distances_from_root = abs((solutions - root) ** 2)
+
+            # Keeping the root only when it is the closest match to its own back-substituted solution
             if i == np.argmin(distances_from_root):
                 out.append(root)
 
+        # Raising an error when the number of verified images is not physically allowed (3 or 5)
         if len(out) not in [3, 5]:
             raise ValueError(
                 'Wrong number of solutions to the binary-lens equation.\n'
                 'Got {:} and expected 3 or 5. (m1={:}, m2={:}, z1={:}, zeta={:})'.format(
                     len(out), m1, m2, z1, zeta))
 
+        # Returning the verified image positions as a NumPy array
         return np.array(out)
 
-    def _get_n_images(x, y, q, s, solver='Skowron_and_Gould_12'):
+    def _get_n_images(x: float, y: float, q: float, s: float, solver: str = 'Skowron_and_Gould_12'):
         '''
-        MulensModel-free replacement for the previous ``_MyBinaryLens.get_n_images``.
-
-        Computes the point-source binary-lens magnification and image positions
-        for a source at (x, y), following Witt & Mao 1995. The source position is
-        expected in the center-of-mass frame. Image positions are returned with
-        the origin at the primary (star), to match the previous output.
+        Calculates the point-source binary-lens magnification and image positions for a source at (x, y) following Witt & Mao 1995.
 
         Parameters
         ----------
-        x, y : float
-            Source position in the center-of-mass frame, in Einstein radii.
+        x : float
+            Source x-coordinate in the center-of-mass frame, in Einstein radii
+        y : float
+            Source y-coordinate in the center-of-mass frame, in Einstein radii
         q : float
-            Planet-to-star mass ratio.
+            Planet-to-star mass ratio
         s : float
-            Star-planet separation, in Einstein radii.
+            Star-planet separation, in Einstein radii
         solver : str, optional
-            Polynomial root solver: 'Skowron_and_Gould_12' (default, via
-            VBMicrolensing) or 'numpy'.
+            Root solver to use, either 'Skowron_and_Gould_12' (default, via VBMicrolensing) or 'numpy'
 
         Returns
         -------
         magnification : float
-            Point-source magnification at (x, y).
-        results : np.ndarray of complex
-            Image positions in the complex plane, origin at the primary (star).
+            Total point-source magnification at the source position
+        results : np.ndarray
+            Complex image positions with the origin placed at the primary (star)
         '''
-        # Mass fractions and WM95 combinations.
+        # Computing the fractional mass of the primary lens
         m1 = 1. / (1. + q)
+
+        # Computing the fractional mass of the secondary lens
         m2 = q / (1. + q)
+
+        # Computing the WM95 total-mass term
         total_m = 0.5 * (m1 + m2)
+
+        # Computing the WM95 mass-difference term
         m_diff = 0.5 * (m2 - m1)
 
-        # Lens positions in the secondary-mass (planet) frame.
+        # Placing the primary lens on the negative real axis of the secondary-mass frame
         z1 = -s + 0.j
+
+        # Placing the secondary lens at the origin of the secondary-mass frame
         z2 = 0. + 0.j
 
-        # Shift source from the center-of-mass frame to the secondary-mass frame.
+        # Shifting the source x-coordinate from the center-of-mass frame to the secondary-mass frame
         x_planet_frame = x - s / (1. + q)
+
+        # Building the complex source position in the secondary-mass frame
         zeta = float(x_planet_frame) + float(y) * 1.j
 
-        # Solve and verify the lens equation.
+        # Constructing the binary-lens polynomial coefficients for this source position
         polynomial = IRSFunctions._binary_lens_polynomial(total_m, m_diff, z1, zeta)
+
+        # Solving the polynomial for its complex roots
         roots = IRSFunctions._solve_binary_lens_polynomial(polynomial, solver=solver)
+
+        # Keeping only the roots that genuinely solve the lens equation
         verified = IRSFunctions._verify_binary_lens_roots(roots, zeta, m1, m2, z1, z2)
 
-        # Magnification = sum of |1 / det(Jacobian)| over verified images.
+        # Pre-computing the complex conjugate of every verified image position
         roots_ok_bar = np.conjugate(verified)
+
+        # Evaluating the derivative term of the lens mapping at each image
         derivative = m1 / (z1 - roots_ok_bar)**2 + m2 / (z2 - roots_ok_bar)**2
+
+        # Computing the Jacobian determinant of the lens mapping at each image
         jacobian_determinant = 1. - derivative * np.conjugate(derivative)
+
+        # Summing the absolute inverse Jacobian determinants to obtain the total magnification
         magnification = m.fsum(abs(1. / jacobian_determinant))
 
-        # Shift image positions to put the origin at the primary (star).
+        # Shifting the image positions so the origin sits at the primary (star)
         results = verified + (s + 0.0j)
 
+        # Returning the magnification together with the image positions
         return magnification, results
 
     def _separate_circles(points, q, s):
