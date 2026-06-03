@@ -73,7 +73,7 @@ if __name__ == '__main__':
     #%% Importing simulation data
     print('Importing Sun-Jupiter simulation data...')
     multiplanet_directory = './Unity/Simulations/Part_6_Multiplanet_Collection'
-    sun_jupiter_file = f'{multiplanet_directory}/sun_jupiter.pkl'
+    sun_jupiter_file = f'{multiplanet_directory}/sun_jupiter_2.pkl'
     sun_jupiter_sim = IRSC.caustic_reader(sun_jupiter_file)
     print(f'Pixels: {sun_jupiter_sim.pixels}')
     print(f'Angular width: {sun_jupiter_sim.ang_width}')
@@ -84,7 +84,7 @@ if __name__ == '__main__':
     print(f'Number of rays in r: {sun_jupiter_sim.num_r}')
 
     print('Importing Sun-Jupiter-Saturn simulation data...')
-    sun_jupiter_saturn_file = f'{multiplanet_directory}/sun_jupiter_saturn.pkl'
+    sun_jupiter_saturn_file = f'{multiplanet_directory}/sun_jupiter_saturn_2.pkl'
     sun_jupiter_saturn_sim = IRSC.caustic_reader(sun_jupiter_saturn_file)
     print(f'Pixels: {sun_jupiter_saturn_sim.pixels}')
     print(f'Angular width: {sun_jupiter_saturn_sim.ang_width}')
@@ -95,7 +95,7 @@ if __name__ == '__main__':
     print(f'Number of rays in r: {sun_jupiter_saturn_sim.num_r}')
 
     print('Importing Sun-Jupiter-Saturn-Uranus simulation data...')
-    sun_jupiter_saturn_uranus_file = f'{multiplanet_directory}/sun_jupiter_saturn_uranus.pkl'
+    sun_jupiter_saturn_uranus_file = f'{multiplanet_directory}/sun_jupiter_saturn_uranus_2.pkl'
     sun_jupiter_saturn_uranus_sim = IRSC.caustic_reader(sun_jupiter_saturn_uranus_file)
     print(f'Pixels: {sun_jupiter_saturn_uranus_sim.pixels}')
     print(f'Angular width: {sun_jupiter_saturn_uranus_sim.ang_width}')
@@ -106,7 +106,7 @@ if __name__ == '__main__':
     print(f'Number of rays in r: {sun_jupiter_saturn_uranus_sim.num_r}')
 
     print('Importing Sun-Jupiter-Saturn-Uranus-Earth simulation data...')
-    sun_jupiter_saturn_uranus_earth_file = f'{multiplanet_directory}/sun_jupiter_saturn_uranus_earth.pkl'
+    sun_jupiter_saturn_uranus_earth_file = f'{multiplanet_directory}/sun_jupiter_saturn_uranus_earth_2.pkl'
     sun_jupiter_saturn_uranus_earth_sim = IRSC.caustic_reader(sun_jupiter_saturn_uranus_earth_file)
     print(f'Pixels: {sun_jupiter_saturn_uranus_earth_sim.pixels}')
     print(f'Angular width: {sun_jupiter_saturn_uranus_earth_sim.ang_width}')
@@ -129,21 +129,21 @@ if __name__ == '__main__':
     sun_jupiter_saturn_uranus_earth_magnifications = sun_jupiter_saturn_uranus_earth_sim.magnifications
 
     #%% Plotting magnification map
-    # print('Plotting Sun-Jupiter Magnification Map...')
-    # sun_jupiter_sim.plot()
-    # plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_magnification_map.png', dpi=300)
+    print('Plotting Sun-Jupiter Magnification Map...')
+    sun_jupiter_sim.plot()
+    plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_magnification_map_2.png', dpi=300)
 
-    # print('Plotting Sun-Jupiter-Saturn Magnification Map...')
-    # sun_jupiter_saturn_sim.plot()
-    # plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_saturn_magnification_map.png', dpi=300)
+    print('Plotting Sun-Jupiter-Saturn Magnification Map...')
+    sun_jupiter_saturn_sim.plot()
+    plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_saturn_magnification_map_2.png', dpi=300)
 
-    # print('Plotting Sun-Jupiter-Saturn-Uranus Magnification Map...')
-    # sun_jupiter_saturn_uranus_sim.plot()
-    # plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_saturn_uranus_magnification_map.png', dpi=300)
+    print('Plotting Sun-Jupiter-Saturn-Uranus Magnification Map...')
+    sun_jupiter_saturn_uranus_sim.plot()
+    plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_saturn_uranus_magnification_map_2.png', dpi=300)
 
-    # print('Plotting Sun-Jupiter-Saturn-Uranus-Earth Magnification Map...')
-    # sun_jupiter_saturn_uranus_earth_sim.plot()
-    # plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_saturn_uranus_earth_magnification_map.png', dpi=300)
+    print('Plotting Sun-Jupiter-Saturn-Uranus-Earth Magnification Map...')
+    sun_jupiter_saturn_uranus_earth_sim.plot()
+    plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_saturn_uranus_earth_magnification_map_2.png', dpi=300)
 
     #%% Defining source profile
     print('Defining source profile...')
@@ -196,7 +196,7 @@ if __name__ == '__main__':
     ax.set_xlabel(r'X [$\theta_E$]')
     ax.set_ylabel(r'Y [$\theta_E$]')
 
-    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn_{radius:.2e}.png', dpi=300)
+    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn_2_{radius:.2e}.png', dpi=300)
 
     print('Plotting Fractional Difference Between Sun-Jupiter-Saturn and Sun-Jupiter-Saturn-Uranus Magnification Maps...')
     frac_diff_jupiter_saturn_uranus = (sun_jupiter_saturn_uranus_convolved_magnifications - sun_jupiter_saturn_convolved_magnifications) / sun_jupiter_saturn_convolved_magnifications
@@ -225,7 +225,7 @@ if __name__ == '__main__':
     ax.set_xlabel(r'X [$\theta_E$]')
     ax.set_ylabel(r'Y [$\theta_E$]')
 
-    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn_uranus_{radius:.2e}.png', dpi=300)
+    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn_uranus_2_{radius:.2e}.png', dpi=300)
 
     print('Plotting Fractional Difference Between Sun-Jupiter-Saturn-Uranus and Sun-Jupiter-Saturn-Uranus-Earth Magnification Maps...')
     frac_diff_jupiter_saturn_uranus_earth = (sun_jupiter_saturn_uranus_earth_convolved_magnifications - sun_jupiter_saturn_uranus_convolved_magnifications) / sun_jupiter_saturn_uranus_convolved_magnifications
@@ -254,4 +254,4 @@ if __name__ == '__main__':
     ax.set_xlabel(r'X [$\theta_E$]')
     ax.set_ylabel(r'Y [$\theta_E$]')
 
-    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn_uranus_earth_{radius:.2e}.png', dpi=300)
+    plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_jupiter_saturn_uranus_earth_2_{radius:.2e}.png', dpi=300)
