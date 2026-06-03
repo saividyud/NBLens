@@ -161,8 +161,6 @@ if __name__ == '__main__':
 
         fig.savefig(f'{file_directory}/Lens Configuration.png', dpi=300)
 
-        fig.savefig(f'{file_directory}/Lens Configuration.png', dpi=300)
-
     # Creating magnification maps
     center_of_magnification = np.array([planet_attributes['q'].iloc[0] / ((1 + planet_attributes['q'].iloc[0]) * (planet_attributes['s'].iloc[0] + 1/planet_attributes['s'].iloc[0])), 0])
     print(f'Binary offset: {center_of_magnification}')
