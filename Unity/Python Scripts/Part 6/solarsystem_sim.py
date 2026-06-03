@@ -195,7 +195,12 @@ if __name__ == '__main__':
     sim_current_lens = IRSC.IRSCaustics(annulus_param_dict=lens_parameters)
     magnifications_current_lens = sim_current_lens.series_calculate(cm_offset='auto')
 
-    file_name = f'{current_planets.str.join('_')}.pkl'
+    file_name = current_planets.iloc[0]
+    for i, planet in enumerate(current_planets.values):
+        if i != 0:
+            file_name += f'_{planet}'
+    file_name += '.pkl'
+
     file_path = f'{file_directory}/{file_name}'
 
     print(f'Simulation file path: {file_path}')
