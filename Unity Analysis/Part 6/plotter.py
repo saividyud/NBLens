@@ -129,21 +129,21 @@ if __name__ == '__main__':
     sun_jupiter_saturn_uranus_earth_magnifications = sun_jupiter_saturn_uranus_earth_sim.magnifications
 
     #%% Plotting magnification map
-    print('Plotting Sun-Jupiter Magnification Map...')
-    sun_jupiter_sim.plot()
-    plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_magnification_map_2.png', dpi=300)
+    # print('Plotting Sun-Jupiter Magnification Map...')
+    # sun_jupiter_sim.plot()
+    # plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_magnification_map_2.png', dpi=300)
 
-    print('Plotting Sun-Jupiter-Saturn Magnification Map...')
-    sun_jupiter_saturn_sim.plot()
-    plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_saturn_magnification_map_2.png', dpi=300)
+    # print('Plotting Sun-Jupiter-Saturn Magnification Map...')
+    # sun_jupiter_saturn_sim.plot()
+    # plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_saturn_magnification_map_2.png', dpi=300)
 
-    print('Plotting Sun-Jupiter-Saturn-Uranus Magnification Map...')
-    sun_jupiter_saturn_uranus_sim.plot()
-    plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_saturn_uranus_magnification_map_2.png', dpi=300)
+    # print('Plotting Sun-Jupiter-Saturn-Uranus Magnification Map...')
+    # sun_jupiter_saturn_uranus_sim.plot()
+    # plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_saturn_uranus_magnification_map_2.png', dpi=300)
 
-    print('Plotting Sun-Jupiter-Saturn-Uranus-Earth Magnification Map...')
-    sun_jupiter_saturn_uranus_earth_sim.plot()
-    plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_saturn_uranus_earth_magnification_map_2.png', dpi=300)
+    # print('Plotting Sun-Jupiter-Saturn-Uranus-Earth Magnification Map...')
+    # sun_jupiter_saturn_uranus_earth_sim.plot()
+    # plt.savefig(f'./Unity Analysis/Part 6/Figures/sun_jupiter_saturn_uranus_earth_magnification_map_2.png', dpi=300)
 
     #%% Defining source profile
     print('Defining source profile...')
