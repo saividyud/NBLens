@@ -159,7 +159,7 @@ if __name__ == '__main__':
 
         ax.legend(ncol=2, loc='best')
 
-        fig.savefig(f'{file_directory}/Lens Configuration.png', dpi=300)
+        fig.savefig(f'./Unity Analysis/Part 6/Figures/solar_system_lens_configuration.png', dpi=300)
 
     # Creating magnification maps
     center_of_magnification = np.array([planet_attributes['q'].iloc[0] / ((1 + planet_attributes['q'].iloc[0]) * (planet_attributes['s'].iloc[0] + 1/planet_attributes['s'].iloc[0])), 0])
