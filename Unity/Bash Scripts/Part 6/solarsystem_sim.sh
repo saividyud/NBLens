@@ -21,4 +21,4 @@ export LD_LIBRARY_PATH=$CUDA_HOME/targets/x86_64-linux/lib:$LD_LIBRARY_PATH
 mamba activate .venv
 
 # Run simulation
-python "./Unity/Python Scripts/Part 6/solarsystem_sim.py" --job_id 6
+python "./Unity/Python Scripts/Part 6/solarsystem_sim.py" --job_id 5
