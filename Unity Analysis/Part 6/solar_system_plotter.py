@@ -141,6 +141,7 @@ if __name__ == '__main__':
     sims = []
 
     for i in range(len(planets)):
+        print(f'Processing {i+1} planets...')
         current_planets = planet_attributes['Planet'].iloc[0:i+1]
         print(current_planets)
 
@@ -155,8 +156,8 @@ if __name__ == '__main__':
         print(f'Simulation file path: {file_path}')
 
         sim_current_lens = IRSC.caustic_reader(file_path)
-        sim_current_lens.plot()
-        plt.savefig(f'./Unity Analysis/Part 6/Figures/solar_system_magnification_map_{file_name}.png', dpi=300)
+        # sim_current_lens.plot()
+        # plt.savefig(f'./Unity Analysis/Part 6/Figures/solar_system_magnification_map_{file_name}.png', dpi=300)
 
         sims.append(sim_current_lens)
 
@@ -177,6 +178,8 @@ if __name__ == '__main__':
 
     #%% Plotting fractional difference maps
     for i in range(len(sims)-1):
+        print(f'Processing {i+2} - {i+1} planets...')
+
         current_sim = sims[i]
         next_sim = sims[i+1]
 
@@ -210,3 +213,5 @@ if __name__ == '__main__':
         ax.set_ylabel(r'Y [$\theta_E$]')
 
         plt.savefig(f'./Unity Analysis/Part 6/Figures/frac_diff_solar_sys_{i+2}_{i+1}_{radius:.2e}.png', dpi=300)
+
+        print(f'Fractional difference map saved successfully for {i+2} - {i+1} planets.')
