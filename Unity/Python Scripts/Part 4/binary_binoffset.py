@@ -29,7 +29,7 @@ if __name__ == '__main__':
     mp.set_start_method('spawn')
 
     init_time = t.time()
-    from IRSMicroLensing import IRSCaustics2 as IRSC
+    from IRSMicroLensing import IRSCaustics as IRSC
     from IRSMicroLensing import IRSFunctions as IRSF
     print(f'Custom library import time: {(t.time() - init_time):.3} seconds')
 

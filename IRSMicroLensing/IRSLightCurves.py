@@ -1,6 +1,6 @@
 from .imports import *
 from .IRSMain import IRSMain
-from .IRSCaustics2 import IRSCaustics
+from .IRSCaustics import IRSCaustics
 
 class IRSLightCurves(IRSMain):
     '''

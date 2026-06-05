@@ -586,26 +586,6 @@ class IRSCaustics(IRSMain):
         self.show_mm = False
         self.show_dev = False
 
-        # Compiling Numba jit functions
-        num = 2
-        rand_sum = np.zeros(shape=(100, 100), dtype=np.complex128)
-        rand_coords = np.ones(shape=(100, 100), dtype=np.complex128)
-        rand_masscoords = np.zeros(shape=num, dtype=np.complex128)
-        rand_eps = np.ones(shape=num, dtype=np.float64)
-        IRSMain.lens_eq(num, rand_sum, rand_coords, rand_masscoords, rand_eps)
-
-        init_rand_arr = np.random.randint(0, 10, size=(2, 2))
-        IRSCaustics.calc_uniques(init_rand_arr)
-
-        count_rand_arr = np.random.randint(0, 10, size=2)
-        magnifications = np.zeros(shape=(100, 100), dtype=np.int64)
-        IRSCaustics.calc_mags(100, magnifications, init_rand_arr, count_rand_arr)
-
-        X_comp = np.random.random((3, 3))
-        Y_comp = np.random.random((3, 3))
-        ann_comp = 0.01
-        IRSCaustics.create_annulus(ann_comp, X_comp, Y_comp)
-
         # Beginning computation
         begin_time = t.time()
 
@@ -647,29 +627,16 @@ class IRSCaustics(IRSMain):
             del X # Deleting large arrays
             del Y
         
-            # Calculating indices of translated pixel after deflection
-            indx, indy = self.trans_ind(xs, ys)
-            del xs # Deleting large arrays
+            # NEW LOOP (Replace with this)
+            magnifications = IRSCaustics.fast_binning(
+                xs, ys, 
+                self.ang_width, 
+                self.ang_res, 
+                self.pixels, 
+                magnifications
+            )
+            del xs
             del ys
-
-            # Finding wherever indx or indy is nan
-            indx = np.nan_to_num(indx, nan=self.pixels*1000).astype(int)
-            indy = np.nan_to_num(indy, nan=self.pixels*1000).astype(int)
-
-            # Combining indx and indy into matrix of 2-element arrays (x and y coordinates)
-            comb_mat = np.stack((indx, indy), axis=2)
-            del indx # Deleting large arrays
-            del indy
-
-            # Calculating repeated coordinates and their counts in comb_mat
-            stacked_mat = comb_mat.reshape(-1, 2)
-            del comb_mat # Deleting large arrays
-
-            repetitions, counts = IRSCaustics.calc_uniques(stacked_mat)
-            del stacked_mat # Deleting large arrays
-
-            # Iterating through the array of counts to find the number of times each coordinate was repeated and increment that coordinate magnification by 1
-            magnifications = IRSCaustics.calc_mags(self.pixels, magnifications, repetitions, counts)
 
         # Calculating magnifications
         self.magnifications = (magnifications / A_pix) / sigma_ann
@@ -725,26 +692,6 @@ class IRSCaustics(IRSMain):
 
         self.show_mm = False
         self.show_dev = False
-
-        # Compiling Numba jit functions
-        num = 2
-        rand_sum = np.zeros(shape=(100, 100), dtype=np.complex128)
-        rand_coords = np.ones(shape=(100, 100), dtype=np.complex128)
-        rand_masscoords = np.zeros(shape=num, dtype=np.complex128)
-        rand_eps = np.ones(shape=num, dtype=np.float64)
-        IRSMain.lens_eq(num, rand_sum, rand_coords, rand_masscoords, rand_eps)
-
-        init_rand_arr = np.random.randint(0, 10, size=(2, 2))
-        IRSCaustics.calc_uniques(init_rand_arr)
-
-        count_rand_arr = np.random.randint(0, 10, size=2)
-        magnifications = np.zeros(shape=(100, 100), dtype=np.int64)
-        IRSCaustics.calc_mags(100, magnifications, init_rand_arr, count_rand_arr)
-
-        X_comp = np.random.random((3, 3))
-        Y_comp = np.random.random((3, 3))
-        ann_comp = 0.01
-        IRSCaustics.create_annulus(ann_comp, X_comp, Y_comp)
 
         # Beginning computation
         begin_time = t.time()
@@ -848,29 +795,16 @@ class IRSCaustics(IRSMain):
             del X # Deleting large arrays
             del Y
         
-            # Calculating indices of translated pixel after deflection
-            indx, indy = self.trans_ind(xs, ys)
-            del xs # Deleting large arrays
+            # NEW LOOP (Replace with this)
+            magnifications_group = IRSCaustics.fast_binning(
+                xs, ys, 
+                self.ang_width, 
+                self.ang_res, 
+                self.pixels, 
+                magnifications_group
+            )
+            del xs
             del ys
-
-            # Finding wherever indx or indy is nan
-            indx = np.nan_to_num(indx, nan=self.pixels*1000).astype(int)
-            indy = np.nan_to_num(indy, nan=self.pixels*1000).astype(int)
-
-            # Combining indx and indy into matrix of 2-element arrays (x and y coordinates)
-            comb_mat = np.stack((indx, indy), axis=2)
-            del indx # Deleting large arrays
-            del indy
-
-            # Calculating repeated coordinates and their counts in comb_mat
-            stacked_mat = comb_mat.reshape(-1, 2)
-            del comb_mat # Deleting large arrays
-
-            repetitions, counts = IRSCaustics.calc_uniques(stacked_mat)
-            del stacked_mat # Deleting large arrays
-
-            # Iterating through the array of counts to find the number of times each coordinate was repeated and increment that coordinate magnification by 1
-            magnifications_group = IRSCaustics.calc_mags(self.pixels, magnifications_group, repetitions, counts)
 
             pbar.update(1)
 
@@ -1010,6 +944,34 @@ class IRSCaustics(IRSMain):
 
         return self.convolved_brightnesses
 
+    @staticmethod
+    @nb.jit(nopython=True, fastmath=True, cache=True)
+    def fast_binning(xs, ys, ang_width, ang_res, pixels, magnifications):
+        '''
+        Directly bins deflected rays into the magnification map, bypassing intermediate array allocations.
+        '''
+        # Flatten the arrays for easy 1D iteration
+        xs_flat = xs.ravel()
+        ys_flat = ys.ravel()
+        
+        half_width = ang_width / 2.0
+        
+        for i in range(xs_flat.size):
+            x = xs_flat[i]
+            y = ys_flat[i]
+            
+            # Check if the ray lands within the bounds of the source plane map
+            if (x >= -half_width) and (x <= half_width) and (y >= -half_width) and (y <= half_width):
+                
+                # Translate scientific coordinates directly to array indices
+                ix = int(x / ang_res + pixels / 2.0)
+                iy = int(y / ang_res + pixels / 2.0)
+                
+                # Final safety check before incrementing to avoid IndexError
+                if 0 <= ix < pixels and 0 <= iy < pixels:
+                    magnifications[iy, ix] += 1
+                    
+        return magnifications
 
     @staticmethod
     @nb.jit(nb.int64[:, :](nb.int32, nb.int64[:, :], nb.int64[:, :], nb.int64[:]), nopython=True, fastmath=True, cache=True)
@@ -1540,6 +1502,20 @@ class IRSCaustics(IRSMain):
         else:
             raise TypeError(f'Attribute "zoom" must be an tuple or list. Got {type(val)}.')
         
+class _GPUCompatUnpickler(pickle.Unpickler):
+    """Unpickler that remaps GPU classes to their CPU equivalents,
+    allowing GPU-pickled files to load without CuPy installed."""
+
+    _MODULE_MAP = {
+        'IRSMicroLensing.IRSCausticsGPU': 'IRSMicroLensing.IRSCaustics',
+        'IRSMicroLensing.IRSMainGPU': 'IRSMicroLensing.IRSMain',
+    }
+
+    def find_class(self, module, name):
+        mapped = self._MODULE_MAP.get(module, module)
+        return super().find_class(mapped, name)
+
+
 def caustic_reader(file_path: str) -> IRSCaustics:
     with open(file_path, 'rb') as f:
-        return pickle.load(f)
+        return _GPUCompatUnpickler(f).load()

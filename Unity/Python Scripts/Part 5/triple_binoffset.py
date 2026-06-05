@@ -84,7 +84,7 @@ if __name__ == '__main__':
         print(f'Custom library import time (GPU): {(t.time() - init_time):.3} seconds')
     else:
         init_time = t.time()
-        from IRSMicroLensing import IRSCaustics2 as IRSC
+        from IRSMicroLensing import IRSCaustics as IRSC
         print(f'Custom library import time (CPU): {(t.time() - init_time):.3} seconds')
 
     # ── Build list of simulations to run ──
