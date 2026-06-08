@@ -489,6 +489,20 @@ class IRSFunctions:
         -------
         verified : np.ndarray
             Array of the 3 or 5 complex roots that satisfy the lens equation
+
+        Notes
+        -----
+        The primary selector is the mutual-nearest-neighbour match used by MulensModel's
+        ``_verify_polynomial_roots``; it is kept as the default so results for standard mass
+        ratios (q > 1e-6) are byte-for-byte identical to that trusted implementation. That
+        heuristic can, however, discard a genuine image in the extreme mass-ratio regime
+        (q << 1e-6): there a true image sits essentially on top of the secondary at the origin
+        while a spurious polynomial root back-substitutes to the same location and "steals" the
+        nearest-neighbour match, yielding an unphysical count (e.g. 2 or 4). MulensModel itself
+        treats this regime as out of scope (it only labels q > 1e-6 failures as bugs). When the
+        matching count is unphysical we therefore fall back to a direct residual test, keeping
+        every root whose back-substituted source position reproduces the root itself to within a
+        scale-aware tolerance.
         '''
         # Pre-computing the complex conjugate of every candidate root
         roots_conj = np.conjugate(roots)
@@ -507,6 +521,19 @@ class IRSFunctions:
             # Keeping the root only when it is the closest match to its own back-substituted solution
             if i == np.argmin(distances_from_root):
                 out.append(root)
+
+        # Falling back to a direct residual test only when the matching heuristic returns an
+        # unphysical number of images, which happens for extreme mass ratios (see Notes)
+        if len(out) not in [3, 5]:
+            # Measuring how closely each root reproduces itself under the lens equation
+            residuals = np.abs(solutions - roots)
+
+            # Scaling the acceptance tolerance to the geometry so it is dimensionally consistent
+            scale = max(1.0, abs(zeta), abs(z1), abs(z2))
+            tolerance = 1e-5 * scale
+
+            # Keeping every root whose back-substituted source position lands on the root itself
+            out = [root for (root, residual) in zip(roots, residuals) if residual < tolerance]
 
         # Raising an error when the number of verified images is not physically allowed (3 or 5)
         if len(out) not in [3, 5]:
