@@ -208,7 +208,7 @@ if __name__ == '__main__':
     }
 
     sim_current_lens = IRSC.IRSCaustics(annulus_param_dict=lens_parameters)
-    magnifications_current_lens = sim_current_lens.series_calculate(cm_offset='auto', annulus_offset=center_of_magnification)
+    magnifications_current_lens = sim_current_lens.series_calculate(cm_offset='auto', annulus_offset=center_of_magnification, safety_margin=0.3)
 
     file_name = current_planets.iloc[0]
     for i, planet in enumerate(current_planets.values):
