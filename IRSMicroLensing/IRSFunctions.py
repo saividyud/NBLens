@@ -951,6 +951,7 @@ class IRSFunctions:
             min_mags = []
 
             for q, s in zip(qs, ss):
+                print(f'q = {q}, s = {s}')
                 y_plus, y_minus, min_mag = IRSFunctions._image_calculator(u, q, s)
                 y_pluses.append(y_plus)
                 y_minuses.append(y_minus)
