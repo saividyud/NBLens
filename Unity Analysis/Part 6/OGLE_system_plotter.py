@@ -224,8 +224,8 @@ if __name__ == '__main__':
         print(f'Simulation file path: {file_path}')
 
         sim_current_lens = IRSC.caustic_reader(file_path)
-        sim_current_lens.plot()
-        plt.savefig(f'./Unity Analysis/Part 6/Figures/OGLE System/ogle_system_magnification_map_{file_name}.png', dpi=300)
+        # sim_current_lens.plot()
+        # plt.savefig(f'./Unity Analysis/Part 6/Figures/OGLE System/ogle_system_magnification_map_{file_name}.png', dpi=300)
 
         sims.append(sim_current_lens)
 
@@ -269,7 +269,7 @@ if __name__ == '__main__':
         )
         # Adapt contour levels to this map so lines are always visible, even
         # when subtracting small planets shrinks the fractional deviations.
-        levels = half_decade_levels(frac_diff_map, num_steps=6, min_steps=3)
+        levels = half_decade_levels(frac_diff_map, num_steps=3, min_steps=3)
         print(f'Contour levels: {levels}')
 
         plot = ax.contour(np.flip(frac_diff_map, axis=0),
