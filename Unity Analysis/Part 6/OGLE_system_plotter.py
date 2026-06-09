@@ -63,6 +63,62 @@ if __name__ == '__main__':
                 colors.append('red')
         return colors
 
+    def half_decade_levels(data, num_steps=6, min_steps=3):
+        '''Build symmetric half-decade contour levels adapted to the data range.
+
+        Levels follow the base ``[1, 3]`` pattern (..., 1e-2, 3e-2, 1e-1, 3e-1,
+        1, 3, ...) so each decade contributes two steps. The largest level is
+        anchored to the biggest such step at or below the data's maximum absolute
+        value, guaranteeing the outer contours are actually reached. ``num_steps``
+        levels (>= ``min_steps``) are then placed per sign, with a 0 contour.
+        '''
+        num_steps = max(num_steps, min_steps)
+
+        base = (1.0, 3.0)
+
+        def value_at(k):
+            # Maps integer index k -> base[1, 3] level, e.g. k=0 -> 1, k=1 -> 3,
+            # k=2 -> 10, k=-1 -> 0.3, k=-2 -> 0.1 (floor division handles k<0).
+            return base[k % 2] * 10.0 ** (k // 2)
+
+        finite = data[np.isfinite(data)]
+        max_abs = np.max(np.abs(finite)) if finite.size else 0.0
+
+        if not np.isfinite(max_abs) or max_abs <= 0:
+            # Flat / degenerate map: fall back to a sane default range (top -> 0.3).
+            top = -1
+        else:
+            # Largest [1, 3] step at/below the data max (overshoot, then back off).
+            top = int(np.ceil(2 * np.log10(max_abs)))
+            while value_at(top) > max_abs:
+                top -= 1
+
+        # Descending indices top, top-1, ... -> ascending positive levels.
+        pos = np.sort([value_at(top - j) for j in range(num_steps)])
+        neg = -pos[::-1]
+
+        return np.concatenate([neg, [0.0], pos])
+
+    def linewidths_by_level(levels, min_lw=0.3, max_lw=1.3):
+        '''Thicker lines for larger-magnitude contours, symmetric about 0.'''
+        pos_levels = sorted({abs(v) for v in levels if v != 0})
+        n = len(pos_levels)
+        if n > 1:
+            lw_map = {lv: min_lw + (max_lw - min_lw) * idx / (n - 1)
+                      for idx, lv in enumerate(pos_levels)}
+        elif n == 1:
+            lw_map = {pos_levels[0]: max_lw}
+        else:
+            lw_map = {}
+
+        lws = []
+        for v in levels:
+            if v == 0:
+                lws.append((min_lw + max_lw) / 2)
+            else:
+                lws.append(lw_map[abs(v)])
+        return lws
+
     #%% Defining simulation parameters
     D_s = 8 * u.kpc
 
@@ -211,10 +267,15 @@ if __name__ == '__main__':
                         cmap='gray',
                         extent=[-ang_width/2 - ang_res/2, ang_width/2 + ang_res/2, -ang_width/2 - ang_res/2, ang_width/2 + ang_res/2],
         )
+        # Adapt contour levels to this map so lines are always visible, even
+        # when subtracting small planets shrinks the fractional deviations.
+        levels = half_decade_levels(frac_diff_map, num_steps=6, min_steps=3)
+        print(f'Contour levels: {levels}')
+
         plot = ax.contour(np.flip(frac_diff_map, axis=0),
-                levels=[-0.30, -0.10, -0.03, -0.01, -0.003, -0.001, 0, 0.001, 0.003, 0.01, 0.03, 0.10, 0.30],
-                colors=['blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'green', 'red', 'red', 'red', 'red', 'red', 'red'],
-                linewidths=[1.3, 1.1, 0.9, 0.7, 0.5, 0.3, 0.5, 0.3, 0.5, 0.7, 0.9, 1.1, 1.3],
+                levels=levels,
+                colors=colors_by_log(levels),
+                linewidths=linewidths_by_level(levels),
                 extent=[-ang_width/2 - ang_res/2, ang_width/2 + ang_res/2, -ang_width/2 - ang_res/2, ang_width/2 + ang_res/2]
         )
 
