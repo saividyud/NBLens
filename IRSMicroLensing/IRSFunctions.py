@@ -1039,3 +1039,82 @@ class IRSFunctions:
         num_r = int(np.ceil(r_theta_ratio * num_theta))
 
         return num_r, num_theta
+
+    def lightcurve_calculator(map_array: np.ndarray, ang_width: float, u_0: float, alpha: float, t_0: float = 0, t_E: float = 1):
+        '''
+        Calculates the light curve (cross section) of a brightness map along a straight source trajectory.
+
+        The trajectory is a straight line defined by its impact parameter u_0
+        (distance of closest approach to the map center) and its angle alpha
+        from the x-axis. The map is sampled along this line with bilinear
+        interpolation. Positions are parameterized by tau, the signed distance
+        along the trajectory from the point of closest approach (tau = 0), in
+        units of theta_E; the time axis follows t = t_0 + tau * t_E.
+
+        Parameters
+        ----------
+        map_array : 2D NDArray
+            Brightness (or magnification) map to sample. Assumed square and
+            stored in real-coordinate image orientation, i.e. row 0 is the top
+            (y = +ang_width/2) and column 0 is the left (x = -ang_width/2).
+        ang_width : float
+            Angular width of the map in units of theta_E.
+        u_0 : float
+            Impact parameter of the trajectory in units of theta_E.
+        alpha : float
+            Angle of the trajectory from the x-axis in degrees.
+        t_0 : float, optional
+            Time of closest approach. Default is 0.
+        t_E : float, optional
+            Einstein crossing time (time to cross 1 theta_E). Default is 1, so
+            that times are returned directly in units of theta_E.
+
+        Returns
+        -------
+        times : 1D NDArray
+            Time of each sample (t_0 + tau * t_E, where tau is the signed
+            distance from closest approach in theta_E).
+        line_values : 1D NDArray
+            Brightness values interpolated along the trajectory.
+        (xs, ys) : tuple of 1D NDArrays
+            Scientific coordinates of each sample, useful for overplotting the
+            trajectory on the map.
+        '''
+        pixels = map_array.shape[0]
+        ang_res = ang_width / (pixels - 1)
+        alpha = np.deg2rad(alpha)
+
+        # Unit vector along the motion and the perpendicular unit vector that
+        # points toward the closest-approach offset (direction rotated +90 deg).
+        direction = np.array([np.cos(alpha), np.sin(alpha)])
+        perp = np.array([-np.sin(alpha), np.cos(alpha)])
+
+        # Sample tau across the full map. The longest chord through a square map
+        # is its diagonal, so a half-range of (diagonal/2 + |u_0|) is guaranteed
+        # to start and end outside the map for any alpha; out-of-map samples are
+        # dropped below. Sampling ~one point per pixel keeps native resolution.
+        tau_max = np.hypot(ang_width / 2, ang_width / 2) + abs(u_0)
+        num_samples = int(np.ceil(2 * tau_max / ang_res)) + 1
+        tau = np.linspace(-tau_max, tau_max, num_samples)
+
+        # Scientific (x, y) coordinates of every sample: P(tau) = u_0 * perp + tau * direction.
+        xs = u_0 * perp[0] + tau * direction[0]
+        ys = u_0 * perp[1] + tau * direction[1]
+
+        # Convert scientific coordinates to fractional array indices. Column
+        # index increases with x; row index increases as y decreases.
+        cols = (xs + ang_width / 2) / ang_res
+        rows = (ang_width / 2 - ys) / ang_res
+
+        # Keep only samples inside the map (a single contiguous segment).
+        inside = (rows >= 0) & (rows <= pixels - 1) & (cols >= 0) & (cols <= pixels - 1)
+        tau = tau[inside]
+        xs, ys = xs[inside], ys[inside]
+        rows, cols = rows[inside], cols[inside]
+
+        # Bilinear interpolation of the map along the trajectory.
+        line_values = ndi.map_coordinates(map_array, np.vstack([rows, cols]), order=1, mode='constant', cval=np.nan)
+
+        times = t_0 + tau * t_E
+
+        return times, line_values, (xs, ys)
