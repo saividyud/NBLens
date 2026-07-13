@@ -1072,7 +1072,7 @@ class IRSFunctions:
         Returns
         -------
         times : 1D NDArray
-            Time of each sample (t_0 + tau * t_E, where tau is the signed
+            Time of each sample in same units as t_0 and t_E (t_0 + tau * t_E, where tau is the signed
             distance from closest approach in theta_E).
         line_values : 1D NDArray
             Brightness values interpolated along the trajectory.
